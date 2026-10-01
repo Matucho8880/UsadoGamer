@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>UsadoGamer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --surface:#f7f7f8; --surface-2:#eff0f2; --fg:#0a0a0a; --muted:#64666c;
+    --accent:#2454ff; --accent-dim:#e8edff; --accent-ink:#ffffff;
+    --good:#0f9d6b; --good-bg:#e7f8f1; --border:#e3e3e6; --danger:#d93f3f; --danger-bg:#fdeaea;
+    --font-display:'Space Grotesk', 'Segoe UI', sans-serif;
+    --font-body:'Inter', 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg); color:var(--fg); font-family:var(--font-body); margin:0; padding-inline:24px; -webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  h1,h2,h3{font-family:var(--font-display); margin:0}
+  p{margin:0}
+  .tabular{font-variant-numeric:tabular-nums}
+  .wrap{max-width:1120px; margin-inline:auto}
+  [hidden]{display:none!important}
+
+  header.bar{
+    position:sticky; top:0; z-index:5; background:rgba(255,255,255,.92); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border); padding-block:16px; margin-inline:-24px; padding-inline:24px;
+  }
+  .barrow{max-width:1120px; margin-inline:auto; display:flex; align-items:center; gap:28px; flex-wrap:wrap}
+  .logo{display:flex; align-items:center; gap:9px; font-family:var(--font-display); font-weight:700; font-size:1.2rem; letter-spacing:-.01em; white-space:nowrap}
+  .logo .mark{width:22px; height:22px; border-radius:7px; background:var(--accent); position:relative; flex:none}
+  .logo .mark::before{content:''; position:absolute; inset:5px; border-radius:3px; background:var(--accent-ink); opacity:.9}
+  nav.tabs{display:flex; gap:2px; margin-left:auto}
+  nav.tabs button{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--muted); background:transparent; border:none; border-radius:8px; padding:9px 14px; cursor:pointer}
+  nav.tabs button[aria-selected="true"]{background:var(--surface-2); color:var(--fg)}
+  .ghost-btn{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--fg); background:transparent; border:1px solid var(--border); border-radius:9px; padding:9px 16px; cursor:pointer}
+  .user-chip{font-size:.85rem; color:var(--muted); display:flex; align-items:center; gap:10px}
+
+  main{padding-block:0 60px}
+  section[hidden]{display:none!important}
+
+  .hero{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; padding-block:56px 40px}
+  @media (max-width:760px){ .hero{grid-template-columns:1fr; padding-block:36px 28px} }
+  .eyebrow{display:inline-flex; align-items:center; gap:7px; color:var(--accent); font-weight:700; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; margin-bottom:18px}
+  .eyebrow .pip{width:7px; height:7px; border-radius:50%; background:var(--accent)}
+  .hero h1{font-size:clamp(2.1rem,4.4vw,3.2rem); line-height:1.06; letter-spacing:-.02em; margin-bottom:18px}
+  .hero h1 em{font-style:normal; color:var(--accent)}
+  .hero p.lead{color:var(--muted); font-size:1.08rem; line-height:1.6; max-width:46ch; margin-bottom:28px}
+  .hero-actions{display:flex; gap:12px; flex-wrap:wrap}
+  .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:10px; padding:14px 24px; cursor:pointer}
+  .btn-primary:disabled{opacity:.6; cursor:default}
+
+  .hero-visual{position:relative; height:340px}
+  @media (max-width:760px){ .hero-visual{height:260px} }
+  .hv-plane{position:absolute; border-radius:18px; border:1px solid var(--border)}
+  .hv-plane.a{inset:30px 10% 0 0; background:var(--surface-2); transform:rotate(-3deg)}
+  .hv-plane.b{inset:60px 0 10% 8%; background:var(--accent); opacity:.08; transform:rotate(2deg)}
+  .hv-card{position:absolute; left:8%; right:12%; top:14%; background:var(--bg); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:0 18px 40px -16px rgba(10,10,10,.2)}
+  .hv-card .hv-thumb{aspect-ratio:16/10; background:var(--surface-2); border-radius:10px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; font-size:1.8rem}
+  .hv-card .hv-title{font-weight:700; font-size:.92rem; margin-bottom:6px}
+  .hv-card .hv-row{display:flex; justify-content:space-between; align-items:center; font-size:.85rem; color:var(--muted)}
+  .hv-card .hv-price{font-family:var(--font-display); font-weight:700; color:var(--fg)}
+  .hv-tag{position:absolute; right:4%; bottom:8%; background:var(--good-bg); color:var(--good); font-weight:700; font-size:.78rem; padding:9px 14px; border-radius:10px; display:flex; align-items:center; gap:7px; box-shadow:0 14px 30px -14px rgba(15,157,107,.4)}
+  .hv-tag .pip{width:7px; height:7px; border-radius:50%; background:var(--good)}
+
+  .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
+  .chip{font-family:var(--font-body); font-weight:600; font-size:.86rem; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:999px; padding:8px 15px; cursor:pointer}
+  .chip[aria-pressed="true"]{color:var(--accent-ink); background:var(--accent); border-color:var(--accent)}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:16px; min-height:120px}
+  .card{background:var(--bg); border:1px solid var(--border); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; min-width:0}
+  .thumb{aspect-ratio:4/3; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:2.1rem}
+  .card-body{padding:14px; display:flex; flex-direction:column; gap:8px; flex:1}
+  .card-cat{font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:700}
+  .card-title{font-family:var(--font-display); font-size:1rem; line-height:1.25; min-width:0}
+  .badges{display:flex; gap:6px; flex-wrap:wrap}
+  .badge{font-size:.68rem; font-weight:700; padding:4px 8px; border-radius:6px; letter-spacing:.02em}
+  .badge.cond{background:var(--surface-2); color:var(--muted)}
+  .badge.protected{background:var(--good-bg); color:var(--good)}
+  .card-foot{margin-top:auto; display:flex; align-items:baseline; justify-content:space-between; padding-top:6px}
+  .price{font-family:var(--font-display); font-size:1.1rem; font-weight:700}
+  .seller{font-size:.78rem; color:var(--muted)}
+  .empty-note{color:var(--muted); font-size:.92rem; padding-block:30px}
+
+  .form-wrap{display:grid; grid-template-columns:1.2fr .8fr; gap:28px}
+  @media (max-width:800px){ .form-wrap{grid-template-columns:1fr} }
+  fieldset{border:1px solid var(--border); border-radius:14px; padding:18px; margin:0 0 16px; min-width:0}
+  legend{font-family:var(--font-display); font-weight:700; padding-inline:6px}
+  label{display:block; font-size:.82rem; font-weight:600; color:var(--muted); margin-bottom:6px; margin-top:14px}
+  label:first-of-type{margin-top:0}
+  input,select,textarea{width:100%; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--fg); font-family:var(--font-body); font-size:.92rem}
+  textarea{resize:vertical; min-height:80px}
+  .hint{font-size:.78rem; color:var(--muted); margin-top:6px}
+  .price-hint{display:flex; align-items:center; gap:8px; background:var(--accent-dim); border:1px solid rgba(36,84,255,.3); border-radius:8px; padding:10px 12px; margin-top:8px; font-size:.82rem}
+  .price-hint b{font-family:var(--font-display); color:var(--accent)}
+  .checklist label{display:flex; align-items:center; gap:8px; font-weight:500; color:var(--fg); margin-top:10px}
+  .checklist input[type=checkbox]{width:auto}
+  .msg{border-radius:8px; padding:10px 12px; font-size:.85rem; margin-top:14px}
+  .msg.ok{background:var(--good-bg); color:var(--good)}
+  .msg.err{background:var(--danger-bg); color:var(--danger)}
+
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:24px}
+  @media (max-width:720px){ .steps{grid-template-columns:1fr} }
+  .step{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px}
+  .step .num{font-family:var(--font-display); font-size:1.5rem; color:var(--accent); margin-bottom:8px}
+
+  footer{border-top:1px solid var(--border); margin-inline:-24px; padding:24px; color:var(--muted); font-size:.82rem; text-align:center}
+
+  /* auth modal */
+  .overlay{position:fixed; inset:0; background:rgba(10,10,10,.45); display:flex; align-items:center; justify-content:center; padding:20px; z-index:20}
+  .modal{background:var(--bg); border-radius:16px; max-width:380px; width:100%; padding:26px; border:1px solid var(--border)}
+  .modal h2{font-size:1.25rem; margin-bottom:4px}
+  .modal p.sub{color:var(--muted); font-size:.88rem; margin-top:6px; margin-bottom:18px}
+  .modal-foot{display:flex; justify-content:space-between; align-items:center; margin-top:16px}
+  .link-btn{background:none; border:none; color:var(--accent); font-weight:600; font-size:.85rem; cursor:pointer; padding:0}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="barrow">
+    <div class="logo"><span class="mark"></span>UsadoGamer</div>
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <button role="tab" aria-selected="true" data-view="explorar">Explorar</button>
+      <button role="tab" aria-selected="false" data-view="publicar">Publicar</button>
+      <button role="tab" aria-selected="false" data-view="como-funciona">Cómo funciona</button>
+    </nav>
+    <div id="auth-area"></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="view-explorar">
+    <div class="hero">
+      <div>
+        <span class="eyebrow"><span class="pip"></span>Pago protegido con Mercado Pago</span>
+        <h1>Gaming usado, sin la <em>lotería</em> de comprarle a un desconocido.</h1>
+        <p class="lead">Teclados, mouses y auriculares de segunda mano con fotos reales, precio de mercado y la plata liberada recién cuando el producto llega como se describió.</p>
+        <div class="hero-actions">
+          <button class="btn-primary" type="button" data-goto="publicar">Publicar un producto</button>
+          <button class="ghost-btn" type="button" data-goto="como-funciona">Cómo funciona la protección</button>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="hv-plane a"></div>
+        <div class="hv-plane b"></div>
+        <div class="hv-card">
+          <div class="hv-thumb">⌨️</div>
+          <div class="hv-title">Teclado mecánico Redragon Kumara</div>
+          <div class="hv-row"><span>Muy bueno</span><span class="hv-price tabular">$28.000</span></div>
+        </div>
+        <div class="hv-tag"><span class="pip"></span>Pago liberado</div>
+      </div>
+    </div>
+
+    <div class="chips" role="group" aria-label="Categorías">
+      <button class="chip" aria-pressed="true" data-cat="todos">Todos</button>
+      <button class="chip" aria-pressed="false" data-cat="teclados">Teclados</button>
+      <button class="chip" aria-pressed="false" data-cat="mouse">Mouse</button>
+      <button class="chip" aria-pressed="false" data-cat="auriculares">Auriculares</button>
+      <button class="chip" aria-pressed="false" data-cat="monitores">Monitores</button>
+    </div>
+
+    <div class="grid" id="product-grid"><p class="empty-note">Cargando publicaciones...</p></div>
+  </section>
+
+  <section id="view-publicar" hidden>
+    <h2 style="font-size:1.5rem; margin-bottom:4px; padding-top:40px">Publicar un producto</h2>
+    <p style="color:var(--muted); margin-top:8px">Cuanto más completo el formulario, más rápido se vende.</p>
+
+    <div id="publicar-locked" style="margin-top:24px; padding:20px; border:1px solid var(--border); border-radius:14px; max-width:420px">
+      <p style="margin-bottom:12px">Necesitás una cuenta para publicar.</p>
+      <button class="btn-primary" type="button" id="btn-open-auth-from-publish">Crear cuenta o iniciar sesión</button>
+    </div>
+
+    <div class="form-wrap" style="margin-top:20px" id="publicar-form-wrap" hidden>
+      <form id="publish-form">
+        <fieldset>
+          <legend>Datos del producto</legend>
+          <label for="f-cat">Categoría</label>
+          <select id="f-cat" required>
+            <option value="teclados">Teclados</option>
+            <option value="mouse">Mouse</option>
+            <option value="auriculares">Auriculares</option>
+            <option value="monitores">Monitores</option>
+          </select>
+
+          <label for="f-title">Título</label>
+          <input id="f-title" type="text" placeholder="Ej: Teclado mecánico Redragon Kumara switch rojo" required>
+
+          <label for="f-desc">Descripción</label>
+          <textarea id="f-desc" placeholder="Contá el uso que le diste, si tiene la caja, accesorios incluidos, etc."></textarea>
+
+          <label for="f-price">Precio (ARS)</label>
+          <input id="f-price" class="tabular" type="number" min="1" placeholder="0" inputmode="numeric" required>
+          <div class="price-hint" id="price-hint">Elegí una categoría para ver el precio promedio publicado.</div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Estado del producto</legend>
+          <label for="f-cond">Estado general</label>
+          <select id="f-cond">
+            <option>Como nuevo</option>
+            <option>Muy bueno</option>
+            <option>Bueno, con uso visible</option>
+            <option>Para repuestos</option>
+          </select>
+          <div class="checklist">
+            <label><input type="checkbox" id="f-works"> Funciona sin problemas al día de hoy</label>
+            <label><input type="checkbox" id="f-box"> Conservo la caja y accesorios originales</label>
+            <label><input type="checkbox" id="f-warranty"> Tiene garantía vigente</label>
+            <label><input type="checkbox" id="f-repaired"> Fue reparado alguna vez</label>
+          </div>
+          <p class="hint">Estas respuestas se muestran en la publicación para que el comprador sepa exactamente qué está comprando.</p>
+        </fieldset>
+
+        <div id="publish-msg"></div>
+      </form>
+
+      <div>
+        <fieldset>
+          <legend>Fotos</legend>
+          <div style="border:1.5px dashed var(--border); border-radius:10px; padding:28px 16px; text-align:center; color:var(--muted); font-size:.85rem; background:var(--surface)">
+            Próximamente: subida de fotos con fondo automático<br><span class="hint">Por ahora la publicación se guarda sin imagen</span>
+          </div>
+        </fieldset>
+        <button class="btn-primary" type="submit" form="publish-form" style="width:100%" id="btn-publish">Publicar producto</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-como-funciona" hidden>
+    <h2 style="font-size:1.5rem; padding-top:40px">Cómo funciona la protección</h2>
+    <p style="color:var(--muted); max-width:60ch; margin-top:8px">El pago no pasa por nosotros: lo procesa Mercado Pago, y queda retenido hasta que el comprador confirma que todo llegó bien.</p>
+    <div class="steps">
+      <div class="step"><div class="num">01</div><h3>El comprador paga</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Paga el precio publicado con Mercado Pago, con tarjeta o dinero en cuenta.</p></div>
+      <div class="step"><div class="num">02</div><h3>El vendedor despacha</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Tiene 48hs para subir el número de seguimiento del envío.</p></div>
+      <div class="step"><div class="num">03</div><h3>Se libera el pago</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">El comprador confirma que llegó bien y el dinero pasa al vendedor automáticamente.</p></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>UsadoGamer — versión de prueba, conectada a una base de datos real.</footer>
+
+<div class="overlay" id="auth-overlay" hidden>
+  <div class="modal">
+    <h2 id="auth-title">Iniciar sesión</h2>
+    <p class="sub" id="auth-sub">Entrá con tu email y contraseña.</p>
+    <form id="auth-form">
+      <label for="auth-email">Email</label>
+      <input id="auth-email" type="email" required placeholder="vos@email.com">
+      <label for="auth-password">Contraseña</label>
+      <input id="auth-password" type="password" required minlength="6" placeholder="Mínimo 6 caracteres">
+      <div id="auth-msg"></div>
+      <button class="btn-primary" type="submit" style="width:100%; margin-top:18px" id="auth-submit">Iniciar sesión</button>
+    </form>
+    <div class="modal-foot">
+      <button class="link-btn" id="auth-toggle">¿No tenés cuenta? Creá una</button>
+      <button class="link-btn" id="auth-close">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  // --- Conexión a Supabase ---
+  // Project URL y publishable key: son datos públicos pensados para usarse en el navegador.
+  var SUPABASE_URL = 'https://waqechpbjdvupnmktojg.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_WG2_nhM4dn41R8oMM5s8lA_Aax7oDTj';
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  var money = new Intl.NumberFormat('es-AR', {style:'currency', currency:'ARS', maximumFractionDigits:0});
+  var currentUser = null;
+  var currentCategoryFilter = 'todos';
+
+  // ---------- Auth UI ----------
+  var authArea = document.getElementById('auth-area');
+  var overlay = document.getElementById('auth-overlay');
+  var authForm = document.getElementById('auth-form');
+  var authTitle = document.getElementById('auth-title');
+  var authSub = document.getElementById('auth-sub');
+  var authSubmit = document.getElementById('auth-submit');
+  var authToggle = document.getElementById('auth-toggle');
+  var authMsg = document.getElementById('auth-msg');
+  var authMode = 'login'; // 'login' | 'signup'
+
+  function renderAuthArea(){
+    authArea.innerHTML = '';
+    if (currentUser){
+      var chip = document.createElement('div');
+      chip.className = 'user-chip';
+      chip.innerHTML = '<span>' + currentUser.email + '</span>';
+      var btn = document.createElement('button');
+      btn.className = 'ghost-btn';
+      btn.type = 'button';
+      btn.textContent = 'Cerrar sesión';
+      btn.addEventListener('click', async function(){ await sb.auth.signOut(); });
+      chip.appendChild(btn);
+      authArea.appendChild(chip);
+    } else {
+      var login = document.createElement('button');
+      login.className = 'ghost-btn';
+      login.type = 'button';
+      login.textContent = 'Iniciar sesión';
+      login.addEventListener('click', function(){ openAuth('login'); });
+      authArea.appendChild(login);
+    }
+    updatePublishAccess();
+  }
+
+  function openAuth(mode){
+    authMode = mode;
+    authMsg.innerHTML = '';
+    authForm.reset();
+    if (mode === 'signup'){
+      authTitle.textContent = 'Crear cuenta';
+      authSub.textContent = 'Te vamos a mandar un email para confirmar tu cuenta.';
+      authSubmit.textContent = 'Crear cuenta';
+      authToggle.textContent = '¿Ya tenés cuenta? Iniciá sesión';
+    } else {
+      authTitle.textContent = 'Iniciar sesión';
+      authSub.textContent = 'Entrá con tu email y contraseña.';
+      authSubmit.textContent = 'Iniciar sesión';
+      authToggle.textContent = '¿No tenés cuenta? Creá una';
+    }
+    overlay.hidden = false;
+  }
+
+  document.getElementById('auth-close').addEventListener('click', function(){ overlay.hidden = true; });
+  authToggle.addEventListener('click', function(){ openAuth(authMode === 'login' ? 'signup' : 'login'); });
+  document.getElementById('btn-open-auth-from-publish').addEventListener('click', function(){ openAuth('signup'); });
+
+  authForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var email = document.getElementById('auth-email').value.trim();
+    var password = document.getElementById('auth-password').value;
+    authMsg.innerHTML = '';
+    authSubmit.disabled = true;
+    try {
+      if (authMode === 'signup'){
+        var res = await sb.auth.signUp({ email: email, password: password });
+        if (res.error) throw res.error;
+        authMsg.innerHTML = '<div class="msg ok">Listo. Revisá tu email (' + email + ') y confirmá tu cuenta para poder publicar.</div>';
+      } else {
+        var res2 = await sb.auth.signInWithPassword({ email: email, password: password });
+        if (res2.error) throw res2.error;
+        overlay.hidden = true;
+      }
+    } catch (err) {
+      authMsg.innerHTML = '<div class="msg err">' + (err.message || 'Algo salió mal, probá de nuevo.') + '</div>';
+    } finally {
+      authSubmit.disabled = false;
+    }
+  });
+
+  sb.auth.onAuthStateChange(function(_event, session){
+    currentUser = session ? session.user : null;
+    renderAuthArea();
+  });
+
+  sb.auth.getSession().then(function(res){
+    currentUser = res.data.session ? res.data.session.user : null;
+    renderAuthArea();
+  });
+
+  function updatePublishAccess(){
+    var locked = document.getElementById('publicar-locked');
+    var formWrap = document.getElementById('publicar-form-wrap');
+    if (currentUser){ locked.hidden = true; formWrap.hidden = false; }
+    else { locked.hidden = false; formWrap.hidden = true; }
+  }
+
+  // ---------- Explorar: traer productos reales ----------
+  var grid = document.getElementById('product-grid');
+  var icons = {teclados:'⌨️', mouse:'🖱️', auriculares:'🎧', monitores:'🖥️'};
+
+  async function loadProducts(){
+    grid.innerHTML = '<p class="empty-note">Cargando publicaciones...</p>';
+    var query = sb.from('products').select('*').order('created_at', { ascending: false });
+    if (currentCategoryFilter !== 'todos') query = query.eq('category', currentCategoryFilter);
+    var { data, error } = await query;
+    if (error){
+      grid.innerHTML = '<p class="empty-note">No se pudieron cargar las publicaciones (' + error.message + ').</p>';
+      return;
+    }
+    if (!data || data.length === 0){
+      grid.innerHTML = '<p class="empty-note">Todavía no hay publicaciones en esta categoría. ¡Sé el primero!</p>';
+      return;
+    }
+    grid.innerHTML = '';
+    data.forEach(function(p){
+      var card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML =
+        '<div class="thumb">' + (icons[p.category] || '🎮') + '</div>' +
+        '<div class="card-body">' +
+          '<div class="card-cat">' + p.category + '</div>' +
+          '<div class="card-title">' + escapeHtml(p.title) + '</div>' +
+          '<div class="badges"><span class="badge cond">' + escapeHtml(p.condition) + '</span><span class="badge protected">Pago protegido</span></div>' +
+          '<div class="card-foot"><span class="price tabular">' + money.format(p.price) + '</span></div>' +
+        '</div>';
+      grid.appendChild(card);
+    });
+  }
+
+  function escapeHtml(str){
+    var d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  document.querySelectorAll('.chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('.chip').forEach(function(c){ c.setAttribute('aria-pressed','false'); });
+      chip.setAttribute('aria-pressed','true');
+      currentCategoryFilter = chip.dataset.cat;
+      loadProducts();
+    });
+  });
+
+  // ---------- Publicar: insertar producto real ----------
+  var catSelect = document.getElementById('f-cat');
+  var priceHint = document.getElementById('price-hint');
+
+  async function updateHint(){
+    var cat = catSelect.value;
+    var { data } = await sb.from('products').select('price').eq('category', cat);
+    if (!data || data.length === 0){
+      priceHint.innerHTML = 'Todavía no hay publicaciones en ' + cat + ' para calcular un promedio.';
+      return;
+    }
+    var avg = Math.round(data.reduce(function(s,p){ return s + Number(p.price); }, 0) / data.length);
+    priceHint.innerHTML = 'Precio promedio publicado en ' + cat + ': <b class="tabular">' + money.format(avg) + '</b>';
+  }
+  catSelect.addEventListener('change', updateHint);
+
+  var publishForm = document.getElementById('publish-form');
+  var publishMsg = document.getElementById('publish-msg');
+  var btnPublish = document.getElementById('btn-publish');
+
+  publishForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    if (!currentUser){ publishMsg.innerHTML = '<div class="msg err">Iniciá sesión primero.</div>'; return; }
+    btnPublish.disabled = true;
+    publishMsg.innerHTML = '';
+    var payload = {
+      user_id: currentUser.id,
+      category: catSelect.value,
+      title: document.getElementById('f-title').value.trim(),
+      description: document.getElementById('f-desc').value.trim(),
+      price: Number(document.getElementById('f-price').value),
+      condition: document.getElementById('f-cond').value,
+      works_ok: document.getElementById('f-works').checked,
+      has_box: document.getElementById('f-box').checked,
+      has_warranty: document.getElementById('f-warranty').checked,
+      was_repaired: document.getElementById('f-repaired').checked
+    };
+    var { error } = await sb.from('products').insert(payload);
+    btnPublish.disabled = false;
+    if (error){
+      publishMsg.innerHTML = '<div class="msg err">' + error.message + '</div>';
+      return;
+    }
+    publishMsg.innerHTML = '<div class="msg ok">¡Publicado! Ya aparece en Explorar.</div>';
+    publishForm.reset();
+    updateHint();
+  });
+
+  // ---------- Tabs ----------
+  var tabs = document.querySelectorAll('nav.tabs button');
+  var views = {
+    explorar: document.getElementById('view-explorar'),
+    publicar: document.getElementById('view-publicar'),
+    'como-funciona': document.getElementById('view-como-funciona')
+  };
+  function go(view){
+    tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.view === view)); });
+    Object.keys(views).forEach(function(k){ views[k].hidden = (k !== view); });
+    window.scrollTo(0,0);
+    if (view === 'explorar') loadProducts();
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ go(t.dataset.view); }); });
+  document.querySelectorAll('[data-goto]').forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.goto); }); });
+
+  // ---------- Carga inicial ----------
+  loadProducts();
+  updateHint();
+})();
+</script>
+</body>
+</html>
