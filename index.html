@@ -251,6 +251,20 @@
     <h2 id="auth-title">Iniciar sesión</h2>
     <p class="sub" id="auth-sub">Entrá con tu email y contraseña.</p>
     <form id="auth-form">
+      <div id="auth-extra" hidden>
+        <label for="auth-nombre">Nombre</label>
+        <input id="auth-nombre" type="text" placeholder="Tu nombre">
+        <label for="auth-apellido">Apellido</label>
+        <input id="auth-apellido" type="text" placeholder="Tu apellido">
+        <label for="auth-telefono">Teléfono (opcional)</label>
+        <input id="auth-telefono" type="tel" placeholder="Ej: 341 555 1234">
+        <label for="auth-rol">¿Qué querés hacer en UsadoGamer?</label>
+        <select id="auth-rol">
+          <option value="comprar">Comprar</option>
+          <option value="vender">Vender</option>
+          <option value="ambos">Ambos</option>
+        </select>
+      </div>
       <label for="auth-email">Email</label>
       <input id="auth-email" type="email" required placeholder="vos@email.com">
       <label for="auth-password">Contraseña</label>
@@ -313,16 +327,26 @@
     updatePublishAccess();
   }
 
+  var authExtra = document.getElementById('auth-extra');
+  var fNombre = document.getElementById('auth-nombre');
+  var fApellido = document.getElementById('auth-apellido');
+
   function openAuth(mode){
     authMode = mode;
     authMsg.innerHTML = '';
     authForm.reset();
     if (mode === 'signup'){
+      authExtra.hidden = false;
+      fNombre.required = true;
+      fApellido.required = true;
       authTitle.textContent = 'Crear cuenta';
       authSub.textContent = 'Te vamos a mandar un email para confirmar tu cuenta.';
       authSubmit.textContent = 'Crear cuenta';
       authToggle.textContent = '¿Ya tenés cuenta? Iniciá sesión';
     } else {
+      authExtra.hidden = true;
+      fNombre.required = false;
+      fApellido.required = false;
       authTitle.textContent = 'Iniciar sesión';
       authSub.textContent = 'Entrá con tu email y contraseña.';
       authSubmit.textContent = 'Iniciar sesión';
@@ -343,7 +367,18 @@
     authSubmit.disabled = true;
     try {
       if (authMode === 'signup'){
-        var res = await sb.auth.signUp({ email: email, password: password });
+        var res = await sb.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: {
+              nombre: fNombre.value.trim(),
+              apellido: fApellido.value.trim(),
+              telefono: document.getElementById('auth-telefono').value.trim(),
+              rol: document.getElementById('auth-rol').value
+            }
+          }
+        });
         if (res.error) throw res.error;
         authMsg.innerHTML = '<div class="msg ok">Listo. Revisá tu email (' + email + ') y confirmá tu cuenta para poder publicar.</div>';
       } else {
