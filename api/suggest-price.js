@@ -33,16 +33,15 @@ module.exports = async function handler(req, res) {
       'Respondé ÚNICAMENTE con un JSON válido, sin texto antes ni después, con exactamente este formato: ' +
       '{"precio_sugerido": <número entero en ARS>, "precio_nuevo_referencia": <número entero en ARS o null si no lo encontraste>, "justificacion": "<2 o 3 oraciones en español explicando el cálculo>"}';
 
-    var apiRes = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+    var apiRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
       method: 'POST',
       headers: {
         'x-goog-api-key': apiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gemini-3.8-flash',
-        input: prompt,
-        tools: [{ type: 'google_search' }]
+        contents: [{ parts: [{ text: prompt }] }],
+        tools: [{ google_search: {} }]
       })
     });
 
@@ -53,14 +52,13 @@ module.exports = async function handler(req, res) {
     }
 
     var data = await apiRes.json();
-    var steps = data.steps || [];
-    var outputStep = steps.find(function (s) { return s.type === 'model_output'; });
-    var textBlock = outputStep && outputStep.content && outputStep.content.find(function (c) { return c.type === 'text'; });
-    var text = textBlock ? textBlock.text : '';
-    var annotations = (textBlock && textBlock.annotations) || [];
-    var fuentes = annotations
-      .filter(function (a) { return a.type === 'url_citation'; })
-      .map(function (a) { return { url: a.url, titulo: a.title }; });
+    var candidate = (data.candidates || [])[0] || {};
+    var parts = (candidate.content && candidate.content.parts) || [];
+    var text = parts.map(function (p) { return p.text || ''; }).join('');
+    var chunks = (candidate.groundingMetadata && candidate.groundingMetadata.groundingChunks) || [];
+    var fuentes = chunks
+      .filter(function (c) { return c.web; })
+      .map(function (c) { return { url: c.web.uri, titulo: c.web.title }; });
 
     var parsed;
     try {
