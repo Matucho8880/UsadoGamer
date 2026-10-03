@@ -223,9 +223,11 @@
       <div>
         <fieldset>
           <legend>Fotos</legend>
-          <div style="border:1.5px dashed var(--border); border-radius:10px; padding:28px 16px; text-align:center; color:var(--muted); font-size:.85rem; background:var(--surface)">
-            Próximamente: subida de fotos con fondo automático<br><span class="hint">Por ahora la publicación se guarda sin imagen</span>
-          </div>
+          <label for="f-photo" style="display:block; border:1.5px dashed var(--border); border-radius:10px; padding:20px 16px; text-align:center; color:var(--muted); font-size:.85rem; background:var(--surface); cursor:pointer">
+            <span id="photo-label">Tocá para elegir una foto</span><br><span class="hint">El cambio de fondo automático lo sumamos en un paso aparte</span>
+          </label>
+          <input id="f-photo" type="file" accept="image/*" style="margin-top:10px; width:100%">
+          <img id="photo-preview" alt="" style="display:none; margin-top:10px; width:100%; border-radius:10px; aspect-ratio:4/3; object-fit:cover">
         </fieldset>
         <button class="btn-primary" type="submit" form="publish-form" style="width:100%" id="btn-publish">Publicar producto</button>
       </div>
@@ -431,8 +433,11 @@
     data.forEach(function(p){
       var card = document.createElement('article');
       card.className = 'card';
+      var thumb = p.photo_url
+        ? '<div class="thumb" style="padding:0"><img src="' + p.photo_url + '" alt="" style="width:100%; height:100%; object-fit:cover"></div>'
+        : '<div class="thumb">' + (icons[p.category] || '🎮') + '</div>';
       card.innerHTML =
-        '<div class="thumb">' + (icons[p.category] || '🎮') + '</div>' +
+        thumb +
         '<div class="card-body">' +
           '<div class="card-cat">' + p.category + '</div>' +
           '<div class="card-title">' + escapeHtml(p.title) + '</div>' +
@@ -477,12 +482,38 @@
   var publishForm = document.getElementById('publish-form');
   var publishMsg = document.getElementById('publish-msg');
   var btnPublish = document.getElementById('btn-publish');
+  var fPhoto = document.getElementById('f-photo');
+  var photoPreview = document.getElementById('photo-preview');
+  var photoLabel = document.getElementById('photo-label');
+
+  fPhoto.addEventListener('change', function(){
+    var file = fPhoto.files[0];
+    if (!file){ photoPreview.style.display = 'none'; photoLabel.textContent = 'Tocá para elegir una foto'; return; }
+    photoLabel.textContent = file.name;
+    var reader = new FileReader();
+    reader.onload = function(ev){ photoPreview.src = ev.target.result; photoPreview.style.display = 'block'; };
+    reader.readAsDataURL(file);
+  });
 
   publishForm.addEventListener('submit', async function(e){
     e.preventDefault();
     if (!currentUser){ publishMsg.innerHTML = '<div class="msg err">Iniciá sesión primero.</div>'; return; }
     btnPublish.disabled = true;
     publishMsg.innerHTML = '';
+
+    var photoUrl = null;
+    var file = fPhoto.files[0];
+    if (file){
+      var path = currentUser.id + '/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      var upload = await sb.storage.from('product-photos').upload(path, file);
+      if (upload.error){
+        publishMsg.innerHTML = '<div class="msg err">No se pudo subir la foto: ' + upload.error.message + '</div>';
+        btnPublish.disabled = false;
+        return;
+      }
+      photoUrl = sb.storage.from('product-photos').getPublicUrl(path).data.publicUrl;
+    }
+
     var payload = {
       user_id: currentUser.id,
       category: catSelect.value,
@@ -493,7 +524,8 @@
       works_ok: document.getElementById('f-works').checked,
       has_box: document.getElementById('f-box').checked,
       has_warranty: document.getElementById('f-warranty').checked,
-      was_repaired: document.getElementById('f-repaired').checked
+      was_repaired: document.getElementById('f-repaired').checked,
+      photo_url: photoUrl
     };
     var { error } = await sb.from('products').insert(payload);
     btnPublish.disabled = false;
@@ -503,6 +535,8 @@
     }
     publishMsg.innerHTML = '<div class="msg ok">¡Publicado! Ya aparece en Explorar.</div>';
     publishForm.reset();
+    photoPreview.style.display = 'none';
+    photoLabel.textContent = 'Tocá para elegir una foto';
     updateHint();
   });
 
