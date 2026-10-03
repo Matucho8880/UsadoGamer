@@ -40,7 +40,7 @@ module.exports = async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-3.8-flash',
         input: prompt,
         tools: [{ type: 'google_search' }]
       })
