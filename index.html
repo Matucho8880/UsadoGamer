@@ -196,7 +196,8 @@
 
           <label for="f-price">Precio (ARS)</label>
           <input id="f-price" class="tabular" type="number" min="1" placeholder="0" inputmode="numeric" required>
-          <div class="price-hint" id="price-hint">Elegí una categoría para ver el precio promedio publicado.</div>
+          <button type="button" class="ghost-btn" id="btn-suggest-price" style="margin-top:10px">Sugerir precio con IA</button>
+          <div class="price-hint" id="price-hint" hidden></div>
         </fieldset>
 
         <fieldset>
@@ -213,6 +214,10 @@
             <label><input type="checkbox" id="f-box"> Conservo la caja y accesorios originales</label>
             <label><input type="checkbox" id="f-warranty"> Tiene garantía vigente</label>
             <label><input type="checkbox" id="f-repaired"> Fue reparado alguna vez</label>
+          </div>
+          <div id="repair-detail-wrap" hidden>
+            <label for="f-repair-detail">Contanos qué le pasó y cómo se reparó</label>
+            <textarea id="f-repair-detail" placeholder="Ej: se cambió el cable USB porque hacía falso contacto, quedó andando perfecto."></textarea>
           </div>
           <p class="hint">Estas respuestas se muestran en la publicación para que el comprador sepa exactamente qué está comprando.</p>
         </fieldset>
@@ -466,18 +471,73 @@
   // ---------- Publicar: insertar producto real ----------
   var catSelect = document.getElementById('f-cat');
   var priceHint = document.getElementById('price-hint');
+  var btnSuggestPrice = document.getElementById('btn-suggest-price');
 
-  async function updateHint(){
-    var cat = catSelect.value;
-    var { data } = await sb.from('products').select('price').eq('category', cat);
-    if (!data || data.length === 0){
-      priceHint.innerHTML = 'Todavía no hay publicaciones en ' + cat + ' para calcular un promedio.';
+  function updateHint(){
+    priceHint.hidden = true;
+    priceHint.innerHTML = '';
+  }
+
+  btnSuggestPrice.addEventListener('click', async function(){
+    var title = document.getElementById('f-title').value.trim();
+    var cond = document.getElementById('f-cond').value;
+    if (!title){
+      priceHint.hidden = false;
+      priceHint.innerHTML = 'Completá primero el título del producto para poder sugerirte un precio.';
       return;
     }
-    var avg = Math.round(data.reduce(function(s,p){ return s + Number(p.price); }, 0) / data.length);
-    priceHint.innerHTML = 'Precio promedio publicado en ' + cat + ': <b class="tabular">' + money.format(avg) + '</b>';
-  }
-  catSelect.addEventListener('change', updateHint);
+    btnSuggestPrice.disabled = true;
+    btnSuggestPrice.textContent = 'Buscando precios...';
+    priceHint.hidden = false;
+    priceHint.innerHTML = 'Consultando Mercado Libre, Compra Gamer y otros sitios...';
+    try {
+      var resp = await fetch('/api/suggest-price', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: catSelect.value,
+          title: title,
+          condition: cond,
+          description: document.getElementById('f-desc').value.trim(),
+          repairDetail: fRepaired.checked ? fRepairDetail.value.trim() : ''
+        })
+      });
+      var data = await resp.json();
+      if (!resp.ok){
+        priceHint.innerHTML = 'No se pudo calcular el precio: ' + (data.error || 'error desconocido') + '.';
+        return;
+      }
+      var html = 'Precio sugerido: <b class="tabular">' + money.format(data.precio_sugerido) + '</b>';
+      if (data.precio_nuevo_referencia){
+        html += ' <span style="color:var(--muted)">(nuevo ronda los ' + money.format(data.precio_nuevo_referencia) + ')</span>';
+      }
+      html += '<br><span style="color:var(--muted); font-size:.78rem">' + data.justificacion + '</span>';
+      if (data.fuentes && data.fuentes.length){
+        html += '<br><span style="font-size:.76rem">Fuentes: ' + data.fuentes.map(function(f){
+          return '<a href="' + f.url + '" target="_blank" rel="noopener" style="color:var(--accent)">' + (f.titulo || f.url) + '</a>';
+        }).join(', ') + '</span>';
+      }
+      html += '<br><button type="button" class="ghost-btn" id="btn-use-suggested-price" style="margin-top:8px">Usar este precio</button>';
+      priceHint.innerHTML = html;
+      var useBtn = document.getElementById('btn-use-suggested-price');
+      if (useBtn) useBtn.addEventListener('click', function(){
+        document.getElementById('f-price').value = data.precio_sugerido;
+      });
+    } catch (err) {
+      priceHint.innerHTML = 'No se pudo conectar con el servicio de sugerencia de precio.';
+    } finally {
+      btnSuggestPrice.disabled = false;
+      btnSuggestPrice.textContent = 'Sugerir precio con IA';
+    }
+  });
+
+  var fRepaired = document.getElementById('f-repaired');
+  var repairDetailWrap = document.getElementById('repair-detail-wrap');
+  var fRepairDetail = document.getElementById('f-repair-detail');
+  fRepaired.addEventListener('change', function(){
+    repairDetailWrap.hidden = !fRepaired.checked;
+    if (!fRepaired.checked) fRepairDetail.value = '';
+  });
 
   var publishForm = document.getElementById('publish-form');
   var publishMsg = document.getElementById('publish-msg');
@@ -525,6 +585,7 @@
       has_box: document.getElementById('f-box').checked,
       has_warranty: document.getElementById('f-warranty').checked,
       was_repaired: document.getElementById('f-repaired').checked,
+      repair_detail: document.getElementById('f-repaired').checked ? fRepairDetail.value.trim() : null,
       photo_url: photoUrl
     };
     var { error } = await sb.from('products').insert(payload);
