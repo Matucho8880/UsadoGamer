@@ -229,10 +229,10 @@
         <fieldset>
           <legend>Fotos</legend>
           <label for="f-photo" style="display:block; border:1.5px dashed var(--border); border-radius:10px; padding:20px 16px; text-align:center; color:var(--muted); font-size:.85rem; background:var(--surface); cursor:pointer">
-            <span id="photo-label">Tocá para elegir una foto</span><br><span class="hint">El cambio de fondo automático lo sumamos en un paso aparte</span>
+            <span id="photo-label">Tocá para elegir hasta 6 fotos</span><br><span class="hint">El cambio de fondo automático lo sumamos en un paso aparte</span>
           </label>
-          <input id="f-photo" type="file" accept="image/*" style="margin-top:10px; width:100%">
-          <img id="photo-preview" alt="" style="display:none; margin-top:10px; width:100%; border-radius:10px; aspect-ratio:4/3; object-fit:cover">
+          <input id="f-photo" type="file" accept="image/*" multiple style="margin-top:10px; width:100%">
+          <div id="photo-preview-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px"></div>
         </fieldset>
         <button class="btn-primary" type="submit" form="publish-form" style="width:100%" id="btn-publish">Publicar producto</button>
       </div>
@@ -504,7 +504,9 @@
       });
       var data = await resp.json();
       if (!resp.ok){
-        priceHint.innerHTML = 'No se pudo calcular el precio: ' + (data.error || 'error desconocido') + '.';
+        priceHint.innerHTML = 'No se pudo calcular el precio: ' + (data.error || 'error desconocido') + '.' +
+          (data.detail ? '<br><span style="font-size:.72rem; color:var(--muted)">Detalle: ' + String(data.detail).slice(0,400) + '</span>' : '') +
+          (data.raw ? '<br><span style="font-size:.72rem; color:var(--muted)">Respuesta IA: ' + String(data.raw).slice(0,400) + '</span>' : '');
         return;
       }
       var html = 'Precio sugerido: <b class="tabular">' + money.format(data.precio_sugerido) + '</b>';
@@ -543,16 +545,26 @@
   var publishMsg = document.getElementById('publish-msg');
   var btnPublish = document.getElementById('btn-publish');
   var fPhoto = document.getElementById('f-photo');
-  var photoPreview = document.getElementById('photo-preview');
+  var photoPreviewGrid = document.getElementById('photo-preview-grid');
   var photoLabel = document.getElementById('photo-label');
+  var MAX_PHOTOS = 6;
 
   fPhoto.addEventListener('change', function(){
-    var file = fPhoto.files[0];
-    if (!file){ photoPreview.style.display = 'none'; photoLabel.textContent = 'Tocá para elegir una foto'; return; }
-    photoLabel.textContent = file.name;
-    var reader = new FileReader();
-    reader.onload = function(ev){ photoPreview.src = ev.target.result; photoPreview.style.display = 'block'; };
-    reader.readAsDataURL(file);
+    var files = Array.prototype.slice.call(fPhoto.files).slice(0, MAX_PHOTOS);
+    photoPreviewGrid.innerHTML = '';
+    if (!files.length){ photoLabel.textContent = 'Tocá para elegir hasta 6 fotos'; return; }
+    photoLabel.textContent = files.length + (files.length === 1 ? ' foto elegida' : ' fotos elegidas');
+    files.forEach(function(file){
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        var img = document.createElement('img');
+        img.src = ev.target.result;
+        img.alt = '';
+        img.style.cssText = 'width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:8px';
+        photoPreviewGrid.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
   });
 
   publishForm.addEventListener('submit', async function(e){
@@ -561,17 +573,18 @@
     btnPublish.disabled = true;
     publishMsg.innerHTML = '';
 
-    var photoUrl = null;
-    var file = fPhoto.files[0];
-    if (file){
-      var path = currentUser.id + '/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    var photoUrls = [];
+    var filesToUpload = Array.prototype.slice.call(fPhoto.files).slice(0, MAX_PHOTOS);
+    for (var i = 0; i < filesToUpload.length; i++){
+      var file = filesToUpload[i];
+      var path = currentUser.id + '/' + Date.now() + '-' + i + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
       var upload = await sb.storage.from('product-photos').upload(path, file);
       if (upload.error){
-        publishMsg.innerHTML = '<div class="msg err">No se pudo subir la foto: ' + upload.error.message + '</div>';
+        publishMsg.innerHTML = '<div class="msg err">No se pudo subir una de las fotos: ' + upload.error.message + '</div>';
         btnPublish.disabled = false;
         return;
       }
-      photoUrl = sb.storage.from('product-photos').getPublicUrl(path).data.publicUrl;
+      photoUrls.push(sb.storage.from('product-photos').getPublicUrl(path).data.publicUrl);
     }
 
     var payload = {
@@ -586,7 +599,8 @@
       has_warranty: document.getElementById('f-warranty').checked,
       was_repaired: document.getElementById('f-repaired').checked,
       repair_detail: document.getElementById('f-repaired').checked ? fRepairDetail.value.trim() : null,
-      photo_url: photoUrl
+      photo_url: photoUrls[0] || null,
+      photo_urls: photoUrls
     };
     var { error } = await sb.from('products').insert(payload);
     btnPublish.disabled = false;
@@ -596,8 +610,9 @@
     }
     publishMsg.innerHTML = '<div class="msg ok">¡Publicado! Ya aparece en Explorar.</div>';
     publishForm.reset();
-    photoPreview.style.display = 'none';
-    photoLabel.textContent = 'Tocá para elegir una foto';
+    photoPreviewGrid.innerHTML = '';
+    photoLabel.textContent = 'Tocá para elegir hasta 6 fotos';
+    repairDetailWrap.hidden = true;
     updateHint();
   });
 
