@@ -126,6 +126,7 @@
       <button role="tab" aria-selected="true" data-view="explorar">Explorar</button>
       <button role="tab" aria-selected="false" data-view="publicar">Publicar</button>
       <button role="tab" aria-selected="false" data-view="como-funciona">Cómo funciona</button>
+      <button role="tab" aria-selected="false" data-view="pedidos" id="tab-pedidos" hidden>Mis pedidos</button>
     </nav>
     <div id="auth-area"></div>
   </div>
@@ -222,6 +223,16 @@
           <p class="hint">Estas respuestas se muestran en la publicación para que el comprador sepa exactamente qué está comprando.</p>
         </fieldset>
 
+        <fieldset>
+          <legend>Datos para cobrar</legend>
+          <p class="hint" style="margin-top:0">Cuando confirmemos que el comprador pagó, te depositamos acá. No se muestra públicamente.</p>
+          <label for="f-alias">Alias de tu cuenta</label>
+          <input id="f-alias" type="text" placeholder="Ej: mateo.gamer.mp">
+          <label for="f-cbu">CBU (opcional si pusiste alias)</label>
+          <input id="f-cbu" type="text" inputmode="numeric" placeholder="22 dígitos">
+          <p class="hint">Necesitamos al menos uno de los dos para poder pagarte.</p>
+        </fieldset>
+
         <div id="publish-msg"></div>
       </form>
 
@@ -247,6 +258,17 @@
       <div class="step"><div class="num">02</div><h3>El vendedor despacha</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Tiene 48hs para subir el número de seguimiento del envío.</p></div>
       <div class="step"><div class="num">03</div><h3>Se libera el pago</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">El comprador confirma que llegó bien y el dinero pasa al vendedor automáticamente.</p></div>
     </div>
+  </section>
+
+  <section id="view-pedidos" hidden>
+    <h2 style="font-size:1.5rem; margin-bottom:4px; padding-top:40px">Mis pedidos</h2>
+    <p style="color:var(--muted); margin-top:8px">Acá ves el estado de lo que compraste y lo que vendiste.</p>
+
+    <h3 style="margin-top:32px; font-size:1.05rem">Mis compras</h3>
+    <div id="pedidos-compras" style="display:flex; flex-direction:column; gap:12px; margin-top:12px"><p class="empty-note">Cargando...</p></div>
+
+    <h3 style="margin-top:32px; font-size:1.05rem">Mis ventas</h3>
+    <div id="pedidos-ventas" style="display:flex; flex-direction:column; gap:12px; margin-top:12px"><p class="empty-note">Cargando...</p></div>
   </section>
 
 </main>
@@ -286,6 +308,33 @@
   </div>
 </div>
 
+<div class="overlay" id="checkout-overlay" hidden>
+  <div class="modal" style="max-width:420px">
+    <h2 id="checkout-title">Comprar producto</h2>
+    <p class="sub" id="checkout-sub"></p>
+    <div id="checkout-body">
+      <label>Forma de pago</label>
+      <div class="checklist" style="margin-top:0">
+        <label><input type="radio" name="checkout-pm" value="transferencia" checked> Transferencia bancaria (más barato)</label>
+        <label><input type="radio" name="checkout-pm" value="tarjeta" disabled> Tarjeta con Mercado Pago (próximamente)</label>
+      </div>
+
+      <div id="checkout-transferencia-box" style="margin-top:16px">
+        <p class="hint" style="margin-top:0">Transferí el monto exacto a este alias y subí el comprobante. Una vez que confirmemos que llegó el pago, le avisamos al vendedor.</p>
+        <div class="price-hint" style="display:block" id="checkout-alias-box"></div>
+        <label for="checkout-receipt" style="margin-top:16px">Comprobante de transferencia</label>
+        <input id="checkout-receipt" type="file" accept="image/*,application/pdf">
+      </div>
+
+      <div id="checkout-msg"></div>
+      <button class="btn-primary" type="button" style="width:100%; margin-top:18px" id="checkout-submit">Confirmar compra</button>
+    </div>
+    <div class="modal-foot">
+      <button class="link-btn" id="checkout-close">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
@@ -298,6 +347,10 @@
   var money = new Intl.NumberFormat('es-AR', {style:'currency', currency:'ARS', maximumFractionDigits:0});
   var currentUser = null;
   var currentCategoryFilter = 'todos';
+
+  // Alias/CBU de Mateo para recibir transferencias de los compradores.
+  var MATEO_ALIAS = 'mateobonino.mp';
+  var MATEO_CBU = '0000003100036799820309';
 
   // ---------- Auth UI ----------
   var authArea = document.getElementById('auth-area');
@@ -331,6 +384,7 @@
       login.addEventListener('click', function(){ openAuth('login'); });
       authArea.appendChild(login);
     }
+    document.getElementById('tab-pedidos').hidden = !currentUser;
     updatePublishAccess();
   }
 
@@ -420,6 +474,7 @@
   // ---------- Explorar: traer productos reales ----------
   var grid = document.getElementById('product-grid');
   var icons = {teclados:'⌨️', mouse:'🖱️', auriculares:'🎧', monitores:'🖥️'};
+  var productsById = {};
 
   async function loadProducts(){
     grid.innerHTML = '<p class="empty-note">Cargando publicaciones...</p>';
@@ -436,11 +491,13 @@
     }
     grid.innerHTML = '';
     data.forEach(function(p){
+      productsById[p.id] = p;
       var card = document.createElement('article');
       card.className = 'card';
       var thumb = p.photo_url
         ? '<div class="thumb" style="padding:0"><img src="' + p.photo_url + '" alt="" style="width:100%; height:100%; object-fit:cover"></div>'
         : '<div class="thumb">' + (icons[p.category] || '🎮') + '</div>';
+      var isMine = currentUser && p.user_id === currentUser.id;
       card.innerHTML =
         thumb +
         '<div class="card-body">' +
@@ -448,10 +505,17 @@
           '<div class="card-title">' + escapeHtml(p.title) + '</div>' +
           '<div class="badges"><span class="badge cond">' + escapeHtml(p.condition) + '</span><span class="badge protected">Pago protegido</span></div>' +
           '<div class="card-foot"><span class="price tabular">' + money.format(p.price) + '</span></div>' +
+          (isMine ? '' : '<button type="button" class="btn-primary" style="width:100%; margin-top:4px" data-buy="' + p.id + '">Comprar</button>') +
         '</div>';
       grid.appendChild(card);
     });
   }
+
+  grid.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-buy]');
+    if (!btn) return;
+    openCheckout(productsById[btn.dataset.buy]);
+  });
 
   function escapeHtml(str){
     var d = document.createElement('div');
@@ -587,6 +651,14 @@
       photoUrls.push(sb.storage.from('product-photos').getPublicUrl(path).data.publicUrl);
     }
 
+    var fAlias = document.getElementById('f-alias').value.trim();
+    var fCbu = document.getElementById('f-cbu').value.trim();
+    if (!fAlias && !fCbu){
+      publishMsg.innerHTML = '<div class="msg err">Ingresá tu alias o tu CBU para poder pagarte cuando se venda.</div>';
+      btnPublish.disabled = false;
+      return;
+    }
+
     var payload = {
       user_id: currentUser.id,
       category: catSelect.value,
@@ -602,10 +674,22 @@
       photo_url: photoUrls[0] || null,
       photo_urls: photoUrls
     };
-    var { error } = await sb.from('products').insert(payload);
-    btnPublish.disabled = false;
+    var { data: inserted, error } = await sb.from('products').insert(payload).select().single();
     if (error){
+      btnPublish.disabled = false;
       publishMsg.innerHTML = '<div class="msg err">' + error.message + '</div>';
+      return;
+    }
+
+    var payoutRes = await sb.from('product_payout_info').insert({
+      product_id: inserted.id,
+      seller_id: currentUser.id,
+      alias: fAlias || null,
+      cbu: fCbu || null
+    });
+    btnPublish.disabled = false;
+    if (payoutRes.error){
+      publishMsg.innerHTML = '<div class="msg err">El producto se publicó, pero no se pudieron guardar tus datos de cobro: ' + payoutRes.error.message + '. Escribinos para solucionarlo.</div>';
       return;
     }
     publishMsg.innerHTML = '<div class="msg ok">¡Publicado! Ya aparece en Explorar.</div>';
@@ -616,18 +700,175 @@
     updateHint();
   });
 
+  // ---------- Checkout: comprar con transferencia ----------
+  var checkoutOverlay = document.getElementById('checkout-overlay');
+  var checkoutSub = document.getElementById('checkout-sub');
+  var checkoutAliasBox = document.getElementById('checkout-alias-box');
+  var checkoutMsg = document.getElementById('checkout-msg');
+  var checkoutReceipt = document.getElementById('checkout-receipt');
+  var checkoutSubmit = document.getElementById('checkout-submit');
+  var checkoutProduct = null;
+
+  function openCheckout(product){
+    if (!product) return;
+    if (!currentUser){ openAuth('login'); return; }
+    checkoutProduct = product;
+    checkoutMsg.innerHTML = '';
+    checkoutReceipt.value = '';
+    checkoutSub.textContent = product.title + ' — ' + money.format(product.price);
+    checkoutAliasBox.innerHTML =
+      'Transferí <b class="tabular">' + money.format(product.price) + '</b> a:<br>' +
+      'Alias: <b>' + escapeHtml(MATEO_ALIAS) + '</b> ' +
+      '<button type="button" class="link-btn" data-copy="' + escapeHtml(MATEO_ALIAS) + '">copiar</button><br>' +
+      'CBU: <b class="tabular">' + escapeHtml(MATEO_CBU) + '</b> ' +
+      '<button type="button" class="link-btn" data-copy="' + escapeHtml(MATEO_CBU) + '">copiar</button>';
+    checkoutOverlay.hidden = false;
+  }
+
+  checkoutAliasBox.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-copy]');
+    if (!btn) return;
+    var text = btn.dataset.copy;
+    var done = function(){ var prev = btn.textContent; btn.textContent = 'copiado'; setTimeout(function(){ btn.textContent = prev; }, 1200); };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(function(){});
+    }
+  });
+
+  document.getElementById('checkout-close').addEventListener('click', function(){ checkoutOverlay.hidden = true; });
+
+  checkoutSubmit.addEventListener('click', async function(){
+    if (!checkoutProduct || !currentUser) return;
+    var file = checkoutReceipt.files[0];
+    if (!file){
+      checkoutMsg.innerHTML = '<div class="msg err">Subí el comprobante de la transferencia para continuar.</div>';
+      return;
+    }
+    checkoutSubmit.disabled = true;
+    checkoutMsg.innerHTML = '';
+    try {
+      var { data: orderRow, error: orderErr } = await sb.from('orders').insert({
+        product_id: checkoutProduct.id,
+        buyer_id: currentUser.id,
+        seller_id: checkoutProduct.user_id,
+        amount: checkoutProduct.price,
+        payment_method: 'transferencia',
+        status: 'pendiente_pago'
+      }).select().single();
+      if (orderErr) throw orderErr;
+
+      var path = orderRow.id + '/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      var upload = await sb.storage.from('order-receipts').upload(path, file);
+      if (upload.error) throw upload.error;
+      var receiptUrl = sb.storage.from('order-receipts').getPublicUrl(path).data.publicUrl;
+
+      var updateRes = await sb.from('orders').update({ receipt_url: receiptUrl }).eq('id', orderRow.id);
+      if (updateRes.error) throw updateRes.error;
+
+      checkoutMsg.innerHTML = '<div class="msg ok">¡Listo! En cuanto confirmemos que llegó tu pago, le avisamos al vendedor.</div>';
+      setTimeout(function(){ checkoutOverlay.hidden = true; }, 1600);
+    } catch (err) {
+      checkoutMsg.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo registrar la compra.') + '</div>';
+    } finally {
+      checkoutSubmit.disabled = false;
+    }
+  });
+
+  // ---------- Mis pedidos ----------
+  var pedidosCompras = document.getElementById('pedidos-compras');
+  var pedidosVentas = document.getElementById('pedidos-ventas');
+  var statusLabels = {
+    pendiente_pago: 'Esperando confirmación de pago',
+    pago_confirmado: 'Pago confirmado',
+    despachado: 'Despachado',
+    confirmado_entrega: 'Entrega confirmada',
+    liberado: 'Pago liberado al vendedor',
+    disputado: 'En disputa',
+    cancelado: 'Cancelado'
+  };
+
+  async function loadPedidos(){
+    if (!currentUser) return;
+    pedidosCompras.innerHTML = '<p class="empty-note">Cargando...</p>';
+    pedidosVentas.innerHTML = '<p class="empty-note">Cargando...</p>';
+
+    var compras = await sb.from('orders').select('*, products(title)').eq('buyer_id', currentUser.id).order('created_at', { ascending: false });
+    if (compras.error){
+      pedidosCompras.innerHTML = '<p class="empty-note">No se pudieron cargar tus compras (' + compras.error.message + ').</p>';
+    } else {
+      renderPedidosList(pedidosCompras, compras.data, 'compra');
+    }
+
+    var ventas = await sb.from('orders').select('*, products(title)').eq('seller_id', currentUser.id).order('created_at', { ascending: false });
+    if (ventas.error){
+      pedidosVentas.innerHTML = '<p class="empty-note">No se pudieron cargar tus ventas (' + ventas.error.message + ').</p>';
+    } else {
+      renderPedidosList(pedidosVentas, ventas.data, 'venta');
+    }
+  }
+
+  function renderPedidosList(container, rows, tipo){
+    if (!rows || !rows.length){
+      container.innerHTML = '<p class="empty-note">' + (tipo === 'compra' ? 'Todavía no compraste nada.' : 'Todavía no vendiste nada.') + '</p>';
+      return;
+    }
+    container.innerHTML = '';
+    rows.forEach(function(order){
+      var box = document.createElement('div');
+      box.style.cssText = 'border:1px solid var(--border); border-radius:12px; padding:14px';
+      var title = order.products ? order.products.title : 'Producto';
+      var html = '<div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">' +
+        '<b>' + escapeHtml(title) + '</b><span class="tabular">' + money.format(order.amount) + '</span></div>' +
+        '<p class="hint" style="margin-top:6px">Estado: ' + (statusLabels[order.status] || order.status) + '</p>';
+
+      if (tipo === 'compra' && order.status === 'despachado'){
+        html += '<button type="button" class="ghost-btn" style="margin-top:8px" data-confirm-receipt="' + order.id + '">Confirmar recepción</button>';
+      }
+      if (tipo === 'venta' && order.status === 'pago_confirmado'){
+        html += '<label style="margin-top:10px">Número de seguimiento (opcional)</label>' +
+          '<input type="text" data-tracking-input="' + order.id + '" placeholder="Ej: Correo Argentino 123456789">' +
+          '<button type="button" class="ghost-btn" style="margin-top:8px" data-mark-shipped="' + order.id + '">Marcar como despachado</button>';
+      }
+      box.innerHTML = html;
+      container.appendChild(box);
+    });
+  }
+
+  document.getElementById('view-pedidos').addEventListener('click', async function(e){
+    var confirmBtn = e.target.closest('[data-confirm-receipt]');
+    if (confirmBtn){
+      confirmBtn.disabled = true;
+      await sb.from('orders').update({ status: 'confirmado_entrega', confirmed_at: new Date().toISOString() }).eq('id', confirmBtn.dataset.confirmReceipt);
+      loadPedidos();
+      return;
+    }
+    var shipBtn = e.target.closest('[data-mark-shipped]');
+    if (shipBtn){
+      shipBtn.disabled = true;
+      var trackingInput = document.querySelector('[data-tracking-input="' + shipBtn.dataset.markShipped + '"]');
+      await sb.from('orders').update({
+        status: 'despachado',
+        shipped_at: new Date().toISOString(),
+        tracking_info: trackingInput ? trackingInput.value.trim() : null
+      }).eq('id', shipBtn.dataset.markShipped);
+      loadPedidos();
+    }
+  });
+
   // ---------- Tabs ----------
   var tabs = document.querySelectorAll('nav.tabs button');
   var views = {
     explorar: document.getElementById('view-explorar'),
     publicar: document.getElementById('view-publicar'),
-    'como-funciona': document.getElementById('view-como-funciona')
+    'como-funciona': document.getElementById('view-como-funciona'),
+    pedidos: document.getElementById('view-pedidos')
   };
   function go(view){
     tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.view === view)); });
     Object.keys(views).forEach(function(k){ views[k].hidden = (k !== view); });
     window.scrollTo(0,0);
     if (view === 'explorar') loadProducts();
+    if (view === 'pedidos') loadPedidos();
   }
   tabs.forEach(function(t){ t.addEventListener('click', function(){ go(t.dataset.view); }); });
   document.querySelectorAll('[data-goto]').forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.goto); }); });
