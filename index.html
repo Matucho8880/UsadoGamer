@@ -115,6 +115,20 @@
   .modal p.sub{color:var(--muted); font-size:.88rem; margin-top:6px; margin-bottom:18px}
   .modal-foot{display:flex; justify-content:space-between; align-items:center; margin-top:16px}
   .link-btn{background:none; border:none; color:var(--accent); font-weight:600; font-size:.85rem; cursor:pointer; padding:0}
+
+  /* producto / galería / copiar / preguntas */
+  .card[data-product]{cursor:pointer}
+  .copy-btn{display:inline-flex; align-items:center; justify-content:center; background:none; border:none; color:var(--accent); cursor:pointer; padding:4px; vertical-align:middle; border-radius:5px}
+  .copy-btn:hover{background:var(--surface-2)}
+  .copy-btn svg{width:15px; height:15px; display:block}
+  .gallery-main{aspect-ratio:4/3; background:var(--surface-2); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:3rem; overflow:hidden}
+  .gallery-main img{width:100%; height:100%; object-fit:cover}
+  .gallery-thumbs{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
+  .gallery-thumbs img{width:60px; height:60px; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid transparent}
+  .gallery-thumbs img[aria-current="true"]{border-color:var(--accent)}
+  .qa-item{border:1px solid var(--border); border-radius:10px; padding:12px}
+  .qa-item .q{font-weight:600; font-size:.88rem}
+  .qa-item .a{color:var(--muted); font-size:.86rem; margin-top:6px; padding-top:6px; border-top:1px solid var(--border)}
 </style>
 </head>
 <body>
@@ -166,6 +180,59 @@
     </div>
 
     <div class="grid" id="product-grid"><p class="empty-note">Cargando publicaciones...</p></div>
+  </section>
+
+  <section id="view-producto" hidden>
+    <button type="button" class="link-btn" id="producto-back" style="margin-top:40px">&larr; Volver a explorar</button>
+    <div class="form-wrap" style="margin-top:16px">
+      <div style="min-width:0">
+        <div id="producto-gallery"></div>
+        <div class="card-cat" id="producto-cat" style="margin-top:18px"></div>
+        <h2 id="producto-title" style="font-size:1.4rem; margin-top:4px"></h2>
+        <div class="badges" id="producto-badges" style="margin-top:10px"></div>
+        <p id="producto-desc" style="margin-top:16px; color:var(--muted); line-height:1.6"></p>
+        <p id="producto-repair" class="hint" style="margin-top:10px"></p>
+
+        <div style="margin-top:32px">
+          <h3 style="font-size:1.1rem">Preguntas al vendedor</h3>
+          <div id="qa-list" style="margin-top:12px; display:flex; flex-direction:column; gap:10px"></div>
+          <div id="qa-ask-box" style="margin-top:14px"></div>
+        </div>
+      </div>
+      <div>
+        <fieldset>
+          <legend>Resumen</legend>
+          <p class="price tabular" id="producto-price" style="font-size:1.7rem; margin-top:4px"></p>
+          <p class="badge protected" style="display:inline-block; margin-top:10px">Pago protegido</p>
+          <button type="button" class="btn-primary" style="width:100%; margin-top:18px" id="producto-buy-btn">Comprar</button>
+          <p class="hint" id="producto-own-note" style="margin-top:10px" hidden>Esta publicación es tuya.</p>
+        </fieldset>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-checkout" hidden>
+    <button type="button" class="link-btn" id="checkout-back" style="margin-top:40px">&larr; Volver al producto</button>
+    <div style="max-width:460px; margin-top:16px">
+      <h2 style="font-size:1.4rem">Comprar producto</h2>
+      <p class="sub" id="checkout-sub" style="color:var(--muted); margin-top:6px; margin-bottom:18px"></p>
+
+      <label>Forma de pago</label>
+      <div class="checklist" style="margin-top:0">
+        <label><input type="radio" name="checkout-pm" value="transferencia" checked> Transferencia bancaria (más barato)</label>
+        <label><input type="radio" name="checkout-pm" value="tarjeta" disabled> Tarjeta con Mercado Pago (próximamente)</label>
+      </div>
+
+      <div id="checkout-transferencia-box" style="margin-top:16px">
+        <p class="hint" style="margin-top:0">Transferí el monto exacto a este alias y subí el comprobante. Una vez que confirmemos que llegó el pago, le avisamos al vendedor.</p>
+        <div class="price-hint" style="display:block" id="checkout-alias-box"></div>
+        <label for="checkout-receipt" style="margin-top:16px">Comprobante de transferencia</label>
+        <input id="checkout-receipt" type="file" accept="image/*,application/pdf">
+      </div>
+
+      <div id="checkout-msg"></div>
+      <button class="btn-primary" type="button" style="width:100%; margin-top:18px" id="checkout-submit">Confirmar compra</button>
+    </div>
   </section>
 
   <section id="view-publicar" hidden>
@@ -281,12 +348,15 @@
     <p class="sub" id="auth-sub">Entrá con tu email y contraseña.</p>
     <form id="auth-form">
       <div id="auth-extra" hidden>
+        <label for="auth-username">Nombre de usuario</label>
+        <input id="auth-username" type="text" placeholder="Ej: mateo_gamer" minlength="3" autocomplete="off">
         <label for="auth-nombre">Nombre</label>
         <input id="auth-nombre" type="text" placeholder="Tu nombre">
         <label for="auth-apellido">Apellido</label>
         <input id="auth-apellido" type="text" placeholder="Tu apellido">
-        <label for="auth-telefono">Teléfono (opcional)</label>
+        <label for="auth-telefono">Teléfono</label>
         <input id="auth-telefono" type="tel" placeholder="Ej: 341 555 1234">
+        <p class="hint" style="margin-top:4px">Lo vamos a usar para contactarte por el pedido. Más adelante te vamos a pedir confirmarlo.</p>
         <label for="auth-rol">¿Qué querés hacer en UsadoGamer?</label>
         <select id="auth-rol">
           <option value="comprar">Comprar</option>
@@ -294,8 +364,8 @@
           <option value="ambos">Ambos</option>
         </select>
       </div>
-      <label for="auth-email">Email</label>
-      <input id="auth-email" type="email" required placeholder="vos@email.com">
+      <label for="auth-email" id="auth-email-label">Email</label>
+      <input id="auth-email" type="text" required placeholder="vos@email.com">
       <label for="auth-password">Contraseña</label>
       <input id="auth-password" type="password" required minlength="6" placeholder="Mínimo 6 caracteres">
       <div id="auth-msg"></div>
@@ -304,33 +374,6 @@
     <div class="modal-foot">
       <button class="link-btn" id="auth-toggle">¿No tenés cuenta? Creá una</button>
       <button class="link-btn" id="auth-close">Cerrar</button>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="checkout-overlay" hidden>
-  <div class="modal" style="max-width:420px">
-    <h2 id="checkout-title">Comprar producto</h2>
-    <p class="sub" id="checkout-sub"></p>
-    <div id="checkout-body">
-      <label>Forma de pago</label>
-      <div class="checklist" style="margin-top:0">
-        <label><input type="radio" name="checkout-pm" value="transferencia" checked> Transferencia bancaria (más barato)</label>
-        <label><input type="radio" name="checkout-pm" value="tarjeta" disabled> Tarjeta con Mercado Pago (próximamente)</label>
-      </div>
-
-      <div id="checkout-transferencia-box" style="margin-top:16px">
-        <p class="hint" style="margin-top:0">Transferí el monto exacto a este alias y subí el comprobante. Una vez que confirmemos que llegó el pago, le avisamos al vendedor.</p>
-        <div class="price-hint" style="display:block" id="checkout-alias-box"></div>
-        <label for="checkout-receipt" style="margin-top:16px">Comprobante de transferencia</label>
-        <input id="checkout-receipt" type="file" accept="image/*,application/pdf">
-      </div>
-
-      <div id="checkout-msg"></div>
-      <button class="btn-primary" type="button" style="width:100%; margin-top:18px" id="checkout-submit">Confirmar compra</button>
-    </div>
-    <div class="modal-foot">
-      <button class="link-btn" id="checkout-close">Cerrar</button>
     </div>
   </div>
 </div>
@@ -391,6 +434,10 @@
   var authExtra = document.getElementById('auth-extra');
   var fNombre = document.getElementById('auth-nombre');
   var fApellido = document.getElementById('auth-apellido');
+  var fUsername = document.getElementById('auth-username');
+  var fTelefono = document.getElementById('auth-telefono');
+  var authEmailLabel = document.getElementById('auth-email-label');
+  var authEmailInput = document.getElementById('auth-email');
 
   function openAuth(mode){
     authMode = mode;
@@ -400,6 +447,10 @@
       authExtra.hidden = false;
       fNombre.required = true;
       fApellido.required = true;
+      fUsername.required = true;
+      fTelefono.required = true;
+      authEmailLabel.textContent = 'Email';
+      authEmailInput.placeholder = 'vos@email.com';
       authTitle.textContent = 'Crear cuenta';
       authSub.textContent = 'Te vamos a mandar un email para confirmar tu cuenta.';
       authSubmit.textContent = 'Crear cuenta';
@@ -408,8 +459,12 @@
       authExtra.hidden = true;
       fNombre.required = false;
       fApellido.required = false;
+      fUsername.required = false;
+      fTelefono.required = false;
+      authEmailLabel.textContent = 'Usuario o email';
+      authEmailInput.placeholder = 'tu_usuario o vos@email.com';
       authTitle.textContent = 'Iniciar sesión';
-      authSub.textContent = 'Entrá con tu email y contraseña.';
+      authSub.textContent = 'Entrá con tu usuario o email y tu contraseña.';
       authSubmit.textContent = 'Iniciar sesión';
       authToggle.textContent = '¿No tenés cuenta? Creá una';
     }
@@ -422,28 +477,40 @@
 
   authForm.addEventListener('submit', async function(e){
     e.preventDefault();
-    var email = document.getElementById('auth-email').value.trim();
+    var emailOrUser = authEmailInput.value.trim();
     var password = document.getElementById('auth-password').value;
     authMsg.innerHTML = '';
     authSubmit.disabled = true;
     try {
       if (authMode === 'signup'){
+        if (!/^[a-zA-Z0-9_.]{3,20}$/.test(fUsername.value.trim())){
+          throw new Error('El usuario debe tener entre 3 y 20 caracteres, sin espacios (letras, números, "_" o ".").');
+        }
         var res = await sb.auth.signUp({
-          email: email,
+          email: emailOrUser,
           password: password,
           options: {
             data: {
+              username: fUsername.value.trim(),
               nombre: fNombre.value.trim(),
               apellido: fApellido.value.trim(),
-              telefono: document.getElementById('auth-telefono').value.trim(),
+              telefono: fTelefono.value.trim(),
               rol: document.getElementById('auth-rol').value
             }
           }
         });
         if (res.error) throw res.error;
-        authMsg.innerHTML = '<div class="msg ok">Listo. Revisá tu email (' + email + ') y confirmá tu cuenta para poder publicar.</div>';
+        authMsg.innerHTML = '<div class="msg ok">Listo. Revisá tu email (' + emailOrUser + ') y confirmá tu cuenta para poder publicar.</div>';
       } else {
-        var res2 = await sb.auth.signInWithPassword({ email: email, password: password });
+        var loginEmail = emailOrUser;
+        if (emailOrUser.indexOf('@') === -1){
+          var lookup = await sb.rpc('email_for_username', { uname: emailOrUser });
+          if (lookup.error || !lookup.data){
+            throw new Error('No encontramos ninguna cuenta con ese usuario.');
+          }
+          loginEmail = lookup.data;
+        }
+        var res2 = await sb.auth.signInWithPassword({ email: loginEmail, password: password });
         if (res2.error) throw res2.error;
         overlay.hidden = true;
       }
@@ -457,6 +524,7 @@
   sb.auth.onAuthStateChange(function(_event, session){
     currentUser = session ? session.user : null;
     renderAuthArea();
+    if (currentProduct && !views.producto.hidden) openProductDetail(currentProduct);
   });
 
   sb.auth.getSession().then(function(res){
@@ -494,6 +562,7 @@
       productsById[p.id] = p;
       var card = document.createElement('article');
       card.className = 'card';
+      card.dataset.product = p.id;
       var thumb = p.photo_url
         ? '<div class="thumb" style="padding:0"><img src="' + p.photo_url + '" alt="" style="width:100%; height:100%; object-fit:cover"></div>'
         : '<div class="thumb">' + (icons[p.category] || '🎮') + '</div>';
@@ -505,16 +574,16 @@
           '<div class="card-title">' + escapeHtml(p.title) + '</div>' +
           '<div class="badges"><span class="badge cond">' + escapeHtml(p.condition) + '</span><span class="badge protected">Pago protegido</span></div>' +
           '<div class="card-foot"><span class="price tabular">' + money.format(p.price) + '</span></div>' +
-          (isMine ? '' : '<button type="button" class="btn-primary" style="width:100%; margin-top:4px" data-buy="' + p.id + '">Comprar</button>') +
+          '<button type="button" class="btn-primary" style="width:100%; margin-top:4px" data-product-btn="' + p.id + '">' + (isMine ? 'Ver publicación' : 'Comprar') + '</button>' +
         '</div>';
       grid.appendChild(card);
     });
   }
 
   grid.addEventListener('click', function(e){
-    var btn = e.target.closest('[data-buy]');
-    if (!btn) return;
-    openCheckout(productsById[btn.dataset.buy]);
+    var card = e.target.closest('[data-product]');
+    if (!card) return;
+    openProductDetail(productsById[card.dataset.product]);
   });
 
   function escapeHtml(str){
@@ -700,8 +769,151 @@
     updateHint();
   });
 
+  // ---------- Página de producto ----------
+  var COPY_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="7" width="10" height="10" rx="2"></rect><path d="M4.5 13.5h-1a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v1"></path></svg>';
+  var CHECK_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5l4 4 8-9"></path></svg>';
+
+  var productoBack = document.getElementById('producto-back');
+  var productoGallery = document.getElementById('producto-gallery');
+  var productoCat = document.getElementById('producto-cat');
+  var productoTitle = document.getElementById('producto-title');
+  var productoBadges = document.getElementById('producto-badges');
+  var productoDesc = document.getElementById('producto-desc');
+  var productoRepair = document.getElementById('producto-repair');
+  var productoPrice = document.getElementById('producto-price');
+  var productoBuyBtn = document.getElementById('producto-buy-btn');
+  var productoOwnNote = document.getElementById('producto-own-note');
+  var qaList = document.getElementById('qa-list');
+  var qaAskBox = document.getElementById('qa-ask-box');
+  var currentProduct = null;
+
+  function openProductDetail(product){
+    if (!product) return;
+    currentProduct = product;
+    var photos = (product.photo_urls && product.photo_urls.length) ? product.photo_urls : (product.photo_url ? [product.photo_url] : []);
+    renderGallery(photos, product.category);
+    productoCat.textContent = product.category;
+    productoTitle.textContent = product.title;
+    productoDesc.textContent = product.description || 'El vendedor no agregó una descripción.';
+    productoRepair.textContent = product.was_repaired && product.repair_detail ? 'Reparación: ' + product.repair_detail : '';
+    productoBadges.innerHTML =
+      '<span class="badge cond">' + escapeHtml(product.condition) + '</span>' +
+      (product.works_ok ? '<span class="badge cond">Funciona bien</span>' : '') +
+      (product.has_box ? '<span class="badge cond">Con caja</span>' : '') +
+      (product.has_warranty ? '<span class="badge cond">Con garantía</span>' : '') +
+      '<span class="badge protected">Pago protegido</span>';
+    productoPrice.textContent = money.format(product.price);
+    var isMine = currentUser && product.user_id === currentUser.id;
+    productoBuyBtn.hidden = !!isMine;
+    productoOwnNote.hidden = !isMine;
+    loadQuestions(product.id);
+    go('producto');
+  }
+
+  function renderGallery(photos, category){
+    if (!photos.length){
+      productoGallery.innerHTML = '<div class="gallery-main">' + (icons[category] || '🎮') + '</div>';
+      return;
+    }
+    productoGallery.innerHTML =
+      '<div class="gallery-main"><img id="gallery-main-img" src="' + photos[0] + '" alt=""></div>' +
+      (photos.length > 1 ? '<div class="gallery-thumbs">' + photos.map(function(url, i){
+        return '<img src="' + url + '" alt="" data-thumb="' + i + '" aria-current="' + (i === 0) + '">';
+      }).join('') + '</div>' : '');
+    if (photos.length > 1){
+      productoGallery.querySelectorAll('[data-thumb]').forEach(function(thumb){
+        thumb.addEventListener('click', function(){
+          document.getElementById('gallery-main-img').src = photos[thumb.dataset.thumb];
+          productoGallery.querySelectorAll('[data-thumb]').forEach(function(t){ t.setAttribute('aria-current', 'false'); });
+          thumb.setAttribute('aria-current', 'true');
+        });
+      });
+    }
+  }
+
+  productoBack.addEventListener('click', function(){ go('explorar'); });
+
+  productoBuyBtn.addEventListener('click', function(){
+    if (!currentUser){ openAuth('login'); return; }
+    openCheckout(currentProduct);
+  });
+
+  // ---------- Preguntas al vendedor ----------
+  async function loadQuestions(productId){
+    qaList.innerHTML = '<p class="empty-note">Cargando preguntas...</p>';
+    var res = await sb.from('product_questions').select('*').eq('product_id', productId).order('created_at', { ascending: false });
+    if (res.error){
+      qaList.innerHTML = '<p class="empty-note">No se pudieron cargar las preguntas.</p>';
+    } else {
+      renderQuestions(res.data || []);
+    }
+    renderAskBox();
+  }
+
+  function renderQuestions(rows){
+    if (!rows.length){
+      qaList.innerHTML = '<p class="empty-note">Todavía no hay preguntas. ¡Sé el primero en preguntar!</p>';
+      return;
+    }
+    var isSeller = currentUser && currentProduct && currentUser.id === currentProduct.user_id;
+    qaList.innerHTML = '';
+    rows.forEach(function(q){
+      var item = document.createElement('div');
+      item.className = 'qa-item';
+      var html = '<div class="q">' + escapeHtml(q.question) + '</div>';
+      if (q.answer){
+        html += '<div class="a">Respuesta del vendedor: ' + escapeHtml(q.answer) + '</div>';
+      } else if (isSeller){
+        html += '<div style="margin-top:8px"><input type="text" placeholder="Escribí tu respuesta..." data-answer-input="' + q.id + '">' +
+          '<button type="button" class="ghost-btn" style="margin-top:6px" data-answer-btn="' + q.id + '">Responder</button></div>';
+      } else {
+        html += '<div class="a">Sin responder todavía.</div>';
+      }
+      item.innerHTML = html;
+      qaList.appendChild(item);
+    });
+  }
+
+  function renderAskBox(){
+    if (!currentUser){
+      qaAskBox.innerHTML = '<p class="hint">Iniciá sesión para hacerle una pregunta al vendedor.</p>';
+      return;
+    }
+    if (currentProduct && currentUser.id === currentProduct.user_id){
+      qaAskBox.innerHTML = '';
+      return;
+    }
+    qaAskBox.innerHTML =
+      '<label for="qa-new-question">Hacer una pregunta</label>' +
+      '<textarea id="qa-new-question" placeholder="Ej: ¿el teclado incluye el cable original?" style="min-height:60px"></textarea>' +
+      '<button type="button" class="ghost-btn" style="margin-top:8px" id="qa-ask-btn">Enviar pregunta</button>' +
+      '<div id="qa-ask-msg"></div>';
+    document.getElementById('qa-ask-btn').addEventListener('click', async function(){
+      var textarea = document.getElementById('qa-new-question');
+      var text = textarea.value.trim();
+      var msg = document.getElementById('qa-ask-msg');
+      if (!text){ msg.innerHTML = '<div class="msg err">Escribí una pregunta primero.</div>'; return; }
+      var res = await sb.from('product_questions').insert({ product_id: currentProduct.id, asker_id: currentUser.id, question: text });
+      if (res.error){ msg.innerHTML = '<div class="msg err">' + res.error.message + '</div>'; return; }
+      textarea.value = '';
+      msg.innerHTML = '<div class="msg ok">¡Pregunta enviada!</div>';
+      loadQuestions(currentProduct.id);
+    });
+  }
+
+  qaList.addEventListener('click', async function(e){
+    var btn = e.target.closest('[data-answer-btn]');
+    if (!btn) return;
+    var input = qaList.querySelector('[data-answer-input="' + btn.dataset.answerBtn + '"]');
+    var answer = input ? input.value.trim() : '';
+    if (!answer) return;
+    btn.disabled = true;
+    var res = await sb.from('product_questions').update({ answer: answer, answered_at: new Date().toISOString() }).eq('id', btn.dataset.answerBtn);
+    if (!res.error) loadQuestions(currentProduct.id);
+    btn.disabled = false;
+  });
+
   // ---------- Checkout: comprar con transferencia ----------
-  var checkoutOverlay = document.getElementById('checkout-overlay');
   var checkoutSub = document.getElementById('checkout-sub');
   var checkoutAliasBox = document.getElementById('checkout-alias-box');
   var checkoutMsg = document.getElementById('checkout-msg');
@@ -719,23 +931,25 @@
     checkoutAliasBox.innerHTML =
       'Transferí <b class="tabular">' + money.format(product.price) + '</b> a:<br>' +
       'Alias: <b>' + escapeHtml(MATEO_ALIAS) + '</b> ' +
-      '<button type="button" class="link-btn" data-copy="' + escapeHtml(MATEO_ALIAS) + '">copiar</button><br>' +
+      '<button type="button" class="copy-btn" data-copy="' + escapeHtml(MATEO_ALIAS) + '" aria-label="Copiar alias">' + COPY_ICON + '</button><br>' +
       'CBU: <b class="tabular">' + escapeHtml(MATEO_CBU) + '</b> ' +
-      '<button type="button" class="link-btn" data-copy="' + escapeHtml(MATEO_CBU) + '">copiar</button>';
-    checkoutOverlay.hidden = false;
+      '<button type="button" class="copy-btn" data-copy="' + escapeHtml(MATEO_CBU) + '" aria-label="Copiar CBU">' + COPY_ICON + '</button>';
+    go('checkout');
   }
 
   checkoutAliasBox.addEventListener('click', function(e){
     var btn = e.target.closest('[data-copy]');
     if (!btn) return;
     var text = btn.dataset.copy;
-    var done = function(){ var prev = btn.textContent; btn.textContent = 'copiado'; setTimeout(function(){ btn.textContent = prev; }, 1200); };
+    var done = function(){ var prev = btn.innerHTML; btn.innerHTML = CHECK_ICON; setTimeout(function(){ btn.innerHTML = prev; }, 1200); };
     if (navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(text).then(done).catch(function(){});
     }
   });
 
-  document.getElementById('checkout-close').addEventListener('click', function(){ checkoutOverlay.hidden = true; });
+  document.getElementById('checkout-back').addEventListener('click', function(){
+    if (checkoutProduct) openProductDetail(checkoutProduct); else go('explorar');
+  });
 
   checkoutSubmit.addEventListener('click', async function(){
     if (!checkoutProduct || !currentUser) return;
@@ -765,8 +979,8 @@
       var updateRes = await sb.from('orders').update({ receipt_url: receiptUrl }).eq('id', orderRow.id);
       if (updateRes.error) throw updateRes.error;
 
-      checkoutMsg.innerHTML = '<div class="msg ok">¡Listo! En cuanto confirmemos que llegó tu pago, le avisamos al vendedor.</div>';
-      setTimeout(function(){ checkoutOverlay.hidden = true; }, 1600);
+      checkoutMsg.innerHTML = '<div class="msg ok">¡Listo! En cuanto confirmemos que llegó tu pago, le avisamos al vendedor. Podés ver el estado en "Mis pedidos".</div>';
+      setTimeout(function(){ go('pedidos'); }, 1800);
     } catch (err) {
       checkoutMsg.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo registrar la compra.') + '</div>';
     } finally {
@@ -861,7 +1075,9 @@
     explorar: document.getElementById('view-explorar'),
     publicar: document.getElementById('view-publicar'),
     'como-funciona': document.getElementById('view-como-funciona'),
-    pedidos: document.getElementById('view-pedidos')
+    pedidos: document.getElementById('view-pedidos'),
+    producto: document.getElementById('view-producto'),
+    checkout: document.getElementById('view-checkout')
   };
   function go(view){
     tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.view === view)); });
