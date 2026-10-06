@@ -206,6 +206,7 @@
           <p class="badge protected" style="display:inline-block; margin-top:10px">Pago protegido</p>
           <button type="button" class="btn-primary" style="width:100%; margin-top:18px" id="producto-buy-btn">Comprar</button>
           <p class="hint" id="producto-own-note" style="margin-top:10px" hidden>Esta publicación es tuya.</p>
+          <p class="hint" style="margin-top:12px; line-height:1.5">Compra protegida: tu dinero queda retenido hasta que confirmás que el producto llegó como se describió. Si el envío falla o no es lo que esperabas, escribinos antes de confirmar la recepción y te ayudamos a resolverlo.</p>
         </fieldset>
       </div>
     </div>
@@ -546,7 +547,7 @@
 
   async function loadProducts(){
     grid.innerHTML = '<p class="empty-note">Cargando publicaciones...</p>';
-    var query = sb.from('products').select('*').order('created_at', { ascending: false });
+    var query = sb.from('products').select('*').eq('status', 'disponible').order('created_at', { ascending: false });
     if (currentCategoryFilter !== 'todos') query = query.eq('category', currentCategoryFilter);
     var { data, error } = await query;
     if (error){
@@ -804,7 +805,10 @@
       '<span class="badge protected">Pago protegido</span>';
     productoPrice.textContent = money.format(product.price);
     var isMine = currentUser && product.user_id === currentUser.id;
+    var isAvailable = (product.status || 'disponible') === 'disponible';
     productoBuyBtn.hidden = !!isMine;
+    productoBuyBtn.disabled = !isAvailable;
+    productoBuyBtn.textContent = isAvailable ? 'Comprar' : (product.status === 'vendido' ? 'Vendido' : 'Reservado');
     productoOwnNote.hidden = !isMine;
     loadQuestions(product.id);
     go('producto');
@@ -971,7 +975,14 @@
       }).select().single();
       if (orderErr) throw orderErr;
 
-      var path = orderRow.id + '/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      var titleSlug = (checkoutProduct.title || 'producto')
+        .toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '') // sacar acentos
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 40) || 'producto';
+      var folder = titleSlug + '-pedido-' + orderRow.id.slice(0, 8);
+      var path = folder + '/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
       var upload = await sb.storage.from('order-receipts').upload(path, file);
       if (upload.error) throw upload.error;
       var receiptUrl = sb.storage.from('order-receipts').getPublicUrl(path).data.publicUrl;
