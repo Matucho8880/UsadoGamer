@@ -1103,6 +1103,14 @@
   // ---------- Carga inicial ----------
   loadProducts();
   updateHint();
+
+  // Si entran desde un link de email (?producto=ID), abrir directo esa publicación
+  var deepLinkId = new URLSearchParams(window.location.search).get('producto');
+  if (deepLinkId){
+    sb.from('products').select('*').eq('id', deepLinkId).single().then(function(res){
+      if (res.data) openProductDetail(res.data);
+    });
+  }
 })();
 </script>
 </body>
