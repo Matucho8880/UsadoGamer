@@ -228,6 +228,7 @@
           <p class="price tabular" id="producto-price" style="font-size:1.7rem; margin-top:4px"></p>
           <p class="badge protected" style="display:inline-block; margin-top:10px">Pago protegido</p>
           <button type="button" class="btn-primary" style="width:100%; margin-top:18px" id="producto-buy-btn">Comprar</button>
+          <div id="oferta-box" style="margin-top:14px"></div>
           <p class="hint" id="producto-own-note" style="margin-top:10px" hidden>Esta publicación es tuya.</p>
           <p class="hint" style="margin-top:12px; line-height:1.5">Compra protegida: tu dinero queda retenido hasta que confirmás que el producto llegó como se describió. Si el envío falla o no es lo que esperabas, escribinos antes de confirmar la recepción y te ayudamos a resolverlo.</p>
         </fieldset>
@@ -614,6 +615,7 @@
 
   async function loadProducts(){
     grid.innerHTML = '<p class="empty-note">Cargando publicaciones...</p>';
+    try { await sb.rpc('cleanup_expired_offer_orders'); } catch (e) {}
     var query = sb.from('products').select('*').eq('status', 'disponible').order('created_at', { ascending: false });
     if (currentCategoryFilter !== 'todos') query = query.eq('category', currentCategoryFilter);
     var { data, error } = await query;
@@ -824,11 +826,13 @@
   var productoOwnNote = document.getElementById('producto-own-note');
   var qaList = document.getElementById('qa-list');
   var qaAskBox = document.getElementById('qa-ask-box');
+  var ofertaBox = document.getElementById('oferta-box');
   var currentProduct = null;
 
-  function openProductDetail(product){
+  async function openProductDetail(product){
     if (!product) return;
     currentProduct = product;
+    try { await sb.rpc('cleanup_expired_offer_orders'); } catch (e) {}
     var photos = (product.photo_urls && product.photo_urls.length) ? product.photo_urls : (product.photo_url ? [product.photo_url] : []);
     renderGallery(photos, product.category);
     productoCat.textContent = product.category;
@@ -852,8 +856,109 @@
     productoBuyBtn.textContent = isAvailable ? 'Comprar' : (product.status === 'vendido' ? 'Vendido' : 'Reservado');
     productoOwnNote.hidden = !isMine;
     loadQuestions(product.id);
+    loadOfertas(product);
     go('producto');
   }
+
+  // ---------- Contraofertas ----------
+  async function loadOfertas(product){
+    if (!ofertaBox) return;
+    if (!currentUser){
+      ofertaBox.innerHTML = (product.status === 'disponible')
+        ? '<p class="hint">¿Querés ofertar un precio menor? Iniciá sesión primero.</p>' : '';
+      return;
+    }
+    var isMine = currentUser.id === product.user_id;
+    if (isMine){
+      var res = await sb.from('offers').select('*').eq('product_id', product.id).order('created_at', { ascending: false });
+      renderOfertasSeller(res.data || []);
+      return;
+    }
+    if (product.status !== 'disponible'){ ofertaBox.innerHTML = ''; return; }
+    var mine = await sb.from('offers').select('*').eq('product_id', product.id).eq('buyer_id', currentUser.id).maybeSingle();
+    renderOfertaBuyer(mine.data || null, product);
+  }
+
+  function renderOfertasSeller(rows){
+    var pending = rows.filter(function(o){ return o.status === 'pendiente'; });
+    if (!pending.length){ ofertaBox.innerHTML = ''; return; }
+    ofertaBox.innerHTML =
+      '<div style="border-top:1px solid var(--border); padding-top:14px">' +
+        '<p class="hint" style="margin-bottom:8px"><b>Ofertas recibidas</b></p>' +
+        pending.map(function(o){
+          return '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:8px">' +
+            '<span class="tabular">' + money.format(o.offered_price) + '</span>' +
+            '<span><button type="button" class="ghost-btn" data-offer-accept="' + o.id + '">Aceptar</button> ' +
+            '<button type="button" class="ghost-btn" data-offer-reject="' + o.id + '">Rechazar</button></span></div>';
+        }).join('') +
+      '</div>';
+  }
+
+  function renderOfertaBuyer(offer, product){
+    if (!offer){
+      ofertaBox.innerHTML =
+        '<label for="oferta-input" style="margin-top:0">¿Querés ofertar un precio menor?</label>' +
+        '<input id="oferta-input" type="number" min="1" placeholder="Tu oferta en $">' +
+        '<button type="button" class="ghost-btn" style="margin-top:8px" id="oferta-btn">Enviar oferta</button>' +
+        '<div id="oferta-msg"></div>';
+      document.getElementById('oferta-btn').addEventListener('click', async function(){
+        var input = document.getElementById('oferta-input');
+        var val = parseFloat(input.value);
+        var msg = document.getElementById('oferta-msg');
+        if (!val || val <= 0){ msg.innerHTML = '<div class="msg err">Ingresá un monto válido.</div>'; return; }
+        var btn = document.getElementById('oferta-btn');
+        btn.disabled = true;
+        var res = await sb.from('offers').insert({ product_id: product.id, buyer_id: currentUser.id, offered_price: val });
+        btn.disabled = false;
+        if (res.error){
+          var text = res.error.message.indexOf('oferta_fuera_de_margen') !== -1
+            ? 'Esa oferta es demasiado baja para este producto. Probá con un monto más cercano al precio de lista.'
+            : (res.error.message.toLowerCase().indexOf('duplicate') !== -1
+              ? 'Ya hiciste una oferta por este producto.'
+              : res.error.message);
+          msg.innerHTML = '<div class="msg err">' + text + '</div>';
+          return;
+        }
+        msg.innerHTML = '<div class="msg ok">¡Oferta enviada! Te avisamos por mail cuando el vendedor responda.</div>';
+        loadOfertas(product);
+      });
+      return;
+    }
+    if (offer.status === 'pendiente'){
+      ofertaBox.innerHTML = '<p class="hint">Tu oferta de <b class="tabular">' + money.format(offer.offered_price) + '</b> está esperando respuesta del vendedor.</p>';
+    } else if (offer.status === 'rechazada'){
+      ofertaBox.innerHTML = '<p class="hint">Tu oferta de <b class="tabular">' + money.format(offer.offered_price) + '</b> no fue aceptada. Podés comprar al precio de lista.</p>';
+    } else if (offer.status === 'aceptada'){
+      ofertaBox.innerHTML =
+        '<p class="hint">¡Tu oferta de <b class="tabular">' + money.format(offer.offered_price) + '</b> fue aceptada! Tenés 24hs para pagar o el producto vuelve a estar disponible.</p>' +
+        '<button type="button" class="btn-primary" style="width:100%; margin-top:8px" id="oferta-pagar-btn">Pagar ahora</button>';
+      document.getElementById('oferta-pagar-btn').addEventListener('click', async function(){
+        if (!offer.order_id) { go('pedidos'); return; }
+        var orderRes = await sb.from('orders').select('*').eq('id', offer.order_id).single();
+        if (orderRes.data && !orderRes.data.receipt_url){
+          openCheckout(product, orderRes.data);
+        } else {
+          go('pedidos');
+        }
+      });
+    }
+  }
+
+  ofertaBox.addEventListener('click', async function(e){
+    var acceptBtn = e.target.closest('[data-offer-accept]');
+    var rejectBtn = e.target.closest('[data-offer-reject]');
+    if (acceptBtn){
+      acceptBtn.disabled = true;
+      await sb.from('offers').update({ status: 'aceptada' }).eq('id', acceptBtn.dataset.offerAccept);
+      var refreshed = await sb.from('products').select('*').eq('id', currentProduct.id).single();
+      if (refreshed.data) openProductDetail(refreshed.data); else loadOfertas(currentProduct);
+    }
+    if (rejectBtn){
+      rejectBtn.disabled = true;
+      await sb.from('offers').update({ status: 'rechazada' }).eq('id', rejectBtn.dataset.offerReject);
+      loadOfertas(currentProduct);
+    }
+  });
 
   function renderGallery(photos, category){
     if (!photos.length){
@@ -965,16 +1070,19 @@
   var checkoutReceipt = document.getElementById('checkout-receipt');
   var checkoutSubmit = document.getElementById('checkout-submit');
   var checkoutProduct = null;
+  var checkoutExistingOrder = null;
 
-  function openCheckout(product){
+  function openCheckout(product, existingOrder){
     if (!product) return;
     if (!currentUser){ openAuth('login'); return; }
     checkoutProduct = product;
+    checkoutExistingOrder = existingOrder || null;
     checkoutMsg.innerHTML = '';
     checkoutReceipt.value = '';
-    checkoutSub.textContent = product.title + ' — ' + money.format(product.price);
+    var amount = checkoutExistingOrder ? checkoutExistingOrder.amount : product.price;
+    checkoutSub.textContent = product.title + ' — ' + money.format(amount) + (checkoutExistingOrder ? ' (oferta aceptada)' : '');
     checkoutAliasBox.innerHTML =
-      'Transferí <b class="tabular">' + money.format(product.price) + '</b> a:<br>' +
+      'Transferí <b class="tabular">' + money.format(amount) + '</b> a:<br>' +
       'Alias: <b>' + escapeHtml(MATEO_ALIAS) + '</b> ' +
       '<button type="button" class="copy-btn" data-copy="' + escapeHtml(MATEO_ALIAS) + '" aria-label="Copiar alias">' + COPY_ICON + '</button><br>' +
       'CBU: <b class="tabular">' + escapeHtml(MATEO_CBU) + '</b> ' +
@@ -1006,15 +1114,21 @@
     checkoutSubmit.disabled = true;
     checkoutMsg.innerHTML = '';
     try {
-      var { data: orderRow, error: orderErr } = await sb.from('orders').insert({
-        product_id: checkoutProduct.id,
-        buyer_id: currentUser.id,
-        seller_id: checkoutProduct.user_id,
-        amount: checkoutProduct.price,
-        payment_method: 'transferencia',
-        status: 'pendiente_pago'
-      }).select().single();
-      if (orderErr) throw orderErr;
+      var orderRow;
+      if (checkoutExistingOrder){
+        orderRow = checkoutExistingOrder;
+      } else {
+        var insertRes = await sb.from('orders').insert({
+          product_id: checkoutProduct.id,
+          buyer_id: currentUser.id,
+          seller_id: checkoutProduct.user_id,
+          amount: checkoutProduct.price,
+          payment_method: 'transferencia',
+          status: 'pendiente_pago'
+        }).select().single();
+        if (insertRes.error) throw insertRes.error;
+        orderRow = insertRes.data;
+      }
 
       var titleSlug = (checkoutProduct.title || 'producto')
         .toLowerCase()
@@ -1031,6 +1145,7 @@
       var updateRes = await sb.from('orders').update({ receipt_url: receiptUrl }).eq('id', orderRow.id);
       if (updateRes.error) throw updateRes.error;
 
+      checkoutExistingOrder = null;
       checkoutMsg.innerHTML = '<div class="msg ok">¡Listo! En cuanto confirmemos que llegó tu pago, le avisamos al vendedor. Podés ver el estado en "Mis pedidos".</div>';
       setTimeout(function(){ go('pedidos'); }, 1800);
     } catch (err) {
@@ -1057,6 +1172,7 @@
     if (!currentUser) return;
     pedidosCompras.innerHTML = '<p class="empty-note">Cargando...</p>';
     pedidosVentas.innerHTML = '<p class="empty-note">Cargando...</p>';
+    try { await sb.rpc('cleanup_expired_offer_orders'); } catch (e) {}
 
     var compras = await sb.from('orders').select('*, products(title)').eq('buyer_id', currentUser.id).order('created_at', { ascending: false });
     if (compras.error){
@@ -1087,6 +1203,13 @@
         '<b>' + escapeHtml(title) + '</b><span class="tabular">' + money.format(order.amount) + '</span></div>' +
         '<p class="hint" style="margin-top:6px">Estado: ' + (statusLabels[order.status] || order.status) + '</p>';
 
+      if (tipo === 'compra' && order.status === 'pendiente_pago' && !order.receipt_url){
+        var deadlineTxt = order.payment_deadline
+          ? ' Tenés hasta el ' + new Date(order.payment_deadline).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) + ' para pagar.'
+          : '';
+        html += '<p class="hint" style="margin-top:6px">Todavía falta subir el comprobante.' + deadlineTxt + '</p>' +
+          '<button type="button" class="ghost-btn" style="margin-top:4px" data-pay-order="' + order.id + '" data-pay-product="' + order.product_id + '" data-pay-amount="' + order.amount + '">Pagar ahora</button>';
+      }
       if (tipo === 'compra' && order.status === 'despachado'){
         html += '<button type="button" class="ghost-btn" style="margin-top:8px" data-confirm-receipt="' + order.id + '">Confirmar recepción</button>';
       }
@@ -1101,6 +1224,16 @@
   }
 
   document.getElementById('view-pedidos').addEventListener('click', async function(e){
+    var payBtn = e.target.closest('[data-pay-order]');
+    if (payBtn){
+      payBtn.disabled = true;
+      var prodRes = await sb.from('products').select('*').eq('id', payBtn.dataset.payProduct).single();
+      if (prodRes.data){
+        openCheckout(prodRes.data, { id: payBtn.dataset.payOrder, amount: parseFloat(payBtn.dataset.payAmount) });
+      }
+      payBtn.disabled = false;
+      return;
+    }
     var confirmBtn = e.target.closest('[data-confirm-receipt]');
     if (confirmBtn){
       confirmBtn.disabled = true;
