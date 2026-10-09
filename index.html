@@ -88,7 +88,7 @@
   .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:10px; padding:14px 24px; cursor:pointer}
   .btn-primary:disabled{opacity:.6; cursor:default}
 
-  .hero-visual{position:relative; height:340px}
+  .hero-visual{position:relative; height:340px; overflow:hidden}
   @media (max-width:760px){ .hero-visual{height:260px} }
   .hv-plane{position:absolute; border-radius:18px; border:1px solid var(--border)}
   .hv-plane.a{inset:30px 10% 0 0; background:var(--surface-2); transform:rotate(-3deg)}
@@ -450,10 +450,15 @@
           <option value="ambos">Ambos</option>
         </select>
       </div>
-      <label for="auth-email" id="auth-email-label">Email</label>
-      <input id="auth-email" type="text" required placeholder="vos@email.com">
-      <label for="auth-password">Contraseña</label>
-      <input id="auth-password" type="password" required minlength="6" placeholder="Mínimo 6 caracteres">
+      <div id="auth-email-wrap">
+        <label for="auth-email" id="auth-email-label">Email</label>
+        <input id="auth-email" type="text" required placeholder="vos@email.com">
+      </div>
+      <div id="auth-password-wrap">
+        <label for="auth-password" id="auth-password-label">Contraseña</label>
+        <input id="auth-password" type="password" required minlength="6" placeholder="Mínimo 6 caracteres">
+        <button type="button" class="link-btn" id="auth-forgot-link" style="margin-top:8px; font-size:.8rem">¿Olvidaste tu contraseña?</button>
+      </div>
       <div id="auth-msg"></div>
       <button class="btn-primary" type="submit" style="width:100%; margin-top:18px" id="auth-submit">Iniciar sesión</button>
     </form>
@@ -600,10 +605,29 @@
   var authEmailLabel = document.getElementById('auth-email-label');
   var authEmailInput = document.getElementById('auth-email');
 
+  var authEmailWrap = document.getElementById('auth-email-wrap');
+  var authPasswordWrap = document.getElementById('auth-password-wrap');
+  var authPasswordLabel = document.getElementById('auth-password-label');
+  var authPasswordInput = document.getElementById('auth-password');
+  var authForgotLink = document.getElementById('auth-forgot-link');
+
   function openAuth(mode){
     authMode = mode;
     authMsg.innerHTML = '';
     authForm.reset();
+    // valores por defecto, cada modo pisa lo que necesite
+    authExtra.hidden = true;
+    fNombre.required = false;
+    fApellido.required = false;
+    fUsername.required = false;
+    fTelefono.required = false;
+    authEmailWrap.hidden = false;
+    authEmailInput.required = true;
+    authPasswordWrap.hidden = false;
+    authPasswordInput.required = true;
+    authForgotLink.hidden = true;
+    authToggle.hidden = false;
+
     if (mode === 'signup'){
       authExtra.hidden = false;
       fNombre.required = true;
@@ -612,18 +636,33 @@
       fTelefono.required = true;
       authEmailLabel.textContent = 'Email';
       authEmailInput.placeholder = 'vos@email.com';
+      authPasswordLabel.textContent = 'Contraseña';
       authTitle.textContent = 'Crear cuenta';
       authSub.textContent = 'Te vamos a mandar un email para confirmar tu cuenta.';
       authSubmit.textContent = 'Crear cuenta';
       authToggle.textContent = '¿Ya tenés cuenta? Iniciá sesión';
-    } else {
-      authExtra.hidden = true;
-      fNombre.required = false;
-      fApellido.required = false;
-      fUsername.required = false;
-      fTelefono.required = false;
+    } else if (mode === 'recover'){
       authEmailLabel.textContent = 'Usuario o email';
       authEmailInput.placeholder = 'tu_usuario o vos@email.com';
+      authPasswordWrap.hidden = true;
+      authPasswordInput.required = false;
+      authTitle.textContent = 'Recuperar contraseña';
+      authSub.textContent = 'Te mandamos un link a tu email para que elijas una contraseña nueva.';
+      authSubmit.textContent = 'Enviar link de recuperación';
+      authToggle.textContent = '¿Te acordaste? Iniciá sesión';
+    } else if (mode === 'reset'){
+      authEmailWrap.hidden = true;
+      authEmailInput.required = false;
+      authPasswordLabel.textContent = 'Nueva contraseña';
+      authTitle.textContent = 'Elegí tu nueva contraseña';
+      authSub.textContent = 'Escribí la contraseña que querés usar de ahora en más.';
+      authSubmit.textContent = 'Guardar nueva contraseña';
+      authToggle.hidden = true;
+    } else {
+      authEmailLabel.textContent = 'Usuario o email';
+      authEmailInput.placeholder = 'tu_usuario o vos@email.com';
+      authPasswordLabel.textContent = 'Contraseña';
+      authForgotLink.hidden = false;
       authTitle.textContent = 'Iniciar sesión';
       authSub.textContent = 'Entrá con tu usuario o email y tu contraseña.';
       authSubmit.textContent = 'Iniciar sesión';
@@ -633,7 +672,11 @@
   }
 
   document.getElementById('auth-close').addEventListener('click', function(){ overlay.hidden = true; });
-  authToggle.addEventListener('click', function(){ openAuth(authMode === 'login' ? 'signup' : 'login'); });
+  authToggle.addEventListener('click', function(){
+    if (authMode === 'recover'){ openAuth('login'); return; }
+    openAuth(authMode === 'login' ? 'signup' : 'login');
+  });
+  authForgotLink.addEventListener('click', function(){ openAuth('recover'); });
   document.getElementById('btn-open-auth-from-publish').addEventListener('click', function(){ openAuth('signup'); });
 
   authForm.addEventListener('submit', async function(e){
@@ -662,7 +705,7 @@
         });
         if (res.error) throw res.error;
         authMsg.innerHTML = '<div class="msg ok">Listo. Revisá tu email (' + emailOrUser + ') y confirmá tu cuenta para poder publicar.</div>';
-      } else {
+      } else if (authMode === 'login'){
         var loginEmail = emailOrUser;
         if (emailOrUser.indexOf('@') === -1){
           var lookup = await sb.rpc('email_for_username', { uname: emailOrUser });
@@ -674,6 +717,24 @@
         var res2 = await sb.auth.signInWithPassword({ email: loginEmail, password: password });
         if (res2.error) throw res2.error;
         overlay.hidden = true;
+      } else if (authMode === 'recover'){
+        var recoverEmail = emailOrUser;
+        if (emailOrUser.indexOf('@') === -1){
+          var lookup2 = await sb.rpc('email_for_username', { uname: emailOrUser });
+          if (lookup2.error || !lookup2.data){
+            throw new Error('No encontramos ninguna cuenta con ese usuario.');
+          }
+          recoverEmail = lookup2.data;
+        }
+        var resetRes = await sb.auth.resetPasswordForEmail(recoverEmail, { redirectTo: window.location.origin + '/?reset=true' });
+        if (resetRes.error) throw resetRes.error;
+        authMsg.innerHTML = '<div class="msg ok">Listo. Revisá tu email y seguí el link para elegir una contraseña nueva.</div>';
+      } else if (authMode === 'reset'){
+        if (password.length < 6){ throw new Error('La contraseña tiene que tener al menos 6 caracteres.'); }
+        var updateRes = await sb.auth.updateUser({ password: password });
+        if (updateRes.error) throw updateRes.error;
+        authMsg.innerHTML = '<div class="msg ok">¡Listo! Tu contraseña se actualizó.</div>';
+        setTimeout(function(){ overlay.hidden = true; }, 1800);
       }
     } catch (err) {
       authMsg.innerHTML = '<div class="msg err">' + (err.message || 'Algo salió mal, probá de nuevo.') + '</div>';
@@ -682,10 +743,11 @@
     }
   });
 
-  sb.auth.onAuthStateChange(function(_event, session){
+  sb.auth.onAuthStateChange(function(event, session){
     currentUser = session ? session.user : null;
     renderAuthArea();
     if (currentProduct && !views.producto.hidden) openProductDetail(currentProduct);
+    if (event === 'PASSWORD_RECOVERY') openAuth('reset');
   });
 
   sb.auth.getSession().then(function(res){
