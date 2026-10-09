@@ -95,6 +95,11 @@
   .seller{font-size:.78rem; color:var(--muted)}
   .empty-note{color:var(--muted); font-size:.92rem; padding-block:30px}
 
+  .cat-tiles{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:14px; max-width:620px}
+  .cat-tile{display:flex; flex-direction:column; align-items:center; gap:10px; background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:28px 14px; font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--fg); cursor:pointer}
+  .cat-tile:hover{border-color:var(--accent); background:var(--accent-dim)}
+  .cat-tile-icon{font-size:2.2rem}
+
   .form-wrap{display:grid; grid-template-columns:1.2fr .8fr; gap:28px}
   @media (max-width:800px){ .form-wrap{grid-template-columns:1fr} }
   fieldset{border:1px solid var(--border); border-radius:14px; padding:18px; margin:0 0 16px; min-width:0}
@@ -209,6 +214,7 @@
         <div class="badges" id="producto-badges" style="margin-top:10px"></div>
         <p id="producto-desc" style="margin-top:16px; color:var(--muted); line-height:1.6"></p>
         <p id="producto-repair" class="hint" style="margin-top:10px"></p>
+        <p id="producto-envio" class="hint" style="margin-top:10px"></p>
 
         <div style="margin-top:32px">
           <h3 style="font-size:1.1rem">Preguntas al vendedor</h3>
@@ -262,17 +268,23 @@
       <button class="btn-primary" type="button" id="btn-open-auth-from-publish">Crear cuenta o iniciar sesión</button>
     </div>
 
+    <div id="categoria-picker" style="margin-top:20px" hidden>
+      <p style="color:var(--muted); margin-bottom:16px">¿Qué querés publicar?</p>
+      <div class="cat-tiles">
+        <button type="button" class="cat-tile" data-cat-pick="teclados"><span class="cat-tile-icon">⌨️</span>Teclados</button>
+        <button type="button" class="cat-tile" data-cat-pick="mouse"><span class="cat-tile-icon">🖱️</span>Mouse</button>
+        <button type="button" class="cat-tile" data-cat-pick="auriculares"><span class="cat-tile-icon">🎧</span>Auriculares</button>
+        <button type="button" class="cat-tile" data-cat-pick="monitores"><span class="cat-tile-icon">🖥️</span>Monitores</button>
+      </div>
+    </div>
+
     <div class="form-wrap" style="margin-top:20px" id="publicar-form-wrap" hidden>
       <form id="publish-form">
         <fieldset>
           <legend>Datos del producto</legend>
-          <label for="f-cat">Categoría</label>
-          <select id="f-cat" required>
-            <option value="teclados">Teclados</option>
-            <option value="mouse">Mouse</option>
-            <option value="auriculares">Auriculares</option>
-            <option value="monitores">Monitores</option>
-          </select>
+          <button type="button" class="link-btn" id="btn-change-category" style="margin-bottom:14px">← Cambiar categoría</button>
+          <p class="hint" style="margin-top:0">Categoría: <b id="categoria-elegida-label" style="color:var(--fg)"></b></p>
+          <input type="hidden" id="f-cat">
 
           <label for="f-title">Título</label>
           <input id="f-title" type="text" placeholder="Ej: Teclado mecánico Redragon Kumara switch rojo" required>
@@ -305,6 +317,16 @@
             <textarea id="f-repair-detail" placeholder="Ej: se cambió el cable USB porque hacía falso contacto, quedó andando perfecto."></textarea>
           </div>
           <p class="hint">Estas respuestas se muestran en la publicación para que el comprador sepa exactamente qué está comprando.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Envío</legend>
+          <p class="hint" style="margin-top:0">¿Con qué empresa podés mandar el producto? Marcá todas las que te sirvan.</p>
+          <div class="checklist">
+            <label><input type="checkbox" id="f-ship-correo" checked> Correo Argentino <span style="color:var(--good); font-weight:700">(recomendado)</span></label>
+            <label><input type="checkbox" id="f-ship-andreani"> Andreani</label>
+          </div>
+          <p class="hint">Correo Argentino suele llegar a localidades donde Andreani no tiene sucursal.</p>
         </fieldset>
 
         <fieldset>
@@ -552,12 +574,38 @@
     renderAuthArea();
   });
 
+  var chosenCategory = null;
+  var catNames = {teclados:'Teclados', mouse:'Mouse', auriculares:'Auriculares', monitores:'Monitores'};
+
   function updatePublishAccess(){
     var locked = document.getElementById('publicar-locked');
+    var picker = document.getElementById('categoria-picker');
     var formWrap = document.getElementById('publicar-form-wrap');
-    if (currentUser){ locked.hidden = true; formWrap.hidden = false; }
-    else { locked.hidden = false; formWrap.hidden = true; }
+    if (!currentUser){
+      locked.hidden = false; picker.hidden = true; formWrap.hidden = true;
+      return;
+    }
+    locked.hidden = true;
+    if (!chosenCategory){
+      picker.hidden = false; formWrap.hidden = true;
+    } else {
+      picker.hidden = true; formWrap.hidden = false;
+    }
   }
+
+  document.querySelectorAll('[data-cat-pick]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      chosenCategory = btn.dataset.catPick;
+      document.getElementById('f-cat').value = chosenCategory;
+      document.getElementById('categoria-elegida-label').textContent = catNames[chosenCategory] || chosenCategory;
+      updatePublishAccess();
+      window.scrollTo(0,0);
+    });
+  });
+  document.getElementById('btn-change-category').addEventListener('click', function(){
+    chosenCategory = null;
+    updatePublishAccess();
+  });
 
   // ---------- Explorar: traer productos reales ----------
   var grid = document.getElementById('product-grid');
@@ -707,6 +755,15 @@
       return;
     }
 
+    var shippingCarriers = [];
+    if (document.getElementById('f-ship-correo').checked) shippingCarriers.push('correo_argentino');
+    if (document.getElementById('f-ship-andreani').checked) shippingCarriers.push('andreani');
+    if (!shippingCarriers.length){
+      publishMsg.innerHTML = '<div class="msg err">Marcá al menos una empresa de envío.</div>';
+      btnPublish.disabled = false;
+      return;
+    }
+
     var payload = {
       user_id: currentUser.id,
       category: catSelect.value,
@@ -720,7 +777,8 @@
       was_repaired: document.getElementById('f-repaired').checked,
       repair_detail: document.getElementById('f-repaired').checked ? fRepairDetail.value.trim() : null,
       photo_url: photoUrls[0] || null,
-      photo_urls: photoUrls
+      photo_urls: photoUrls,
+      shipping_carriers: shippingCarriers
     };
     var { data: inserted, error } = await sb.from('products').insert(payload).select().single();
     if (error){
@@ -746,6 +804,8 @@
     photoLabel.textContent = 'Tocá para elegir hasta 6 fotos';
     repairDetailWrap.hidden = true;
     updateHint();
+    chosenCategory = null;
+    updatePublishAccess();
   });
 
   // ---------- Página de producto ----------
@@ -775,6 +835,9 @@
     productoTitle.textContent = product.title;
     productoDesc.textContent = product.description || 'El vendedor no agregó una descripción.';
     productoRepair.textContent = product.was_repaired && product.repair_detail ? 'Reparación: ' + product.repair_detail : '';
+    var carrierNames = {correo_argentino: 'Correo Argentino', andreani: 'Andreani'};
+    var carriers = (product.shipping_carriers || []).map(function(c){ return carrierNames[c] || c; });
+    document.getElementById('producto-envio').textContent = carriers.length ? 'Envía por: ' + carriers.join(' o ') : '';
     productoBadges.innerHTML =
       '<span class="badge cond">' + escapeHtml(product.condition) + '</span>' +
       (product.works_ok ? '<span class="badge cond">Funciona bien</span>' : '') +
