@@ -7,7 +7,7 @@
 <link rel="icon" href="favicon-joystick.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#ffffff; --surface:#f7f7f8; --surface-2:#eff0f2; --fg:#0a0a0a; --muted:#64666c;
@@ -30,14 +30,24 @@
     border-bottom:1px solid var(--border); padding-block:16px; margin-inline:-24px; padding-inline:24px;
   }
   .barrow{max-width:1120px; margin-inline:auto; display:flex; align-items:center; gap:28px; flex-wrap:wrap}
-  .logo{display:flex; align-items:center; gap:9px; font-family:var(--font-display); font-weight:700; font-size:1.2rem; letter-spacing:-.01em; white-space:nowrap}
-  .logo .mark{width:22px; height:22px; border-radius:7px; background:var(--accent); position:relative; flex:none}
-  .logo .mark::before{content:''; position:absolute; inset:5px; border-radius:3px; background:var(--accent-ink); opacity:.9}
-  nav.tabs{display:flex; gap:2px; margin-left:auto}
-  nav.tabs button{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--muted); background:transparent; border:none; border-radius:8px; padding:9px 14px; cursor:pointer}
-  nav.tabs button[aria-selected="true"]{background:var(--surface-2); color:var(--fg)}
+  .logo{display:flex; align-items:center; gap:10px; font-family:'Outfit', var(--font-body); font-weight:700; font-size:1rem; letter-spacing:-.01em; white-space:nowrap}
+  .logo-mark{width:38px; height:38px; display:block; flex:none}
   .ghost-btn{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--fg); background:transparent; border:1px solid var(--border); border-radius:9px; padding:9px 16px; cursor:pointer}
   .user-chip{font-size:.85rem; color:var(--muted); display:flex; align-items:center; gap:10px}
+
+  /* menú hamburguesa / cajón lateral */
+  .hamburger-btn{background:none; border:none; cursor:pointer; padding:8px 6px; display:flex; flex-direction:column; gap:4px; flex:none}
+  .hamburger-btn span{display:block; width:20px; height:2px; background:var(--fg); border-radius:2px}
+  .drawer-overlay{position:fixed; inset:0; background:rgba(10,10,10,.45); z-index:30; opacity:0; pointer-events:none; transition:opacity .2s}
+  .drawer-overlay.open{opacity:1; pointer-events:auto}
+  .drawer{position:fixed; top:0; left:0; bottom:0; width:270px; max-width:80vw; background:var(--bg); border-right:1px solid var(--border); padding:18px; display:flex; flex-direction:column; transform:translateX(-100%); transition:transform .25s}
+  .drawer-overlay.open .drawer{transform:translateX(0)}
+  .drawer-close{align-self:flex-end; background:none; border:none; font-size:1.6rem; line-height:1; cursor:pointer; color:var(--muted); padding:4px 8px; margin-bottom:10px}
+  .drawer-link{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--border); font-family:var(--font-body); font-weight:600; font-size:1rem; color:var(--fg); padding:15px 4px; cursor:pointer}
+  .drawer-link[aria-selected="true"]{color:var(--accent)}
+  .drawer-logo{display:flex; align-items:center; gap:10px; margin-top:auto; padding-top:20px; border-top:1px solid var(--border)}
+  .drawer-logo img{width:32px; height:32px}
+  .drawer-logo span{font-family:'Outfit', var(--font-body); font-weight:700; font-size:1rem}
 
   main{padding-block:0 60px}
   section[hidden]{display:none!important}
@@ -136,16 +146,22 @@
 
 <header class="bar">
   <div class="barrow">
-    <div class="logo" data-goto="explorar" style="cursor:pointer"><img src="logo-gaming-intercambio.png" alt="UsadoGamer" style="width:28px; height:28px; display:block; flex:none">UsadoGamer</div>
-    <nav class="tabs" role="tablist" aria-label="Secciones">
-      <button role="tab" aria-selected="true" data-view="explorar">Explorar</button>
-      <button role="tab" aria-selected="false" data-view="publicar">Publicar</button>
-      <button role="tab" aria-selected="false" data-view="como-funciona">Cómo funciona</button>
-      <button role="tab" aria-selected="false" data-view="pedidos" id="tab-pedidos" hidden>Mis pedidos</button>
-    </nav>
-    <div id="auth-area"></div>
+    <button type="button" class="hamburger-btn" id="menu-open-btn" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <div class="logo" data-goto="explorar" style="cursor:pointer"><img class="logo-mark" src="logo-gaming-intercambio.png" alt="UsadoGamer"><span>UsadoGamer</span></div>
+    <div id="auth-area" style="margin-left:auto"></div>
   </div>
 </header>
+
+<div class="drawer-overlay" id="drawer-overlay">
+  <nav class="drawer" role="dialog" aria-label="Menú principal">
+    <button type="button" class="drawer-close" id="menu-close-btn" aria-label="Cerrar menú">×</button>
+    <button type="button" class="drawer-link" role="tab" aria-selected="true" data-view="explorar">Explorar</button>
+    <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="publicar">Publicar</button>
+    <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="como-funciona">Cómo funciona</button>
+    <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="pedidos" id="tab-pedidos" hidden>Mis pedidos</button>
+    <div class="drawer-logo"><img src="logo-gaming-intercambio.png" alt=""><span>UsadoGamer</span></div>
+  </nav>
+</div>
 
 <main class="wrap">
 
@@ -266,8 +282,7 @@
 
           <label for="f-price">Precio (ARS)</label>
           <input id="f-price" class="tabular" type="number" min="1" placeholder="0" inputmode="numeric" required>
-          <button type="button" class="ghost-btn" id="btn-suggest-price" style="margin-top:10px">Sugerir precio con IA</button>
-          <div class="price-hint" id="price-hint" hidden></div>
+          <div class="price-hint" id="price-hint" style="display:block"></div>
         </fieldset>
 
         <fieldset>
@@ -411,9 +426,12 @@
   function renderAuthArea(){
     authArea.innerHTML = '';
     if (currentUser){
+      var displayName = (currentUser.user_metadata && currentUser.user_metadata.username)
+        ? '@' + currentUser.user_metadata.username
+        : (currentUser.email || '').split('@')[0];
       var chip = document.createElement('div');
       chip.className = 'user-chip';
-      chip.innerHTML = '<span>' + currentUser.email + '</span>';
+      chip.innerHTML = '<span>' + escapeHtml(displayName) + '</span>';
       var btn = document.createElement('button');
       btn.className = 'ghost-btn';
       btn.type = 'button';
@@ -606,67 +624,26 @@
   // ---------- Publicar: insertar producto real ----------
   var catSelect = document.getElementById('f-cat');
   var priceHint = document.getElementById('price-hint');
-  var btnSuggestPrice = document.getElementById('btn-suggest-price');
+  var fPrice = document.getElementById('f-price');
+
+  // Comisión de UsadoGamer. Por ahora solo hay pago por transferencia (sin
+  // comisión de Mercado Pago), así que el neto es simplemente precio - comisión.
+  var COMMISSION_RATE = 0.08;
 
   function updateHint(){
-    priceHint.hidden = true;
-    priceHint.innerHTML = '';
-  }
-
-  btnSuggestPrice.addEventListener('click', async function(){
-    var title = document.getElementById('f-title').value.trim();
-    var cond = document.getElementById('f-cond').value;
-    if (!title){
-      priceHint.hidden = false;
-      priceHint.innerHTML = 'Completá primero el título del producto para poder sugerirte un precio.';
+    var price = Number(fPrice.value);
+    if (!price || price <= 0){
+      priceHint.innerHTML = '<span class="hint" style="margin:0">Ingresá un precio para ver cuánto vas a recibir vos.</span>';
       return;
     }
-    btnSuggestPrice.disabled = true;
-    btnSuggestPrice.textContent = 'Buscando precios...';
-    priceHint.hidden = false;
-    priceHint.innerHTML = 'Consultando Mercado Libre, Compra Gamer y otros sitios...';
-    try {
-      var resp = await fetch('/api/suggest-price', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          category: catSelect.value,
-          title: title,
-          condition: cond,
-          description: document.getElementById('f-desc').value.trim(),
-          repairDetail: fRepaired.checked ? fRepairDetail.value.trim() : ''
-        })
-      });
-      var data = await resp.json();
-      if (!resp.ok){
-        priceHint.innerHTML = 'No se pudo calcular el precio: ' + (data.error || 'error desconocido') + '.' +
-          (data.detail ? '<br><span style="font-size:.72rem; color:var(--muted)">Detalle: ' + String(data.detail).slice(0,400) + '</span>' : '') +
-          (data.raw ? '<br><span style="font-size:.72rem; color:var(--muted)">Respuesta IA: ' + String(data.raw).slice(0,400) + '</span>' : '');
-        return;
-      }
-      var html = 'Precio sugerido: <b class="tabular">' + money.format(data.precio_sugerido) + '</b>';
-      if (data.precio_nuevo_referencia){
-        html += ' <span style="color:var(--muted)">(nuevo ronda los ' + money.format(data.precio_nuevo_referencia) + ')</span>';
-      }
-      html += '<br><span style="color:var(--muted); font-size:.78rem">' + data.justificacion + '</span>';
-      if (data.fuentes && data.fuentes.length){
-        html += '<br><span style="font-size:.76rem">Fuentes: ' + data.fuentes.map(function(f){
-          return '<a href="' + f.url + '" target="_blank" rel="noopener" style="color:var(--accent)">' + (f.titulo || f.url) + '</a>';
-        }).join(', ') + '</span>';
-      }
-      html += '<br><button type="button" class="ghost-btn" id="btn-use-suggested-price" style="margin-top:8px">Usar este precio</button>';
-      priceHint.innerHTML = html;
-      var useBtn = document.getElementById('btn-use-suggested-price');
-      if (useBtn) useBtn.addEventListener('click', function(){
-        document.getElementById('f-price').value = data.precio_sugerido;
-      });
-    } catch (err) {
-      priceHint.innerHTML = 'No se pudo conectar con el servicio de sugerencia de precio.';
-    } finally {
-      btnSuggestPrice.disabled = false;
-      btnSuggestPrice.textContent = 'Sugerir precio con IA';
-    }
-  });
+    var commission = Math.round(price * COMMISSION_RATE);
+    var net = price - commission;
+    priceHint.innerHTML =
+      'Recibís neto: <b class="tabular">' + money.format(net) + '</b>' +
+      '<br><span style="color:var(--muted); font-size:.78rem">Comisión de UsadoGamer (' + (COMMISSION_RATE * 100) + '%): ' + money.format(commission) + '. Pagando por transferencia no hay comisión extra de Mercado Pago.</span>';
+  }
+
+  fPrice.addEventListener('input', updateHint);
 
   var fRepaired = document.getElementById('f-repaired');
   var repairDetailWrap = document.getElementById('repair-detail-wrap');
@@ -1081,8 +1058,8 @@
     }
   });
 
-  // ---------- Tabs ----------
-  var tabs = document.querySelectorAll('nav.tabs button');
+  // ---------- Tabs / menú lateral ----------
+  var tabs = document.querySelectorAll('.drawer-link');
   var views = {
     explorar: document.getElementById('view-explorar'),
     publicar: document.getElementById('view-publicar'),
@@ -1098,8 +1075,16 @@
     if (view === 'explorar') loadProducts();
     if (view === 'pedidos') loadPedidos();
   }
-  tabs.forEach(function(t){ t.addEventListener('click', function(){ go(t.dataset.view); }); });
-  document.querySelectorAll('[data-goto]').forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.goto); }); });
+
+  var drawerOverlay = document.getElementById('drawer-overlay');
+  function openDrawer(){ drawerOverlay.classList.add('open'); }
+  function closeDrawer(){ drawerOverlay.classList.remove('open'); }
+  document.getElementById('menu-open-btn').addEventListener('click', openDrawer);
+  document.getElementById('menu-close-btn').addEventListener('click', closeDrawer);
+  drawerOverlay.addEventListener('click', function(e){ if (e.target === drawerOverlay) closeDrawer(); });
+
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ closeDrawer(); go(t.dataset.view); }); });
+  document.querySelectorAll('[data-goto]').forEach(function(b){ b.addEventListener('click', function(){ closeDrawer(); go(b.dataset.goto); }); });
 
   // ---------- Carga inicial ----------
   loadProducts();
