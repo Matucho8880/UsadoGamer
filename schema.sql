@@ -528,3 +528,138 @@ drop trigger if exists on_offer_responded on public.offers;
 create trigger on_offer_responded
   after update on public.offers
   for each row execute function public.notify_offer_response();
+
+-- ============================================================
+-- Campanita de notificaciones dentro del sitio. Son independientes de los
+-- mails: mismos eventos (pregunta nueva, respuesta, oferta nueva, oferta
+-- aceptada/rechazada), pero guardados en una tabla para mostrarlos en la
+-- página sin depender de que el mail llegue.
+-- ============================================================
+
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id),
+  type text not null check (type in ('pregunta','respuesta','oferta_nueva','oferta_aceptada','oferta_rechazada')),
+  title text not null,
+  body text,
+  product_id uuid references public.products(id) on delete cascade,
+  read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table public.notifications enable row level security;
+
+create policy "Cada usuario ve sus propias notificaciones"
+  on public.notifications for select
+  using (auth.uid() = user_id);
+
+create policy "Cada usuario marca como leídas sus propias notificaciones"
+  on public.notifications for update
+  using (auth.uid() = user_id);
+
+-- A partir de acá, se reemplazan las funciones que ya disparaban los mails
+-- para que, de paso, generen también la notificación dentro del sitio.
+
+create or replace function public.notify_new_question()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  seller_id uuid;
+begin
+  select user_id into seller_id from public.products where id = new.product_id;
+  if seller_id is not null then
+    insert into public.notifications (user_id, type, title, body, product_id)
+    values (seller_id, 'pregunta', 'Te hicieron una pregunta', new.question, new.product_id);
+  end if;
+
+  perform net.http_post(
+    url := 'https://usadogamer-projecarg.vercel.app/api/notify-question',
+    headers := jsonb_build_object('Content-Type', 'application/json'),
+    body := jsonb_build_object('question_id', new.id, 'secret', '7b0dbded63a6e04bb8e592cc348bca0585c8afe3de7aacfb')
+  );
+  return new;
+end;
+$$;
+
+-- Nuevo: cuando el vendedor responde una pregunta, se avisa a quien preguntó
+-- (antes esto no pasaba ni por mail ni dentro del sitio).
+create or replace function public.notify_question_answered()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if old.answer is null and new.answer is not null then
+    insert into public.notifications (user_id, type, title, body, product_id)
+    values (new.asker_id, 'respuesta', 'Respondieron tu pregunta', new.answer, new.product_id);
+
+    perform net.http_post(
+      url := 'https://usadogamer-projecarg.vercel.app/api/notify-question-answered',
+      headers := jsonb_build_object('Content-Type', 'application/json'),
+      body := jsonb_build_object('question_id', new.id, 'secret', '7b0dbded63a6e04bb8e592cc348bca0585c8afe3de7aacfb')
+    );
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_question_answered on public.product_questions;
+create trigger on_question_answered
+  after update on public.product_questions
+  for each row execute function public.notify_question_answered();
+
+create or replace function public.notify_offer_created()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  prod_title text;
+begin
+  select title into prod_title from public.products where id = new.product_id;
+  insert into public.notifications (user_id, type, title, body, product_id)
+  values (new.seller_id, 'oferta_nueva', 'Te hicieron una oferta', coalesce(prod_title, 'Tu publicación') || ' — $' || new.offered_price::text, new.product_id);
+
+  perform net.http_post(
+    url := 'https://usadogamer-projecarg.vercel.app/api/notify-offer',
+    headers := jsonb_build_object('Content-Type', 'application/json'),
+    body := jsonb_build_object('offer_id', new.id, 'secret', '7b0dbded63a6e04bb8e592cc348bca0585c8afe3de7aacfb')
+  );
+  return new;
+end;
+$$;
+
+create or replace function public.notify_offer_response()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  prod_title text;
+begin
+  if new.status in ('aceptada','rechazada') and old.status = 'pendiente' then
+    select title into prod_title from public.products where id = new.product_id;
+    insert into public.notifications (user_id, type, title, body, product_id)
+    values (
+      new.buyer_id,
+      case when new.status = 'aceptada' then 'oferta_aceptada' else 'oferta_rechazada' end,
+      case when new.status = 'aceptada' then '¡Tu oferta fue aceptada!' else 'Tu oferta no fue aceptada' end,
+      coalesce(prod_title, 'la publicación') || ' — $' || new.offered_price::text,
+      new.product_id
+    );
+
+    perform net.http_post(
+      url := 'https://usadogamer-projecarg.vercel.app/api/notify-offer-response',
+      headers := jsonb_build_object('Content-Type', 'application/json'),
+      body := jsonb_build_object('offer_id', new.id, 'secret', '7b0dbded63a6e04bb8e592cc348bca0585c8afe3de7aacfb')
+    );
+  end if;
+  return new;
+end;
+$$;
