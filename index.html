@@ -29,11 +29,36 @@
     position:sticky; top:0; z-index:5; background:rgba(255,255,255,.92); backdrop-filter:blur(10px);
     border-bottom:1px solid var(--border); padding-block:16px; margin-inline:-24px; padding-inline:24px;
   }
-  .barrow{max-width:1120px; margin-inline:auto; display:flex; align-items:center; gap:28px; flex-wrap:wrap}
-  .logo{display:flex; align-items:center; gap:10px; font-family:'Outfit', var(--font-body); font-weight:700; font-size:1rem; letter-spacing:-.01em; white-space:nowrap}
+  .barrow{max-width:1120px; margin-inline:auto; display:flex; align-items:center; gap:16px; flex-wrap:nowrap}
+  .logo{display:flex; align-items:center; gap:10px; font-family:'Outfit', var(--font-body); font-weight:700; font-size:1rem; letter-spacing:-.01em; white-space:nowrap; min-width:0; flex:none}
   .logo-mark{width:38px; height:38px; display:block; flex:none}
-  .ghost-btn{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--fg); background:transparent; border:1px solid var(--border); border-radius:9px; padding:9px 16px; cursor:pointer}
-  .user-chip{font-size:.85rem; color:var(--muted); display:flex; align-items:center; gap:10px}
+  .ghost-btn{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--fg); background:transparent; border:1px solid var(--border); border-radius:9px; padding:9px 16px; cursor:pointer; white-space:nowrap; flex:none}
+  .user-chip{font-size:.85rem; color:var(--muted); display:flex; align-items:center; gap:10px; min-width:0}
+  .user-chip span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px}
+  #auth-area{display:flex; align-items:center; gap:10px; min-width:0}
+
+  .bell-btn{position:relative; background:none; border:none; cursor:pointer; padding:6px; display:flex; align-items:center; color:var(--fg); flex:none}
+  .bell-btn svg{width:20px; height:20px; display:block}
+  .bell-dot{position:absolute; top:3px; right:3px; width:8px; height:8px; border-radius:50%; background:var(--danger); border:2px solid var(--bg)}
+  .notif-panel{position:fixed; top:66px; right:16px; width:330px; max-width:calc(100vw - 32px); max-height:70vh; overflow-y:auto; background:var(--bg); border:1px solid var(--border); border-radius:14px; box-shadow:0 18px 40px -16px rgba(10,10,10,.28); z-index:25}
+  .notif-head{font-family:var(--font-display); font-weight:700; padding:14px 16px; border-bottom:1px solid var(--border)}
+  .notif-item{padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer}
+  .notif-item:last-child{border-bottom:none}
+  .notif-item.unread{background:var(--accent-dim)}
+  .notif-item .t{font-weight:700; font-size:.86rem}
+  .notif-item .b{color:var(--muted); font-size:.82rem; margin-top:4px; line-height:1.4}
+  .notif-item .d{color:var(--muted); font-size:.72rem; margin-top:6px}
+
+  @media (max-width:480px){
+    body{padding-inline:16px}
+    header.bar{margin-inline:-16px; padding-inline:16px; padding-block:12px}
+    .barrow{gap:8px}
+    .logo span{font-size:.9rem}
+    .ghost-btn{padding:8px 11px; font-size:.8rem}
+    .user-chip span{max-width:72px; font-size:.78rem}
+    .user-chip{gap:6px}
+    .notif-panel{top:60px; right:10px; width:calc(100vw - 20px)}
+  }
 
   /* menú hamburguesa / cajón lateral */
   .hamburger-btn{background:none; border:none; cursor:pointer; padding:8px 6px; display:flex; flex-direction:column; gap:4px; flex:none}
@@ -85,7 +110,7 @@
   .thumb{aspect-ratio:4/3; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:2.1rem}
   .card-body{padding:14px; display:flex; flex-direction:column; gap:8px; flex:1}
   .card-cat{font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:700}
-  .card-title{font-family:var(--font-display); font-size:1rem; line-height:1.25; min-width:0}
+  .card-title{font-family:var(--font-display); font-size:1rem; line-height:1.25; min-width:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
   .badges{display:flex; gap:6px; flex-wrap:wrap}
   .badge{font-size:.68rem; font-weight:700; padding:4px 8px; border-radius:6px; letter-spacing:.02em}
   .badge.cond{background:var(--surface-2); color:var(--muted)}
@@ -102,6 +127,16 @@
 
   .form-wrap{display:grid; grid-template-columns:1.2fr .8fr; gap:28px}
   @media (max-width:800px){ .form-wrap{grid-template-columns:1fr} }
+  /* Ficha de producto: en desktop, fotos+descripción y preguntas van en la columna
+     izquierda con el resumen/comprar al lado; en celular, todo se apila en el orden
+     fotos -> resumen/comprar/oferta -> preguntas, que es como se compra con el pulgar. */
+  .producto-wrap{grid-template-areas:"media summary" "qa summary"; align-items:start}
+  #producto-media{grid-area:media}
+  #producto-summary{grid-area:summary}
+  #producto-qa{grid-area:qa; margin-top:12px}
+  @media (max-width:800px){
+    .producto-wrap{grid-template-areas:"media" "summary" "qa"}
+  }
   fieldset{border:1px solid var(--border); border-radius:14px; padding:18px; margin:0 0 16px; min-width:0}
   legend{font-family:var(--font-display); font-weight:700; padding-inline:6px}
   label{display:block; font-size:.82rem; font-weight:600; color:var(--muted); margin-bottom:6px; margin-top:14px}
@@ -157,6 +192,11 @@
   </div>
 </header>
 
+<div id="notif-panel" class="notif-panel" hidden>
+  <div class="notif-head">Notificaciones</div>
+  <div id="notif-list"></div>
+</div>
+
 <div class="drawer-overlay" id="drawer-overlay">
   <nav class="drawer" role="dialog" aria-label="Menú principal">
     <button type="button" class="drawer-close" id="menu-close-btn" aria-label="Cerrar menú">×</button>
@@ -206,8 +246,8 @@
 
   <section id="view-producto" hidden>
     <button type="button" class="link-btn" id="producto-back" style="margin-top:40px">&larr; Volver a explorar</button>
-    <div class="form-wrap" style="margin-top:16px">
-      <div style="min-width:0">
+    <div class="form-wrap producto-wrap" style="margin-top:16px">
+      <div id="producto-media" style="min-width:0">
         <div id="producto-gallery"></div>
         <div class="card-cat" id="producto-cat" style="margin-top:18px"></div>
         <h2 id="producto-title" style="font-size:1.4rem; margin-top:4px"></h2>
@@ -215,14 +255,8 @@
         <p id="producto-desc" style="margin-top:16px; color:var(--muted); line-height:1.6"></p>
         <p id="producto-repair" class="hint" style="margin-top:10px"></p>
         <p id="producto-envio" class="hint" style="margin-top:10px"></p>
-
-        <div style="margin-top:32px">
-          <h3 style="font-size:1.1rem">Preguntas al vendedor</h3>
-          <div id="qa-list" style="margin-top:12px; display:flex; flex-direction:column; gap:10px"></div>
-          <div id="qa-ask-box" style="margin-top:14px"></div>
-        </div>
       </div>
-      <div>
+      <div id="producto-summary">
         <fieldset>
           <legend>Resumen</legend>
           <p class="price tabular" id="producto-price" style="font-size:1.7rem; margin-top:4px"></p>
@@ -232,6 +266,11 @@
           <p class="hint" id="producto-own-note" style="margin-top:10px" hidden>Esta publicación es tuya.</p>
           <p class="hint" style="margin-top:12px; line-height:1.5">Compra protegida: tu dinero queda retenido hasta que confirmás que el producto llegó como se describió. Si el envío falla o no es lo que esperabas, escribinos antes de confirmar la recepción y te ayudamos a resolverlo.</p>
         </fieldset>
+      </div>
+      <div id="producto-qa">
+        <h3 style="font-size:1.1rem">Preguntas al vendedor</h3>
+        <div id="qa-list" style="margin-top:12px; display:flex; flex-direction:column; gap:10px"></div>
+        <div id="qa-ask-box" style="margin-top:14px"></div>
       </div>
     </div>
   </section>
@@ -449,6 +488,15 @@
   function renderAuthArea(){
     authArea.innerHTML = '';
     if (currentUser){
+      var bell = document.createElement('button');
+      bell.type = 'button';
+      bell.className = 'bell-btn';
+      bell.id = 'notif-btn';
+      bell.setAttribute('aria-label', 'Notificaciones');
+      bell.innerHTML = BELL_ICON + '<span id="notif-dot" class="bell-dot" hidden></span>';
+      bell.addEventListener('click', toggleNotifPanel);
+      authArea.appendChild(bell);
+
       var displayName = (currentUser.user_metadata && currentUser.user_metadata.username)
         ? '@' + currentUser.user_metadata.username
         : (currentUser.email || '').split('@')[0];
@@ -462,7 +510,10 @@
       btn.addEventListener('click', async function(){ await sb.auth.signOut(); });
       chip.appendChild(btn);
       authArea.appendChild(chip);
+
+      loadNotifications();
     } else {
+      notifPanel.hidden = true;
       var login = document.createElement('button');
       login.className = 'ghost-btn';
       login.type = 'button';
@@ -473,6 +524,66 @@
     document.getElementById('tab-pedidos').hidden = !currentUser;
     updatePublishAccess();
   }
+
+  // ---------- Notificaciones (campanita) ----------
+  var notifPanel = document.getElementById('notif-panel');
+  var notifList = document.getElementById('notif-list');
+  var notifCache = [];
+
+  async function loadNotifications(silent){
+    if (!currentUser) return;
+    var res = await sb.from('notifications').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(25);
+    notifCache = res.data || [];
+    var dot = document.getElementById('notif-dot');
+    if (dot) dot.hidden = !notifCache.some(function(n){ return !n.read; });
+    if (!silent && notifPanel && !notifPanel.hidden) renderNotifList();
+  }
+
+  function renderNotifList(){
+    if (!notifCache.length){
+      notifList.innerHTML = '<p class="empty-note" style="padding:16px">Todavía no tenés notificaciones.</p>';
+      return;
+    }
+    notifList.innerHTML = notifCache.map(function(n){
+      var when = new Date(n.created_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+      return '<div class="notif-item' + (n.read ? '' : ' unread') + '" data-notif-product="' + (n.product_id || '') + '">' +
+        '<div class="t">' + escapeHtml(n.title) + '</div>' +
+        (n.body ? '<div class="b">' + escapeHtml(n.body) + '</div>' : '') +
+        '<div class="d">' + when + '</div></div>';
+    }).join('');
+  }
+
+  async function toggleNotifPanel(){
+    var willOpen = notifPanel.hidden;
+    if (!willOpen){ notifPanel.hidden = true; return; }
+    notifPanel.hidden = false;
+    renderNotifList();
+    var unreadIds = notifCache.filter(function(n){ return !n.read; }).map(function(n){ return n.id; });
+    if (unreadIds.length){
+      await sb.from('notifications').update({ read: true }).in('id', unreadIds);
+      notifCache.forEach(function(n){ n.read = true; });
+      var dot = document.getElementById('notif-dot');
+      if (dot) dot.hidden = true;
+      renderNotifList();
+    }
+  }
+
+  notifList.addEventListener('click', function(e){
+    var item = e.target.closest('[data-notif-product]');
+    if (!item || !item.dataset.notifProduct) return;
+    notifPanel.hidden = true;
+    sb.from('products').select('*').eq('id', item.dataset.notifProduct).single().then(function(res){
+      if (res.data) openProductDetail(res.data);
+    });
+  });
+
+  document.addEventListener('click', function(e){
+    if (notifPanel && !notifPanel.hidden && !notifPanel.contains(e.target) && !e.target.closest('#notif-btn')){
+      notifPanel.hidden = true;
+    }
+  });
+
+  setInterval(function(){ if (currentUser) loadNotifications(true); }, 45000);
 
   var authExtra = document.getElementById('auth-extra');
   var fNombre = document.getElementById('auth-nombre');
@@ -812,6 +923,7 @@
 
   // ---------- Página de producto ----------
   var COPY_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="7" width="10" height="10" rx="2"></rect><path d="M4.5 13.5h-1a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v1"></path></svg>';
+  var BELL_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8a5 5 0 0 1 10 0c0 3.2 1 4.3 1.5 5H3.5C4 12.3 5 11.2 5 8Z"></path><path d="M8 15.5a2 2 0 0 0 4 0"></path></svg>';
   var CHECK_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5l4 4 8-9"></path></svg>';
 
   var productoBack = document.getElementById('producto-back');
