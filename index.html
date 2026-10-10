@@ -121,6 +121,25 @@
   .chip{font-family:var(--font-body); font-weight:600; font-size:.86rem; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:999px; padding:8px 15px; cursor:pointer}
   .chip[aria-pressed="true"]{color:var(--accent-ink); background:var(--accent); border-color:var(--accent)}
 
+  .market-layout{display:grid; grid-template-columns:240px minmax(0,1fr); gap:28px; align-items:start; padding-bottom:40px}
+  @media (max-width:860px){ .market-layout{grid-template-columns:1fr} }
+
+  .filters-panel{position:sticky; top:84px; display:flex; flex-direction:column; gap:18px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px}
+  @media (max-width:860px){ .filters-panel{position:static} }
+  .filters-panel h3{font-family:var(--font-display); font-size:1rem; margin:0}
+  .filters-panel #filter-search{margin-top:-6px}
+  .filter-group{display:flex; flex-direction:column; gap:9px}
+  .filter-group h4{font-family:var(--font-body); font-size:.74rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0}
+  .filter-group label{display:flex; align-items:center; gap:9px; font-size:.87rem; cursor:pointer}
+  .filter-group input[type=checkbox]{width:auto; accent-color:var(--accent)}
+  .price-range-inputs{display:flex; align-items:center; gap:8px}
+  .price-range-inputs input{min-width:0}
+
+  .market-toolbar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px}
+  .results-count{color:var(--muted); font-size:.85rem}
+  .sort-label{display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--muted); font-weight:600}
+  .sort-label select{width:auto; padding:8px 10px}
+
   .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:16px; min-height:120px}
   .card{background:var(--bg); border:1px solid var(--border); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; min-width:0}
   /* Alto fijo (no aspect-ratio) a propósito: dentro de un flex column, algunos
@@ -209,9 +228,9 @@
 
 <header class="bar">
   <div class="barrow">
-    <button type="button" class="hamburger-btn" id="menu-open-btn" aria-label="Abrir menú"><span></span><span></span><span></span></button>
     <div class="logo" data-goto="explorar" style="cursor:pointer"><img class="logo-mark" src="logo-gaming-intercambio.png" alt="UsadoGamer"><span>UsadoGamer</span></div>
     <div id="auth-area" style="margin-left:auto"></div>
+    <button type="button" class="hamburger-btn" id="menu-open-btn" aria-label="Abrir menú"><span></span><span></span><span></span></button>
   </div>
 </header>
 
@@ -244,9 +263,9 @@
   <section id="view-explorar">
     <div class="hero">
       <div>
-        <span class="eyebrow"><span class="pip"></span>Pago protegido con Mercado Pago</span>
-        <h1>Gaming usado, sin la <em>lotería</em> de comprarle a un desconocido.</h1>
-        <p class="lead">Teclados, mouses y auriculares de segunda mano con fotos reales, precio de mercado y la plata liberada recién cuando el producto llega como se describió.</p>
+        <span class="eyebrow"><span class="pip"></span>Pago protegido</span>
+        <h1>Comprá y vendé gaming usado, <em>sin miedo</em>.</h1>
+        <p class="lead">Productos de segunda mano, publicados por gente real, con el pago retenido hasta que el producto llega como se describió — para que comprador y vendedor terminen tranquilos y contentos los dos.</p>
         <div class="hero-actions">
           <button class="btn-primary" type="button" data-goto="publicar">Publicar un producto</button>
           <button class="ghost-btn" type="button" data-goto="como-funciona">Cómo funciona la protección</button>
@@ -264,15 +283,53 @@
       </div>
     </div>
 
-    <div class="chips" role="group" aria-label="Categorías">
-      <button class="chip" aria-pressed="true" data-cat="todos">Todos</button>
-      <button class="chip" aria-pressed="false" data-cat="teclados">Teclados</button>
-      <button class="chip" aria-pressed="false" data-cat="mouse">Mouse</button>
-      <button class="chip" aria-pressed="false" data-cat="auriculares">Auriculares</button>
-      <button class="chip" aria-pressed="false" data-cat="monitores">Monitores</button>
-    </div>
+    <div class="market-layout">
+      <aside class="filters-panel">
+        <h3>¿Qué estás buscando?</h3>
+        <input type="search" id="filter-search" placeholder="Buscar productos...">
 
-    <div class="grid" id="product-grid"><p class="empty-note">Cargando publicaciones...</p></div>
+        <div class="filter-group">
+          <h4>Categorías</h4>
+          <label><input type="checkbox" class="filter-cat" value="teclados"> Teclados</label>
+          <label><input type="checkbox" class="filter-cat" value="mouse"> Mouse</label>
+          <label><input type="checkbox" class="filter-cat" value="auriculares"> Auriculares</label>
+          <label><input type="checkbox" class="filter-cat" value="monitores"> Monitores</label>
+        </div>
+
+        <div class="filter-group">
+          <h4>Precio</h4>
+          <div class="price-range-inputs">
+            <input type="number" id="filter-price-min" placeholder="Mín" min="0" inputmode="numeric">
+            <span>—</span>
+            <input type="number" id="filter-price-max" placeholder="Máx" min="0" inputmode="numeric">
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Estado</h4>
+          <label><input type="checkbox" class="filter-cond" value="Como nuevo"> Como nuevo</label>
+          <label><input type="checkbox" class="filter-cond" value="Muy bueno"> Muy bueno</label>
+          <label><input type="checkbox" class="filter-cond" value="Bueno, con uso visible"> Bueno, con uso visible</label>
+          <label><input type="checkbox" class="filter-cond" value="Para repuestos"> Para repuestos</label>
+        </div>
+
+        <button type="button" class="link-btn" id="filter-clear">Limpiar filtros</button>
+      </aside>
+
+      <div class="market-main">
+        <div class="market-toolbar">
+          <span class="results-count" id="results-count"></span>
+          <label class="sort-label">Ordenar por
+            <select id="sort-select">
+              <option value="destacados">Destacados</option>
+              <option value="precio-asc">Menor precio</option>
+              <option value="precio-desc">Mayor precio</option>
+            </select>
+          </label>
+        </div>
+        <div class="grid" id="product-grid"><p class="empty-note">Cargando publicaciones...</p></div>
+      </div>
+    </div>
   </section>
 
   <section id="view-producto" hidden>
@@ -504,7 +561,6 @@
 
   var money = new Intl.NumberFormat('es-AR', {style:'currency', currency:'ARS', maximumFractionDigits:0});
   var currentUser = null;
-  var currentCategoryFilter = 'todos';
 
   // Alias/CBU de Mateo para recibir transferencias de los compradores.
   var MATEO_ALIAS = 'mateobonino.mp';
@@ -865,28 +921,65 @@
     updatePublishAccess();
   });
 
-  // ---------- Explorar: traer productos reales ----------
+  // ---------- Explorar: traer productos reales y filtrar/ordenar ----------
   var grid = document.getElementById('product-grid');
   var icons = {teclados:'⌨️', mouse:'🖱️', auriculares:'🎧', monitores:'🖥️'};
   var productsById = {};
+  var allProducts = [];
+  var resultsCount = document.getElementById('results-count');
+
+  var filterSearch = document.getElementById('filter-search');
+  var filterPriceMin = document.getElementById('filter-price-min');
+  var filterPriceMax = document.getElementById('filter-price-max');
+  var sortSelect = document.getElementById('sort-select');
+  var filterClearBtn = document.getElementById('filter-clear');
+  var filterCatBoxes = document.querySelectorAll('.filter-cat');
+  var filterCondBoxes = document.querySelectorAll('.filter-cond');
 
   async function loadProducts(){
     grid.innerHTML = '<p class="empty-note">Cargando publicaciones...</p>';
     try { await sb.rpc('cleanup_expired_offer_orders'); } catch (e) {}
-    var query = sb.from('products').select('*').eq('status', 'disponible').order('created_at', { ascending: false });
-    if (currentCategoryFilter !== 'todos') query = query.eq('category', currentCategoryFilter);
-    var { data, error } = await query;
+    var { data, error } = await sb.from('products').select('*').eq('status', 'disponible').order('created_at', { ascending: false });
     if (error){
       grid.innerHTML = '<p class="empty-note">No se pudieron cargar las publicaciones (' + error.message + ').</p>';
       return;
     }
-    if (!data || data.length === 0){
-      grid.innerHTML = '<p class="empty-note">Todavía no hay publicaciones en esta categoría. ¡Sé el primero!</p>';
+    allProducts = data || [];
+    allProducts.forEach(function(p){ productsById[p.id] = p; });
+    applyFilters();
+  }
+
+  function applyFilters(){
+    var text = filterSearch.value.trim().toLowerCase();
+    var cats = Array.prototype.filter.call(filterCatBoxes, function(c){ return c.checked; }).map(function(c){ return c.value; });
+    var conds = Array.prototype.filter.call(filterCondBoxes, function(c){ return c.checked; }).map(function(c){ return c.value; });
+    var min = filterPriceMin.value !== '' ? Number(filterPriceMin.value) : null;
+    var max = filterPriceMax.value !== '' ? Number(filterPriceMax.value) : null;
+
+    var list = allProducts.filter(function(p){
+      if (text && (p.title || '').toLowerCase().indexOf(text) === -1) return false;
+      if (cats.length && cats.indexOf(p.category) === -1) return false;
+      if (conds.length && conds.indexOf(p.condition) === -1) return false;
+      if (min !== null && p.price < min) return false;
+      if (max !== null && p.price > max) return false;
+      return true;
+    });
+
+    if (sortSelect.value === 'precio-asc') list.sort(function(a,b){ return a.price - b.price; });
+    else if (sortSelect.value === 'precio-desc') list.sort(function(a,b){ return b.price - a.price; });
+    // 'destacados' deja el orden que ya trae (más nuevo primero)
+
+    renderGrid(list);
+  }
+
+  function renderGrid(list){
+    resultsCount.textContent = list.length === 1 ? '1 publicación' : list.length + ' publicaciones';
+    if (!list.length){
+      grid.innerHTML = '<p class="empty-note">No encontramos publicaciones con esos filtros. Probá ajustarlos.</p>';
       return;
     }
     grid.innerHTML = '';
-    data.forEach(function(p){
-      productsById[p.id] = p;
+    list.forEach(function(p){
       var card = document.createElement('article');
       card.className = 'card';
       card.dataset.product = p.id;
@@ -919,13 +1012,28 @@
     return d.innerHTML;
   }
 
-  document.querySelectorAll('.chip').forEach(function(chip){
-    chip.addEventListener('click', function(){
-      document.querySelectorAll('.chip').forEach(function(c){ c.setAttribute('aria-pressed','false'); });
-      chip.setAttribute('aria-pressed','true');
-      currentCategoryFilter = chip.dataset.cat;
-      loadProducts();
+  var filterDebounce;
+  filterSearch.addEventListener('input', function(){
+    clearTimeout(filterDebounce);
+    filterDebounce = setTimeout(applyFilters, 200);
+  });
+  [filterPriceMin, filterPriceMax].forEach(function(inp){
+    inp.addEventListener('input', function(){
+      clearTimeout(filterDebounce);
+      filterDebounce = setTimeout(applyFilters, 300);
     });
+  });
+  sortSelect.addEventListener('change', applyFilters);
+  Array.prototype.forEach.call(filterCatBoxes, function(c){ c.addEventListener('change', applyFilters); });
+  Array.prototype.forEach.call(filterCondBoxes, function(c){ c.addEventListener('change', applyFilters); });
+  filterClearBtn.addEventListener('click', function(){
+    filterSearch.value = '';
+    filterPriceMin.value = '';
+    filterPriceMax.value = '';
+    sortSelect.value = 'destacados';
+    Array.prototype.forEach.call(filterCatBoxes, function(c){ c.checked = false; });
+    Array.prototype.forEach.call(filterCondBoxes, function(c){ c.checked = false; });
+    applyFilters();
   });
 
   // ---------- Publicar: insertar producto real ----------
