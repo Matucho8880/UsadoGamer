@@ -49,6 +49,22 @@
   .notif-item .b{color:var(--muted); font-size:.82rem; margin-top:4px; line-height:1.4}
   .notif-item .d{color:var(--muted); font-size:.72rem; margin-top:6px}
 
+  .profile-btn{position:relative; background:none; border:none; cursor:pointer; padding:5px; display:flex; align-items:center; justify-content:center; color:var(--fg); flex:none; border-radius:50%}
+  .profile-btn svg{width:26px; height:26px; display:block}
+  .profile-btn:hover{background:var(--accent-dim)}
+  .profile-panel{padding-bottom:2px}
+  .wallet-summary{padding:16px; border-bottom:1px solid var(--border)}
+  .wallet-summary .amt{font-family:var(--font-display); font-size:1.5rem; font-weight:700; line-height:1.15}
+  .wallet-summary .lbl{color:var(--muted); font-size:.78rem; margin-top:2px}
+  .wallet-item{padding:12px 16px; border-bottom:1px solid var(--border)}
+  .wallet-item:last-child{border-bottom:none}
+  .wallet-item .t{font-weight:700; font-size:.86rem; display:flex; justify-content:space-between; gap:8px}
+  .wallet-item .note{color:var(--muted); font-size:.78rem; margin-top:4px; line-height:1.4}
+  .wallet-item .badge{display:inline-block; margin-top:6px; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:20px; background:var(--accent-dim); color:var(--accent)}
+  .profile-panel-foot{padding:10px 16px 14px}
+  .logout-btn{width:100%; background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger-bg); border-radius:10px; padding:10px; font-weight:700; cursor:pointer; font-size:.88rem}
+  .logout-btn:hover{filter:brightness(0.97)}
+
   @media (max-width:480px){
     body{padding-inline:16px}
     header.bar{margin-inline:-16px; padding-inline:16px; padding-block:12px}
@@ -202,6 +218,14 @@
 <div id="notif-panel" class="notif-panel" hidden>
   <div class="notif-head">Notificaciones</div>
   <div id="notif-list"></div>
+</div>
+
+<div id="profile-panel" class="notif-panel profile-panel" hidden>
+  <div class="notif-head">Tu billetera</div>
+  <div id="wallet-body"></div>
+  <div class="profile-panel-foot">
+    <button type="button" class="logout-btn" id="profile-logout-btn">Cerrar sesión</button>
+  </div>
 </div>
 
 <div class="drawer-overlay" id="drawer-overlay">
@@ -509,23 +533,19 @@
       bell.addEventListener('click', toggleNotifPanel);
       authArea.appendChild(bell);
 
-      var displayName = (currentUser.user_metadata && currentUser.user_metadata.username)
-        ? '@' + currentUser.user_metadata.username
-        : (currentUser.email || '').split('@')[0];
-      var chip = document.createElement('div');
-      chip.className = 'user-chip';
-      chip.innerHTML = '<span>' + escapeHtml(displayName) + '</span>';
-      var btn = document.createElement('button');
-      btn.className = 'ghost-btn';
-      btn.type = 'button';
-      btn.textContent = 'Cerrar sesión';
-      btn.addEventListener('click', async function(){ await sb.auth.signOut(); });
-      chip.appendChild(btn);
-      authArea.appendChild(chip);
+      var profileBtn = document.createElement('button');
+      profileBtn.type = 'button';
+      profileBtn.className = 'profile-btn';
+      profileBtn.id = 'profile-btn';
+      profileBtn.setAttribute('aria-label', 'Tu cuenta y billetera');
+      profileBtn.innerHTML = PROFILE_ICON;
+      profileBtn.addEventListener('click', toggleProfilePanel);
+      authArea.appendChild(profileBtn);
 
       loadNotifications();
     } else {
       notifPanel.hidden = true;
+      profilePanel.hidden = true;
       var login = document.createElement('button');
       login.className = 'ghost-btn';
       login.type = 'button';
@@ -567,6 +587,7 @@
 
   async function toggleNotifPanel(){
     var willOpen = notifPanel.hidden;
+    if (profilePanel) profilePanel.hidden = true;
     if (!willOpen){ notifPanel.hidden = true; return; }
     notifPanel.hidden = false;
     renderNotifList();
@@ -593,9 +614,65 @@
     if (notifPanel && !notifPanel.hidden && !notifPanel.contains(e.target) && !e.target.closest('#notif-btn')){
       notifPanel.hidden = true;
     }
+    if (profilePanel && !profilePanel.hidden && !profilePanel.contains(e.target) && !e.target.closest('#profile-btn')){
+      profilePanel.hidden = true;
+    }
   });
 
   setInterval(function(){ if (currentUser) loadNotifications(true); }, 45000);
+
+  // ---------- Billetera (perfil) ----------
+  var profilePanel = document.getElementById('profile-panel');
+  var walletBody = document.getElementById('wallet-body');
+  var walletStatusLabels = {
+    pago_confirmado: 'Pago confirmado · esperando que despaches',
+    despachado: 'Despachado · esperando que el comprador confirme',
+    confirmado_entrega: 'Comprador confirmó la recepción · se libera pronto'
+  };
+
+  async function loadWallet(){
+    if (!currentUser) return;
+    walletBody.innerHTML = '<p class="empty-note" style="padding:16px">Cargando...</p>';
+    var res = await sb.from('orders').select('*, products(title)')
+      .eq('seller_id', currentUser.id)
+      .in('status', ['pago_confirmado', 'despachado', 'confirmado_entrega'])
+      .order('created_at', { ascending: false });
+    var held = res.data || [];
+    var totalNet = held.reduce(function(sum, o){ return sum + Math.round(o.amount * (1 - COMMISSION_RATE)); }, 0);
+
+    var html = '<div class="wallet-summary">' +
+      '<div class="amt tabular">' + money.format(totalNet) + '</div>' +
+      '<div class="lbl">Retenido a tu favor. Lo recibís en tu cuenta apenas el comprador confirme que le llegó el producto — tu plata está garantizada.</div>' +
+      '</div>';
+
+    if (!held.length){
+      html += '<p class="empty-note" style="padding:16px">Por ahora no tenés ventas con pago retenido.</p>';
+    } else {
+      html += held.map(function(o){
+        var net = Math.round(o.amount * (1 - COMMISSION_RATE));
+        var title = o.products ? o.products.title : 'Producto';
+        return '<div class="wallet-item">' +
+          '<div class="t"><span>' + escapeHtml(title) + '</span><span class="tabular">' + money.format(net) + '</span></div>' +
+          '<div class="note">Recibirás el dinero en tu cuenta en cuanto el comprador confirme que recibió su producto.</div>' +
+          '<span class="badge">' + (walletStatusLabels[o.status] || o.status) + '</span>' +
+          '</div>';
+      }).join('');
+    }
+    walletBody.innerHTML = html;
+  }
+
+  function toggleProfilePanel(){
+    var willOpen = profilePanel.hidden;
+    if (notifPanel) notifPanel.hidden = true;
+    if (!willOpen){ profilePanel.hidden = true; return; }
+    profilePanel.hidden = false;
+    loadWallet();
+  }
+
+  document.getElementById('profile-logout-btn').addEventListener('click', async function(){
+    profilePanel.hidden = true;
+    await sb.auth.signOut();
+  });
 
   var authExtra = document.getElementById('auth-extra');
   var fNombre = document.getElementById('auth-nombre');
@@ -993,6 +1070,7 @@
   // ---------- Página de producto ----------
   var COPY_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="7" width="10" height="10" rx="2"></rect><path d="M4.5 13.5h-1a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v1"></path></svg>';
   var BELL_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8a5 5 0 0 1 10 0c0 3.2 1 4.3 1.5 5H3.5C4 12.3 5 11.2 5 8Z"></path><path d="M8 15.5a2 2 0 0 0 4 0"></path></svg>';
+  var PROFILE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="10" r="3.2"></circle><path d="M5.5 19c1.2-2.8 3.6-4.3 6.5-4.3s5.3 1.5 6.5 4.3"></path></svg>';
   var CHECK_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5l4 4 8-9"></path></svg>';
 
   var productoBack = document.getElementById('producto-back');
