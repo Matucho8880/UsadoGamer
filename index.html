@@ -94,7 +94,7 @@
   section[hidden]{display:none!important}
 
   .hero{
-    position:relative; width:100vw; left:50%; margin-left:-50vw;
+    position:relative; z-index:2; width:100vw; left:50%; margin-left:-50vw;
     padding-block:56px 64px; padding-inline:24px;
     background:radial-gradient(120% 140% at 85% 0%, #1a2550 0%, #0c1226 55%, #080b18 100%);
     color:#f3f4fa;
@@ -113,19 +113,23 @@
   .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:10px; padding:14px 24px; cursor:pointer}
   .btn-primary:disabled{opacity:.6; cursor:default}
 
-  .hero-visual{position:relative; height:440px}
+  .hero-visual{position:relative; height:440px; overflow:visible}
   @media (max-width:760px){ .hero-visual{height:340px; margin-top:16px} }
-  .hv-float{position:absolute; display:block; filter:drop-shadow(0 24px 36px rgba(0,0,0,.55))}
-  .hv-monitor{top:0; right:2%; width:48%}
-  .hv-mouse{top:6%; left:0; width:13%; transform:rotate(-12deg)}
-  .hv-keyboard{left:14%; bottom:2%; width:80%; transform:rotate(-4deg)}
-  @media (max-width:760px){ .hv-monitor{width:46%} .hv-keyboard{width:72%} .hv-mouse{width:12%} }
+  .hv-float{position:absolute; display:block; filter:drop-shadow(0 26px 38px rgba(0,0,0,.55))}
+  .hv-monitor{top:-2%; right:6%; width:46%}
+  .hv-keyboard{left:0; bottom:-18%; width:92%; transform:rotate(-19deg); z-index:2}
+  .hv-mouse{left:58%; bottom:-14%; width:15%; transform:rotate(9deg); z-index:3}
+  @media (max-width:760px){
+    .hv-monitor{width:44%}
+    .hv-keyboard{width:82%; bottom:-8%}
+    .hv-mouse{bottom:-6%}
+  }
 
   .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
   .chip{font-family:var(--font-body); font-weight:600; font-size:.86rem; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:999px; padding:8px 15px; cursor:pointer}
   .chip[aria-pressed="true"]{color:var(--accent-ink); background:var(--accent); border-color:var(--accent)}
 
-  .market-layout{display:grid; grid-template-columns:240px minmax(0,1fr); gap:28px; align-items:start; padding-bottom:40px}
+  .market-layout{position:relative; z-index:1; display:grid; grid-template-columns:240px minmax(0,1fr); gap:28px; align-items:start; padding-bottom:40px; padding-top:28px}
   @media (max-width:860px){ .market-layout{grid-template-columns:1fr} }
 
   .filters-panel{position:sticky; top:84px; display:flex; flex-direction:column; gap:18px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px}
