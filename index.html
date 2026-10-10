@@ -17,7 +17,7 @@
     --font-body:'Inter', 'Segoe UI', sans-serif;
   }
   *{box-sizing:border-box}
-  body{background:var(--bg); color:var(--fg); font-family:var(--font-body); margin:0; padding-inline:24px; -webkit-font-smoothing:antialiased}
+  body{background:var(--bg); color:var(--fg); font-family:var(--font-body); margin:0; padding-inline:24px; -webkit-font-smoothing:antialiased; overflow-x:hidden}
   a{color:inherit}
   h1,h2,h3{font-family:var(--font-display); margin:0}
   p{margin:0}
@@ -93,28 +93,34 @@
   main{padding-block:0 60px}
   section[hidden]{display:none!important}
 
-  .hero{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; padding-block:56px 40px}
-  @media (max-width:760px){ .hero{grid-template-columns:1fr; padding-block:36px 28px} }
-  .eyebrow{display:inline-flex; align-items:center; gap:7px; color:var(--accent); font-weight:700; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; margin-bottom:18px}
-  .eyebrow .pip{width:7px; height:7px; border-radius:50%; background:var(--accent)}
-  .hero h1{font-size:clamp(2.1rem,4.4vw,3.2rem); line-height:1.06; letter-spacing:-.02em; margin-bottom:18px}
-  .hero h1 em{font-style:normal; color:var(--accent)}
-  .hero p.lead{color:var(--muted); font-size:1.08rem; line-height:1.6; max-width:46ch; margin-bottom:28px}
+  .hero{
+    position:relative; width:100vw; left:50%; margin-left:-50vw;
+    padding-block:56px 64px; padding-inline:24px;
+    background:radial-gradient(120% 140% at 85% 0%, #1a2550 0%, #0c1226 55%, #080b18 100%);
+    color:#f3f4fa;
+  }
+  @media (max-width:480px){ .hero{padding-inline:16px} }
+  .hero-inner{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; max-width:1120px; margin-inline:auto}
+  @media (max-width:760px){ .hero-inner{grid-template-columns:1fr} .hero{padding-block:36px 48px} }
+  .eyebrow{display:inline-flex; align-items:center; gap:7px; color:#8fb0ff; font-weight:700; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; margin-bottom:18px}
+  .eyebrow .pip{width:7px; height:7px; border-radius:50%; background:#8fb0ff}
+  .hero h1{font-size:clamp(2.1rem,4.4vw,3.2rem); line-height:1.06; letter-spacing:-.02em; margin-bottom:18px; color:#fff}
+  .hero h1 em{font-style:normal; color:#7c9cff}
+  .hero .ghost-btn{color:#fff; border-color:rgba(255,255,255,.3)}
+  .hero .ghost-btn:hover{background:rgba(255,255,255,.08)}
+  .hero p.lead{color:#b7bdd1; font-size:1.08rem; line-height:1.6; max-width:46ch; margin-bottom:28px}
   .hero-actions{display:flex; gap:12px; flex-wrap:wrap}
   .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:10px; padding:14px 24px; cursor:pointer}
   .btn-primary:disabled{opacity:.6; cursor:default}
 
-  .hero-visual{position:relative; height:340px; overflow:hidden}
-  @media (max-width:760px){ .hero-visual{height:260px} }
-  .hv-plane{position:absolute; border-radius:18px; border:1px solid var(--border)}
-  .hv-plane.a{inset:30px 10% 0 0; background:var(--surface-2); transform:rotate(-3deg)}
-  .hv-plane.b{inset:60px 0 10% 8%; background:var(--accent); opacity:.08; transform:rotate(2deg)}
-  .hv-card{position:absolute; left:8%; right:12%; top:14%; background:var(--bg); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:0 18px 40px -16px rgba(10,10,10,.2)}
-  .hv-card .hv-thumb{aspect-ratio:16/10; background:var(--surface-2); border-radius:10px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; font-size:1.8rem}
-  .hv-card .hv-title{font-weight:700; font-size:.92rem; margin-bottom:6px}
-  .hv-card .hv-row{display:flex; justify-content:space-between; align-items:center; font-size:.85rem; color:var(--muted)}
-  .hv-card .hv-price{font-family:var(--font-display); font-weight:700; color:var(--fg)}
-  .hv-tag{position:absolute; right:4%; bottom:8%; background:var(--good-bg); color:var(--good); font-weight:700; font-size:.78rem; padding:9px 14px; border-radius:10px; display:flex; align-items:center; gap:7px; box-shadow:0 14px 30px -14px rgba(15,157,107,.4)}
+  .hero-visual{position:relative; height:380px}
+  @media (max-width:760px){ .hero-visual{height:300px; margin-top:12px} }
+  .hv-float{position:absolute; filter:drop-shadow(0 22px 34px rgba(0,0,0,.5))}
+  .hv-monitor{top:2%; right:4%; width:54%; z-index:1}
+  .hv-mouse{top:40%; left:0; width:17%; transform:rotate(-10deg); z-index:2}
+  .hv-keyboard{left:8%; bottom:4%; width:80%; transform:rotate(-3deg); z-index:3}
+  @media (max-width:760px){ .hv-monitor{width:48%} .hv-keyboard{width:72%} }
+  .hv-tag{position:absolute; left:0; top:0; background:var(--good-bg); color:var(--good); font-weight:700; font-size:.78rem; padding:9px 14px; border-radius:10px; display:flex; align-items:center; gap:7px; box-shadow:0 14px 30px -14px rgba(0,0,0,.5); z-index:4}
   .hv-tag .pip{width:7px; height:7px; border-radius:50%; background:var(--good)}
 
   .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
@@ -262,24 +268,43 @@
 
   <section id="view-explorar">
     <div class="hero">
-      <div>
-        <span class="eyebrow"><span class="pip"></span>Pago protegido</span>
-        <h1>Comprá y vendé gaming usado, <em>sin miedo</em>.</h1>
-        <p class="lead">Productos de segunda mano, publicados por gente real, con el pago retenido hasta que el producto llega como se describió — para que comprador y vendedor terminen tranquilos y contentos los dos.</p>
-        <div class="hero-actions">
-          <button class="btn-primary" type="button" data-goto="publicar">Publicar un producto</button>
-          <button class="ghost-btn" type="button" data-goto="como-funciona">Cómo funciona la protección</button>
+      <div class="hero-inner">
+        <div>
+          <span class="eyebrow"><span class="pip"></span>Pago protegido</span>
+          <h1>Comprá y vendé gaming usado, <em>sin miedo</em>.</h1>
+          <p class="lead">Productos de segunda mano, publicados por gente real, con el pago retenido hasta que el producto llega como se describió — para que comprador y vendedor terminen tranquilos y contentos los dos.</p>
+          <div class="hero-actions">
+            <button class="btn-primary" type="button" data-goto="publicar">Publicar un producto</button>
+            <button class="ghost-btn" type="button" data-goto="como-funciona">Cómo funciona la protección</button>
+          </div>
         </div>
-      </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="hv-plane a"></div>
-        <div class="hv-plane b"></div>
-        <div class="hv-card">
-          <div class="hv-thumb">⌨️</div>
-          <div class="hv-title">Teclado mecánico Redragon Kumara</div>
-          <div class="hv-row"><span>Muy bueno</span><span class="hv-price tabular">$28.000</span></div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hv-tag"><span class="pip"></span>Pago liberado</div>
+
+          <svg class="hv-float hv-monitor" viewBox="0 0 160 118" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="6" width="144" height="88" rx="8" fill="#12162a"></rect>
+            <rect x="15" y="13" width="130" height="74" rx="3" fill="#060814"></rect>
+            <path d="M24 78 L58 32 L80 58 L96 38 L132 78 Z" fill="#2454ff" opacity=".9"></path>
+            <path d="M96 78 L116 46 L138 78 Z" fill="#ff8a3d" opacity=".85"></path>
+            <rect x="70" y="94" width="20" height="14" fill="#12162a"></rect>
+            <rect x="48" y="108" width="64" height="7" rx="3.5" fill="#12162a"></rect>
+          </svg>
+
+          <svg class="hv-float hv-mouse" viewBox="0 0 54 86" xmlns="http://www.w3.org/2000/svg">
+            <path d="M27 2c13 0 24 11 24 27v28c0 16-11 27-24 27S3 73 3 57V29C3 13 14 2 27 2Z" fill="#14182d"></path>
+            <rect x="24" y="8" width="6" height="22" rx="3" fill="#060814"></rect>
+            <circle cx="27" cy="20" r="4" fill="#2454ff"></circle>
+          </svg>
+
+          <svg class="hv-float hv-keyboard" viewBox="0 0 220 78" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="216" height="74" rx="10" fill="#10142a"></rect>
+            <g fill="#2454ff">
+              <rect x="12" y="12" width="14" height="12" rx="3"></rect><rect x="30" y="12" width="14" height="12" rx="3"></rect><rect x="48" y="12" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="66" y="12" width="14" height="12" rx="3"></rect><rect x="84" y="12" width="14" height="12" rx="3" fill="#ff8a3d"></rect><rect x="102" y="12" width="14" height="12" rx="3"></rect><rect x="120" y="12" width="14" height="12" rx="3"></rect><rect x="138" y="12" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="156" y="12" width="14" height="12" rx="3"></rect><rect x="174" y="12" width="14" height="12" rx="3"></rect><rect x="192" y="12" width="14" height="12" rx="3" fill="#ff8a3d"></rect>
+              <rect x="12" y="30" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="30" y="30" width="14" height="12" rx="3"></rect><rect x="48" y="30" width="14" height="12" rx="3"></rect><rect x="66" y="30" width="14" height="12" rx="3" fill="#ff8a3d"></rect><rect x="84" y="30" width="14" height="12" rx="3"></rect><rect x="102" y="30" width="14" height="12" rx="3"></rect><rect x="120" y="30" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="138" y="30" width="14" height="12" rx="3"></rect><rect x="156" y="30" width="14" height="12" rx="3"></rect><rect x="174" y="30" width="14" height="12" rx="3" fill="#ff8a3d"></rect><rect x="192" y="30" width="14" height="12" rx="3"></rect>
+              <rect x="12" y="48" width="22" height="12" rx="3"></rect><rect x="38" y="48" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="56" y="48" width="14" height="12" rx="3"></rect><rect x="74" y="48" width="14" height="12" rx="3" fill="#ff8a3d"></rect><rect x="92" y="48" width="60" height="12" rx="3"></rect><rect x="156" y="48" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="174" y="48" width="32" height="12" rx="3"></rect>
+            </g>
+          </svg>
         </div>
-        <div class="hv-tag"><span class="pip"></span>Pago liberado</div>
       </div>
     </div>
 
