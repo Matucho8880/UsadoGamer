@@ -113,15 +113,13 @@
   .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:10px; padding:14px 24px; cursor:pointer}
   .btn-primary:disabled{opacity:.6; cursor:default}
 
-  .hero-visual{position:relative; height:380px}
-  @media (max-width:760px){ .hero-visual{height:300px; margin-top:12px} }
-  .hv-float{position:absolute; filter:drop-shadow(0 22px 34px rgba(0,0,0,.5))}
-  .hv-monitor{top:2%; right:4%; width:54%; z-index:1}
-  .hv-mouse{top:40%; left:0; width:17%; transform:rotate(-10deg); z-index:2}
-  .hv-keyboard{left:8%; bottom:4%; width:80%; transform:rotate(-3deg); z-index:3}
-  @media (max-width:760px){ .hv-monitor{width:48%} .hv-keyboard{width:72%} }
-  .hv-tag{position:absolute; left:0; top:0; background:var(--good-bg); color:var(--good); font-weight:700; font-size:.78rem; padding:9px 14px; border-radius:10px; display:flex; align-items:center; gap:7px; box-shadow:0 14px 30px -14px rgba(0,0,0,.5); z-index:4}
-  .hv-tag .pip{width:7px; height:7px; border-radius:50%; background:var(--good)}
+  .hero-visual{position:relative; height:400px}
+  @media (max-width:760px){ .hero-visual{height:320px; margin-top:16px} }
+  .hv-float{position:absolute; display:block; filter:drop-shadow(0 24px 36px rgba(0,0,0,.55))}
+  .hv-monitor{top:0; right:0; width:62%}
+  .hv-mouse{top:34%; left:0; width:15%; transform:rotate(-9deg)}
+  .hv-keyboard{left:4%; bottom:0; width:84%; transform:rotate(-3deg)}
+  @media (max-width:760px){ .hv-monitor{width:56%} .hv-keyboard{width:76%} }
 
   .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
   .chip{font-family:var(--font-body); font-weight:600; font-size:.86rem; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:999px; padding:8px 15px; cursor:pointer}
@@ -279,31 +277,9 @@
           </div>
         </div>
         <div class="hero-visual" aria-hidden="true">
-          <div class="hv-tag"><span class="pip"></span>Pago liberado</div>
-
-          <svg class="hv-float hv-monitor" viewBox="0 0 160 118" xmlns="http://www.w3.org/2000/svg">
-            <rect x="8" y="6" width="144" height="88" rx="8" fill="#12162a"></rect>
-            <rect x="15" y="13" width="130" height="74" rx="3" fill="#060814"></rect>
-            <path d="M24 78 L58 32 L80 58 L96 38 L132 78 Z" fill="#2454ff" opacity=".9"></path>
-            <path d="M96 78 L116 46 L138 78 Z" fill="#ff8a3d" opacity=".85"></path>
-            <rect x="70" y="94" width="20" height="14" fill="#12162a"></rect>
-            <rect x="48" y="108" width="64" height="7" rx="3.5" fill="#12162a"></rect>
-          </svg>
-
-          <svg class="hv-float hv-mouse" viewBox="0 0 54 86" xmlns="http://www.w3.org/2000/svg">
-            <path d="M27 2c13 0 24 11 24 27v28c0 16-11 27-24 27S3 73 3 57V29C3 13 14 2 27 2Z" fill="#14182d"></path>
-            <rect x="24" y="8" width="6" height="22" rx="3" fill="#060814"></rect>
-            <circle cx="27" cy="20" r="4" fill="#2454ff"></circle>
-          </svg>
-
-          <svg class="hv-float hv-keyboard" viewBox="0 0 220 78" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2" y="2" width="216" height="74" rx="10" fill="#10142a"></rect>
-            <g fill="#2454ff">
-              <rect x="12" y="12" width="14" height="12" rx="3"></rect><rect x="30" y="12" width="14" height="12" rx="3"></rect><rect x="48" y="12" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="66" y="12" width="14" height="12" rx="3"></rect><rect x="84" y="12" width="14" height="12" rx="3" fill="#ff8a3d"></rect><rect x="102" y="12" width="14" height="12" rx="3"></rect><rect x="120" y="12" width="14" height="12" rx="3"></rect><rect x="138" y="12" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="156" y="12" width="14" height="12" rx="3"></rect><rect x="174" y="12" width="14" height="12" rx="3"></rect><rect x="192" y="12" width="14" height="12" rx="3" fill="#ff8a3d"></rect>
-              <rect x="12" y="30" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="30" y="30" width="14" height="12" rx="3"></rect><rect x="48" y="30" width="14" height="12" rx="3"></rect><rect x="66" y="30" width="14" height="12" rx="3" fill="#ff8a3d"></rect><rect x="84" y="30" width="14" height="12" rx="3"></rect><rect x="102" y="30" width="14" height="12" rx="3"></rect><rect x="120" y="30" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="138" y="30" width="14" height="12" rx="3"></rect><rect x="156" y="30" width="14" height="12" rx="3"></rect><rect x="174" y="30" width="14" height="12" rx="3" fill="#ff8a3d"></rect><rect x="192" y="30" width="14" height="12" rx="3"></rect>
-              <rect x="12" y="48" width="22" height="12" rx="3"></rect><rect x="38" y="48" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="56" y="48" width="14" height="12" rx="3"></rect><rect x="74" y="48" width="14" height="12" rx="3" fill="#ff8a3d"></rect><rect x="92" y="48" width="60" height="12" rx="3"></rect><rect x="156" y="48" width="14" height="12" rx="3" fill="#7c9cff"></rect><rect x="174" y="48" width="32" height="12" rx="3"></rect>
-            </g>
-          </svg>
+          <img class="hv-float hv-monitor" src="hero-monitor.png" alt="">
+          <img class="hv-float hv-mouse" src="hero-mouse.png" alt="">
+          <img class="hv-float hv-keyboard" src="hero-keyboard.png" alt="">
         </div>
       </div>
     </div>
