@@ -192,6 +192,9 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+-- Columna de dirección, para el panel de "Tu cuenta" (datos editables por el usuario)
+alter table public.profiles add column if not exists direccion text;
+
 -- Cada usuario solo puede ver y editar su propio perfil (tiene email y teléfono, no es público)
 create policy "Cada usuario ve su propio perfil"
   on public.profiles for select
@@ -632,6 +635,31 @@ as $$
 $$;
 
 grant execute on function public.is_admin() to authenticated;
+
+-- IMPORTANTE: la policy "Cada usuario actualiza su propio perfil" permite
+-- modificar CUALQUIER columna de la propia fila, incluida is_admin. Sin esto,
+-- cualquier usuario podría otorgarse a sí mismo acceso de administrador
+-- editando su perfil desde la consola del navegador. Este trigger bloquea
+-- ese cambio: solo se puede modificar is_admin corriendo SQL directo en
+-- Supabase (como hace Mateo), nunca desde la app.
+create or replace function public.protect_is_admin()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.is_admin is distinct from old.is_admin and not public.is_admin() then
+    new.is_admin := old.is_admin;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_profile_update_protect_admin on public.profiles;
+create trigger on_profile_update_protect_admin
+  before update on public.profiles
+  for each row execute function public.protect_is_admin();
 
 -- El administrador puede ver TODOS los perfiles (además de cada usuario viendo el suyo)
 drop policy if exists "El administrador ve todos los perfiles" on public.profiles;
