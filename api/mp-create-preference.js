@@ -73,10 +73,12 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    // Con credenciales de prueba, Mercado Pago da un link de sandbox aparte
-    // para simular el pago sin tarjeta real. Si no viene (credenciales de
-    // producción), usamos el link normal.
-    var initPoint = mpData.sandbox_init_point || mpData.init_point;
+    // IMPORTANTE: con las credenciales de prueba actuales de Mercado Pago (las
+    // que empiezan con APP_USR, no con el prefijo viejo TEST-), el link de
+    // "sandbox_init_point" ya no funciona y da la pantalla "Oh, no, algo
+    // anduvo mal". El modo prueba ahora se maneja por otro lado: usando una
+    // cuenta de prueba (comprador) para pagar, con el link normal init_point.
+    var initPoint = mpData.init_point || mpData.sandbox_init_point;
     if (!initPoint) {
       res.status(502).json({ error: 'Mercado Pago no devolvió un link de pago.' });
       return;
