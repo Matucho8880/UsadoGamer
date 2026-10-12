@@ -1,0 +1,89 @@
+// Lo llama el navegador cuando el comprador elige pagar con tarjeta (Mercado
+// Pago). Crea una "preferencia" de pago en Mercado Pago para el monto exacto
+// del pedido (lo busca en la base, nunca confía en un monto que mande el
+// navegador) y devuelve el link al que hay que mandar al comprador para que
+// pague. La confirmación real del pago llega después, aparte, por el webhook
+// (api/mp-webhook.js) — nunca por esta respuesta ni por la vuelta del navegador.
+var helpers = require('./_resend');
+
+module.exports = async function handler(req, res) {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Método no permitido' });
+    return;
+  }
+
+  try {
+    var orderId = req.body && req.body.order_id;
+    if (!orderId) {
+      res.status(400).json({ error: 'Falta order_id' });
+      return;
+    }
+
+    var rows = await helpers.supabaseServiceQuery(
+      'orders?id=eq.' + encodeURIComponent(orderId) +
+      '&select=id,amount,status,product_id,products(title)'
+    );
+    var order = rows[0];
+    if (!order || !order.products) {
+      res.status(404).json({ error: 'No se encontró el pedido.' });
+      return;
+    }
+    if (order.status !== 'pendiente_pago') {
+      res.status(400).json({ error: 'Este pedido ya no está pendiente de pago.' });
+      return;
+    }
+
+    var accessToken = process.env.MP_ACCESS_TOKEN;
+    if (!accessToken) {
+      res.status(500).json({ error: 'Mercado Pago no está configurado todavía (falta MP_ACCESS_TOKEN).' });
+      return;
+    }
+
+    var siteUrl = process.env.SITE_URL || 'https://usadogamer-projecarg.vercel.app';
+
+    var preference = {
+      items: [{
+        title: order.products.title || 'Producto UsadoGamer',
+        quantity: 1,
+        currency_id: 'ARS',
+        unit_price: Number(order.amount)
+      }],
+      external_reference: order.id,
+      notification_url: siteUrl + '/api/mp-webhook',
+      back_urls: {
+        success: siteUrl + '/?mp_return=1&order=' + order.id,
+        pending: siteUrl + '/?mp_return=1&order=' + order.id,
+        failure: siteUrl + '/?mp_return=0&order=' + order.id
+      },
+      auto_return: 'approved',
+      statement_descriptor: 'USADOGAMER'
+    };
+
+    var mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + accessToken
+      },
+      body: JSON.stringify(preference)
+    });
+    var mpData = await mpRes.json();
+    if (!mpRes.ok) {
+      res.status(502).json({ error: (mpData && mpData.message) || 'Mercado Pago rechazó la preferencia de pago.' });
+      return;
+    }
+
+    // Con credenciales de prueba, Mercado Pago da un link de sandbox aparte
+    // para simular el pago sin tarjeta real. Si no viene (credenciales de
+    // producción), usamos el link normal.
+    var initPoint = mpData.sandbox_init_point || mpData.init_point;
+    if (!initPoint) {
+      res.status(502).json({ error: 'Mercado Pago no devolvió un link de pago.' });
+      return;
+    }
+
+    res.status(200).json({ init_point: initPoint });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Error inesperado' });
+  }
+};

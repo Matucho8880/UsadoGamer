@@ -47,9 +47,40 @@ async function supabaseServiceQuery(path) {
   return resp.json();
 }
 
+// Igual que supabaseServiceQuery pero para modificar filas (PATCH), saltando
+// RLS con la service role key. Usado por el webhook de Mercado Pago para
+// marcar un pedido como pagado sin depender de que el comprador tenga sesión.
+async function supabaseServiceUpdate(path, body) {
+  var url = process.env.SUPABASE_URL;
+  var key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error('Falta configurar SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en Vercel.');
+  }
+  var resp = await fetch(url + '/rest/v1/' + path, {
+    method: 'PATCH',
+    headers: {
+      apikey: key,
+      Authorization: 'Bearer ' + key,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!resp.ok) {
+    var errText = await resp.text();
+    throw new Error('Error actualizando Supabase: ' + errText);
+  }
+  return resp.json();
+}
+
 function checkSecret(req) {
   var secret = (req.body && req.body.secret) || req.headers['x-webhook-secret'];
   return secret && process.env.INTERNAL_WEBHOOK_SECRET && secret === process.env.INTERNAL_WEBHOOK_SECRET;
 }
 
-module.exports = { sendEmail: sendEmail, supabaseServiceQuery: supabaseServiceQuery, checkSecret: checkSecret };
+module.exports = {
+  sendEmail: sendEmail,
+  supabaseServiceQuery: supabaseServiceQuery,
+  supabaseServiceUpdate: supabaseServiceUpdate,
+  checkSecret: checkSecret
+};
