@@ -32,7 +32,7 @@
   .barrow{max-width:1120px; margin-inline:auto; display:flex; align-items:center; gap:16px; flex-wrap:nowrap}
   .logo{display:flex; align-items:center; gap:10px; font-family:'Outfit', var(--font-body); font-weight:700; font-size:1rem; letter-spacing:-.01em; white-space:nowrap; min-width:0; flex:none}
   .logo-mark{width:38px; height:38px; display:block; flex:none}
-  .ghost-btn{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--fg); background:transparent; border:1px solid var(--border); border-radius:9px; padding:9px 16px; cursor:pointer; white-space:nowrap; flex:none}
+  .ghost-btn{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--fg); background:transparent; border:1px solid var(--border); border-radius:0; padding:9px 16px; cursor:pointer; white-space:nowrap; flex:none}
   .user-chip{font-size:.85rem; color:var(--muted); display:flex; align-items:center; gap:10px; min-width:0}
   .user-chip span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px}
   #auth-area{display:flex; align-items:center; gap:10px; min-width:0}
@@ -40,7 +40,7 @@
   .bell-btn{position:relative; background:none; border:none; cursor:pointer; padding:6px; display:flex; align-items:center; color:var(--fg); flex:none}
   .bell-btn svg{width:20px; height:20px; display:block}
   .bell-dot{position:absolute; top:3px; right:3px; width:8px; height:8px; border-radius:50%; background:var(--danger); border:2px solid var(--bg)}
-  .notif-panel{position:fixed; top:66px; right:16px; width:330px; max-width:calc(100vw - 32px); max-height:70vh; overflow-y:auto; background:var(--bg); border:1px solid var(--border); border-radius:14px; box-shadow:0 18px 40px -16px rgba(10,10,10,.28); z-index:25}
+  .notif-panel{position:fixed; top:66px; right:16px; width:330px; max-width:calc(100vw - 32px); max-height:70vh; overflow-y:auto; background:var(--bg); border:1px solid var(--border); border-radius:0; box-shadow:0 18px 40px -16px rgba(10,10,10,.28); z-index:25}
   .notif-head{font-family:var(--font-display); font-weight:700; padding:14px 16px; border-bottom:1px solid var(--border)}
   .notif-item{padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer}
   .notif-item:last-child{border-bottom:none}
@@ -53,6 +53,15 @@
   .profile-btn svg{width:26px; height:26px; display:block}
   .profile-btn:hover{background:var(--accent-dim)}
   .profile-panel{padding-bottom:2px}
+  .panel-subhead{border-top:1px solid var(--border)}
+  .acct-list{padding:4px 16px 12px}
+  .acct-row{display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid var(--border); font-size:.85rem}
+  .acct-row:last-child{border-bottom:none}
+  .acct-row .k{color:var(--muted)}
+  .acct-row .v{font-weight:600; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%}
+  #acct-edit-form{padding:12px 16px 14px}
+  #acct-edit-form label{margin-top:10px}
+  #acct-edit-form label:first-of-type{margin-top:0}
   .wallet-summary{padding:16px; border-bottom:1px solid var(--border)}
   .wallet-summary .amt{font-family:var(--font-display); font-size:1.5rem; font-weight:700; line-height:1.15}
   .wallet-summary .lbl{color:var(--muted); font-size:.78rem; margin-top:2px}
@@ -60,9 +69,9 @@
   .wallet-item:last-child{border-bottom:none}
   .wallet-item .t{font-weight:700; font-size:.86rem; display:flex; justify-content:space-between; gap:8px}
   .wallet-item .note{color:var(--muted); font-size:.78rem; margin-top:4px; line-height:1.4}
-  .wallet-item .badge{display:inline-block; margin-top:6px; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:20px; background:var(--accent-dim); color:var(--accent)}
+  .wallet-item .badge{display:inline-block; margin-top:6px; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:0; border:1px solid var(--accent); color:var(--accent); background:none}
   .profile-panel-foot{padding:10px 16px 14px}
-  .logout-btn{width:100%; background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger-bg); border-radius:10px; padding:10px; font-weight:700; cursor:pointer; font-size:.88rem}
+  .logout-btn{width:100%; background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger-bg); border-radius:0; padding:10px; font-weight:700; cursor:pointer; font-size:.88rem}
   .logout-btn:hover{filter:brightness(0.97)}
 
   @media (max-width:480px){
@@ -110,7 +119,7 @@
   .hero .ghost-btn:hover{background:rgba(255,255,255,.08)}
   .hero p.lead{color:#b7bdd1; font-size:1.08rem; line-height:1.6; max-width:46ch; margin-bottom:28px}
   .hero-actions{display:flex; gap:12px; flex-wrap:wrap}
-  .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:10px; padding:14px 24px; cursor:pointer}
+  .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:0; padding:14px 24px; cursor:pointer}
   .btn-primary:disabled{opacity:.6; cursor:default}
 
   .hero-visual{position:relative; height:400px; overflow:hidden}
@@ -125,13 +134,13 @@
   }
 
   .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
-  .chip{font-family:var(--font-body); font-weight:600; font-size:.86rem; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:999px; padding:8px 15px; cursor:pointer}
+  .chip{font-family:var(--font-body); font-weight:600; font-size:.86rem; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:0; padding:8px 15px; cursor:pointer}
   .chip[aria-pressed="true"]{color:var(--accent-ink); background:var(--accent); border-color:var(--accent)}
 
   .market-layout{display:grid; grid-template-columns:240px minmax(0,1fr); gap:28px; align-items:start; padding-bottom:40px; padding-top:28px}
   @media (max-width:860px){ .market-layout{grid-template-columns:1fr} }
 
-  .filters-panel{position:sticky; top:84px; display:flex; flex-direction:column; gap:18px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px}
+  .filters-panel{position:sticky; top:84px; display:flex; flex-direction:column; gap:18px; background:var(--surface); border:1px solid var(--border); border-radius:0; padding:18px}
   @media (max-width:860px){ .filters-panel{position:static} }
   .filters-panel h3{font-family:var(--font-display); font-size:1rem; margin:0}
   .filters-panel #filter-search{margin-top:-6px}
@@ -148,7 +157,7 @@
   .sort-label select{width:auto; padding:8px 10px}
 
   .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:16px; min-height:120px}
-  .card{background:var(--bg); border:1px solid var(--border); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; min-width:0}
+  .card{background:var(--bg); border:1px solid var(--border); border-radius:0; overflow:hidden; display:flex; flex-direction:column; min-width:0}
   /* Alto fijo (no aspect-ratio) a propósito: dentro de un flex column, algunos
      navegadores calculan mal el aspect-ratio de un hijo según fotos de distinto
      tamaño, y las fotos terminaban con alturas distintas entre sí, desalineando
@@ -160,7 +169,7 @@
   .card-cat{font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:700}
   .card-title{font-family:var(--font-display); font-size:1rem; line-height:1.25; min-width:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
   .badges{display:flex; gap:6px; flex-wrap:wrap}
-  .badge{font-size:.68rem; font-weight:700; padding:4px 8px; border-radius:6px; letter-spacing:.02em}
+  .badge{font-size:.68rem; font-weight:700; padding:4px 8px; border-radius:0; letter-spacing:.02em}
   .badge.cond{background:var(--surface-2); color:var(--muted)}
   .badge.protected{background:var(--good-bg); color:var(--good)}
   .card-foot{margin-top:auto; display:flex; align-items:baseline; justify-content:space-between; padding-top:6px}
@@ -169,7 +178,7 @@
   .empty-note{color:var(--muted); font-size:.92rem; padding-block:30px}
 
   .cat-tiles{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:14px; max-width:620px}
-  .cat-tile{display:flex; flex-direction:column; align-items:center; gap:10px; background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:28px 14px; font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--fg); cursor:pointer}
+  .cat-tile{display:flex; flex-direction:column; align-items:center; gap:10px; background:var(--bg); border:1.5px solid var(--border); border-radius:0; padding:28px 14px; font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--fg); cursor:pointer}
   .cat-tile:hover{border-color:var(--accent); background:var(--accent-dim)}
   .cat-tile-icon{font-size:2.2rem}
 
@@ -185,31 +194,32 @@
   @media (max-width:800px){
     .producto-wrap{grid-template-areas:"media" "summary" "qa"}
   }
-  fieldset{border:1px solid var(--border); border-radius:14px; padding:18px; margin:0 0 16px; min-width:0}
+  fieldset{border:1px solid var(--border); border-radius:0; padding:18px; margin:0 0 16px; min-width:0}
   legend{font-family:var(--font-display); font-weight:700; padding-inline:6px}
   label{display:block; font-size:.82rem; font-weight:600; color:var(--muted); margin-bottom:6px; margin-top:14px}
   label:first-of-type{margin-top:0}
-  input,select,textarea{width:100%; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--fg); font-family:var(--font-body); font-size:.92rem}
+  input,select,textarea{width:100%; background:var(--surface); border:1px solid var(--border); border-radius:0; padding:10px 12px; color:var(--fg); font-family:var(--font-body); font-size:.92rem}
   textarea{resize:vertical; min-height:80px}
   .hint{font-size:.78rem; color:var(--muted); margin-top:6px}
-  .price-hint{display:flex; align-items:center; gap:8px; background:var(--accent-dim); border:1px solid rgba(36,84,255,.3); border-radius:8px; padding:10px 12px; margin-top:8px; font-size:.82rem}
+  .price-hint{display:flex; align-items:center; gap:8px; background:var(--accent-dim); border:1px solid rgba(36,84,255,.3); border-radius:0; padding:10px 12px; margin-top:8px; font-size:.82rem}
   .price-hint b{font-family:var(--font-display); color:var(--accent)}
   .checklist label{display:flex; align-items:center; gap:8px; font-weight:500; color:var(--fg); margin-top:10px}
   .checklist input[type=checkbox]{width:auto}
-  .msg{border-radius:8px; padding:10px 12px; font-size:.85rem; margin-top:14px}
+  .msg{border-radius:0; padding:10px 12px; font-size:.85rem; margin-top:14px}
   .msg.ok{background:var(--good-bg); color:var(--good)}
   .msg.err{background:var(--danger-bg); color:var(--danger)}
 
-  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:24px}
-  @media (max-width:720px){ .steps{grid-template-columns:1fr} }
-  .step{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px}
+  .steps{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:24px}
+  @media (max-width:960px){ .steps{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:520px){ .steps{grid-template-columns:1fr} }
+  .step{background:var(--surface); border:1px solid var(--border); border-radius:0; padding:20px}
   .step .num{font-family:var(--font-display); font-size:1.5rem; color:var(--accent); margin-bottom:8px}
 
   footer{border-top:1px solid var(--border); margin-inline:-24px; padding:24px; color:var(--muted); font-size:.82rem; text-align:center}
 
   /* auth modal */
-  .overlay{position:fixed; inset:0; background:rgba(10,10,10,.45); display:flex; align-items:center; justify-content:center; padding:20px; z-index:20}
-  .modal{background:var(--bg); border-radius:16px; max-width:380px; width:100%; padding:26px; border:1px solid var(--border)}
+  .overlay{position:fixed; inset:0; background:rgba(8,9,14,.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; z-index:20}
+  .modal{background:var(--bg); border-radius:0; max-width:380px; width:100%; padding:26px; border:1px solid var(--border); box-shadow:0 24px 60px -20px rgba(10,10,10,.4)}
   .modal h2{font-size:1.25rem; margin-bottom:4px}
   .modal p.sub{color:var(--muted); font-size:.88rem; margin-top:6px; margin-bottom:18px}
   .modal-foot{display:flex; justify-content:space-between; align-items:center; margin-top:16px}
@@ -217,16 +227,16 @@
 
   /* producto / galería / copiar / preguntas */
   .card[data-product]{cursor:pointer}
-  .copy-btn{display:inline-flex; align-items:center; justify-content:center; background:none; border:none; color:var(--accent); cursor:pointer; padding:4px; vertical-align:middle; border-radius:5px}
+  .copy-btn{display:inline-flex; align-items:center; justify-content:center; background:none; border:none; color:var(--accent); cursor:pointer; padding:4px; vertical-align:middle; border-radius:0}
   .copy-btn:hover{background:var(--surface-2)}
   .copy-btn svg{width:15px; height:15px; display:block}
-  .gallery-main{height:340px; background:var(--surface-2); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:3rem; overflow:hidden}
+  .gallery-main{height:340px; background:var(--surface-2); border-radius:0; display:flex; align-items:center; justify-content:center; font-size:3rem; overflow:hidden}
   @media (max-width:480px){ .gallery-main{height:260px} }
   .gallery-main img{width:100%; height:100%; object-fit:cover}
   .gallery-thumbs{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
-  .gallery-thumbs img{width:60px; height:60px; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid transparent}
+  .gallery-thumbs img{width:60px; height:60px; object-fit:cover; border-radius:0; cursor:pointer; border:2px solid transparent}
   .gallery-thumbs img[aria-current="true"]{border-color:var(--accent)}
-  .qa-item{border:1px solid var(--border); border-radius:10px; padding:12px}
+  .qa-item{border:1px solid var(--border); border-radius:0; padding:12px}
   .qa-item .q{font-weight:600; font-size:.88rem}
   .qa-item .a{color:var(--muted); font-size:.86rem; margin-top:6px; padding-top:6px; border-top:1px solid var(--border)}
 </style>
@@ -247,7 +257,9 @@
 </div>
 
 <div id="profile-panel" class="notif-panel profile-panel" hidden>
-  <div class="notif-head">Tu billetera</div>
+  <div class="notif-head">Tu cuenta</div>
+  <div id="account-body"></div>
+  <div class="notif-head panel-subhead">Tu billetera</div>
   <div id="wallet-body"></div>
   <div class="profile-panel-foot">
     <button type="button" class="logout-btn" id="profile-logout-btn">Cerrar sesión</button>
@@ -395,7 +407,7 @@
     <h2 style="font-size:1.5rem; margin-bottom:4px; padding-top:40px">Publicar un producto</h2>
     <p style="color:var(--muted); margin-top:8px">Cuanto más completo el formulario, más rápido se vende.</p>
 
-    <div id="publicar-locked" style="margin-top:24px; padding:20px; border:1px solid var(--border); border-radius:14px; max-width:420px">
+    <div id="publicar-locked" style="margin-top:24px; padding:20px; border:1px solid var(--border); border-radius:0; max-width:420px">
       <p style="margin-bottom:12px">Necesitás una cuenta para publicar.</p>
       <button class="btn-primary" type="button" id="btn-open-auth-from-publish">Crear cuenta o iniciar sesión</button>
     </div>
@@ -477,7 +489,7 @@
       <div>
         <fieldset>
           <legend>Fotos</legend>
-          <label for="f-photo" style="display:block; border:1.5px dashed var(--border); border-radius:10px; padding:20px 16px; text-align:center; color:var(--muted); font-size:.85rem; background:var(--surface); cursor:pointer">
+          <label for="f-photo" style="display:block; border:1.5px dashed var(--border); border-radius:0; padding:20px 16px; text-align:center; color:var(--muted); font-size:.85rem; background:var(--surface); cursor:pointer">
             <span id="photo-label">Tocá para elegir hasta 6 fotos</span><br><span class="hint">El cambio de fondo automático lo sumamos en un paso aparte</span>
           </label>
           <input id="f-photo" type="file" accept="image/*" multiple style="margin-top:10px; width:100%">
@@ -490,11 +502,12 @@
 
   <section id="view-como-funciona" hidden>
     <h2 style="font-size:1.5rem; padding-top:40px">Cómo funciona la protección</h2>
-    <p style="color:var(--muted); max-width:60ch; margin-top:8px">El pago no pasa por nosotros: lo procesa Mercado Pago, y queda retenido hasta que el comprador confirma que todo llegó bien.</p>
+    <p style="color:var(--muted); max-width:62ch; margin-top:8px">UsadoGamer existe para que se pueda comprar y vender gaming usado sin arriesgarse. La idea es simple: el producto tiene que llegar en el estado que se prometió, o no se libera ni un peso. Así quedan protegidos tanto el comprador como el vendedor.</p>
     <div class="steps">
-      <div class="step"><div class="num">01</div><h3>El comprador paga</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Paga el precio publicado con Mercado Pago, con tarjeta o dinero en cuenta.</p></div>
-      <div class="step"><div class="num">02</div><h3>El vendedor despacha</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Tiene 48hs para subir el número de seguimiento del envío.</p></div>
-      <div class="step"><div class="num">03</div><h3>Se libera el pago</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">El comprador confirma que llegó bien y el dinero pasa al vendedor automáticamente.</p></div>
+      <div class="step"><div class="num">01</div><h3>El comprador paga</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Pagás por transferencia o con tarjeta. El dinero no va al vendedor: queda retenido por la plataforma hasta que todo salga bien.</p></div>
+      <div class="step"><div class="num">02</div><h3>El vendedor despacha</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Tiene hasta 72 horas hábiles para despachar el producto. Vos recibís un código de seguimiento para ver dónde está tu envío en todo momento.</p></div>
+      <div class="step"><div class="num">03</div><h3>Confirmás la recepción</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Cuando te llega, revisás que esté en el estado que esperabas y lo confirmás desde la web.</p></div>
+      <div class="step"><div class="num">04</div><h3>Se libera el pago</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Recién ahí, con tu confirmación, el dinero se libera y pasa al vendedor. Si algo no está bien, no se libera: nos encargamos de resolverlo.</p></div>
     </div>
   </section>
 
@@ -520,7 +533,7 @@
     <form id="auth-form">
       <div id="auth-extra" hidden>
         <label for="auth-username">Nombre de usuario</label>
-        <input id="auth-username" type="text" placeholder="Ej: mateo_gamer" minlength="3" autocomplete="off">
+        <input id="auth-username" type="text" placeholder="Tu usuario" minlength="3" autocomplete="off">
         <label for="auth-nombre">Nombre</label>
         <input id="auth-nombre" type="text" placeholder="Tu nombre">
         <label for="auth-apellido">Apellido</label>
@@ -537,7 +550,7 @@
       </div>
       <div id="auth-email-wrap">
         <label for="auth-email" id="auth-email-label">Email</label>
-        <input id="auth-email" type="text" required placeholder="vos@email.com">
+        <input id="auth-email" type="text" required placeholder="tu correo@gmail.com">
       </div>
       <div id="auth-password-wrap">
         <label for="auth-password" id="auth-password-label">Contraseña</label>
@@ -681,6 +694,84 @@
 
   setInterval(function(){ if (currentUser) loadNotifications(true); }, 45000);
 
+  // ---------- Datos de cuenta (perfil) ----------
+  var accountBody = document.getElementById('account-body');
+  var profileCache = null;
+
+  function escapeAttr(str){
+    return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function acctRow(k, v){
+    return '<div class="acct-row"><span class="k">' + k + '</span><span class="v">' + escapeHtml(v) + '</span></div>';
+  }
+
+  async function loadAccount(){
+    if (!currentUser) return;
+    accountBody.innerHTML = '<p class="empty-note" style="padding:16px">Cargando...</p>';
+    var res = await sb.from('profiles').select('username,email,nombre,apellido,telefono,direccion').eq('id', currentUser.id).single();
+    profileCache = res.data || {};
+    renderAccountView();
+  }
+
+  function renderAccountView(){
+    var p = profileCache || {};
+    var nombreCompleto = [p.nombre, p.apellido].filter(Boolean).join(' ');
+    accountBody.innerHTML =
+      '<div class="acct-list">' +
+        acctRow('Usuario', p.username ? '@' + p.username : '—') +
+        acctRow('Nombre', nombreCompleto || '—') +
+        acctRow('Email', p.email || '—') +
+        acctRow('Teléfono', p.telefono || 'No cargado') +
+        acctRow('Dirección', p.direccion || 'No cargada') +
+      '</div>' +
+      '<div style="padding:0 16px 12px"><button type="button" class="link-btn" id="acct-edit-btn">Editar datos</button></div>';
+    document.getElementById('acct-edit-btn').addEventListener('click', renderAccountEdit);
+  }
+
+  function renderAccountEdit(){
+    var p = profileCache || {};
+    accountBody.innerHTML =
+      '<form id="acct-edit-form">' +
+        '<label for="acct-nombre">Nombre</label>' +
+        '<input id="acct-nombre" type="text" value="' + escapeAttr(p.nombre) + '">' +
+        '<label for="acct-apellido">Apellido</label>' +
+        '<input id="acct-apellido" type="text" value="' + escapeAttr(p.apellido) + '">' +
+        '<label for="acct-telefono">Teléfono</label>' +
+        '<input id="acct-telefono" type="tel" value="' + escapeAttr(p.telefono) + '">' +
+        '<label for="acct-direccion">Dirección</label>' +
+        '<input id="acct-direccion" type="text" value="' + escapeAttr(p.direccion) + '" placeholder="Calle, número, ciudad">' +
+        '<div id="acct-edit-msg"></div>' +
+        '<div style="display:flex; gap:10px; margin-top:16px">' +
+          '<button type="submit" class="btn-primary" style="flex:1; padding:10px; font-size:.86rem">Guardar</button>' +
+          '<button type="button" class="link-btn" id="acct-cancel-btn">Cancelar</button>' +
+        '</div>' +
+      '</form>';
+    document.getElementById('acct-cancel-btn').addEventListener('click', renderAccountView);
+    document.getElementById('acct-edit-form').addEventListener('submit', async function(e){
+      e.preventDefault();
+      var submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+      var updates = {
+        nombre: document.getElementById('acct-nombre').value.trim() || null,
+        apellido: document.getElementById('acct-apellido').value.trim() || null,
+        telefono: document.getElementById('acct-telefono').value.trim() || null,
+        direccion: document.getElementById('acct-direccion').value.trim() || null
+      };
+      var res = await sb.from('profiles').update(updates).eq('id', currentUser.id);
+      if (res.error){
+        var msg = document.getElementById('acct-edit-msg');
+        msg.innerHTML = '<div class="msg err" style="margin-top:10px">No se pudo guardar: ' + res.error.message + '</div>';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Guardar';
+        return;
+      }
+      profileCache = Object.assign({}, profileCache, updates);
+      renderAccountView();
+    });
+  }
+
   // ---------- Billetera (perfil) ----------
   var profilePanel = document.getElementById('profile-panel');
   var walletBody = document.getElementById('wallet-body');
@@ -726,6 +817,7 @@
     if (notifPanel) notifPanel.hidden = true;
     if (!willOpen){ profilePanel.hidden = true; return; }
     profilePanel.hidden = false;
+    loadAccount();
     loadWallet();
   }
 
@@ -772,7 +864,7 @@
       fUsername.required = true;
       fTelefono.required = true;
       authEmailLabel.textContent = 'Email';
-      authEmailInput.placeholder = 'vos@email.com';
+      authEmailInput.placeholder = 'tu correo@gmail.com';
       authPasswordLabel.textContent = 'Contraseña';
       authTitle.textContent = 'Crear cuenta';
       authSub.textContent = 'Te vamos a mandar un email para confirmar tu cuenta.';
@@ -780,7 +872,7 @@
       authToggle.textContent = '¿Ya tenés cuenta? Iniciá sesión';
     } else if (mode === 'recover'){
       authEmailLabel.textContent = 'Usuario o email';
-      authEmailInput.placeholder = 'tu_usuario o vos@email.com';
+      authEmailInput.placeholder = 'tu usuario o tu correo@gmail.com';
       authPasswordWrap.hidden = true;
       authPasswordInput.required = false;
       authTitle.textContent = 'Recuperar contraseña';
@@ -797,7 +889,7 @@
       authToggle.hidden = true;
     } else {
       authEmailLabel.textContent = 'Usuario o email';
-      authEmailInput.placeholder = 'tu_usuario o vos@email.com';
+      authEmailInput.placeholder = 'tu usuario o tu correo@gmail.com';
       authPasswordLabel.textContent = 'Contraseña';
       authForgotLink.hidden = false;
       authTitle.textContent = 'Iniciar sesión';
@@ -1091,7 +1183,7 @@
         var img = document.createElement('img');
         img.src = ev.target.result;
         img.alt = '';
-        img.style.cssText = 'width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:8px';
+        img.style.cssText = 'width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:0';
         photoPreviewGrid.appendChild(img);
       };
       reader.readAsDataURL(file);
@@ -1568,7 +1660,7 @@
     container.innerHTML = '';
     rows.forEach(function(order){
       var box = document.createElement('div');
-      box.style.cssText = 'border:1px solid var(--border); border-radius:12px; padding:14px';
+      box.style.cssText = 'border:1px solid var(--border); border-radius:0; padding:14px';
       var title = order.products ? order.products.title : 'Producto';
       var html = '<div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">' +
         '<b>' + escapeHtml(title) + '</b><span class="tabular">' + money.format(order.amount) + '</span></div>' +
