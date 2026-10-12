@@ -52,25 +52,33 @@
   .profile-btn{position:relative; background:none; border:none; cursor:pointer; padding:5px; display:flex; align-items:center; justify-content:center; color:var(--fg); flex:none; border-radius:50%}
   .profile-btn svg{width:26px; height:26px; display:block}
   .profile-btn:hover{background:var(--accent-dim)}
-  .profile-panel{padding-bottom:2px}
-  .panel-subhead{border-top:1px solid var(--border)}
-  .acct-list{padding:4px 16px 12px}
-  .acct-row{display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid var(--border); font-size:.85rem}
+  /* ---- Mi cuenta (página completa) ---- */
+  .acct-section{border:1px solid var(--border); background:var(--bg); margin-bottom:24px}
+  .acct-section-head{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap}
+  .acct-section-head h3{font-size:1.05rem}
+  .acct-section-head p{color:var(--muted); font-size:.85rem; margin-top:4px}
+  .acct-list{padding:4px 20px}
+  .acct-row{display:flex; justify-content:space-between; gap:16px; padding:12px 0; border-bottom:1px solid var(--border); font-size:.9rem}
   .acct-row:last-child{border-bottom:none}
   .acct-row .k{color:var(--muted)}
   .acct-row .v{font-weight:600; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%}
-  #acct-edit-form{padding:12px 16px 14px}
-  #acct-edit-form label{margin-top:10px}
-  #acct-edit-form label:first-of-type{margin-top:0}
-  .wallet-summary{padding:16px; border-bottom:1px solid var(--border)}
-  .wallet-summary .amt{font-family:var(--font-display); font-size:1.5rem; font-weight:700; line-height:1.15}
-  .wallet-summary .lbl{color:var(--muted); font-size:.78rem; margin-top:2px}
-  .wallet-item{padding:12px 16px; border-bottom:1px solid var(--border)}
+  .acct-foot{padding:14px 20px}
+  #acct-edit-form, #payout-edit-form{padding:14px 20px 20px; max-width:420px}
+  #acct-edit-form label, #payout-edit-form label{margin-top:12px}
+  #acct-edit-form label:first-of-type, #payout-edit-form label:first-of-type{margin-top:0}
+  .acct-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--border)}
+  .acct-stat{background:var(--bg); padding:18px 20px}
+  .acct-stat .n{font-family:var(--font-display); font-size:1.4rem; font-weight:700; line-height:1.15}
+  .acct-stat .l{color:var(--muted); font-size:.78rem; margin-top:4px}
+  .wallet-summary{padding:18px 20px; border-bottom:1px solid var(--border)}
+  .wallet-summary .amt{font-family:var(--font-display); font-size:1.6rem; font-weight:700; line-height:1.15}
+  .wallet-summary .lbl{color:var(--muted); font-size:.82rem; margin-top:4px}
+  .wallet-item{padding:14px 20px; border-bottom:1px solid var(--border)}
   .wallet-item:last-child{border-bottom:none}
-  .wallet-item .t{font-weight:700; font-size:.86rem; display:flex; justify-content:space-between; gap:8px}
-  .wallet-item .note{color:var(--muted); font-size:.78rem; margin-top:4px; line-height:1.4}
+  .wallet-item .t{font-weight:700; font-size:.9rem; display:flex; justify-content:space-between; gap:8px}
+  .wallet-item .note{color:var(--muted); font-size:.8rem; margin-top:4px; line-height:1.4}
   .wallet-item .badge{display:inline-block; margin-top:6px; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:0; border:1px solid var(--accent); color:var(--accent); background:none}
-  .profile-panel-foot{padding:10px 16px 14px}
+  .payout-note{background:var(--accent-dim); border:1px solid rgba(36,84,255,.3); padding:14px 20px; font-size:.85rem; color:var(--fg)}
   .logout-btn{width:100%; background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger-bg); border-radius:0; padding:10px; font-weight:700; cursor:pointer; font-size:.88rem}
   .logout-btn:hover{filter:brightness(0.97)}
 
@@ -256,16 +264,6 @@
   <div id="notif-list"></div>
 </div>
 
-<div id="profile-panel" class="notif-panel profile-panel" hidden>
-  <div class="notif-head">Tu cuenta</div>
-  <div id="account-body"></div>
-  <div class="notif-head panel-subhead">Tu billetera</div>
-  <div id="wallet-body"></div>
-  <div class="profile-panel-foot">
-    <button type="button" class="logout-btn" id="profile-logout-btn">Cerrar sesión</button>
-  </div>
-</div>
-
 <div class="drawer-overlay" id="drawer-overlay">
   <nav class="drawer" role="dialog" aria-label="Menú principal">
     <button type="button" class="drawer-close" id="menu-close-btn" aria-label="Cerrar menú">×</button>
@@ -273,6 +271,7 @@
     <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="publicar">Publicar</button>
     <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="como-funciona">Cómo funciona</button>
     <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="pedidos" id="tab-pedidos" hidden>Mis pedidos</button>
+    <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="cuenta" id="tab-cuenta" hidden>Mi cuenta</button>
     <div class="drawer-logo"><img src="logo-gaming-intercambio.png" alt=""><span>UsadoGamer</span></div>
   </nav>
 </div>
@@ -522,6 +521,36 @@
     <div id="pedidos-ventas" style="display:flex; flex-direction:column; gap:12px; margin-top:12px"><p class="empty-note">Cargando...</p></div>
   </section>
 
+  <section id="view-cuenta" hidden>
+    <h2 style="font-size:1.5rem; margin-bottom:4px; padding-top:40px">Mi cuenta</h2>
+    <p style="color:var(--muted); margin-top:8px; max-width:60ch">Tus datos, tu plata y el resumen de tu actividad en UsadoGamer.</p>
+
+    <div class="acct-section" style="margin-top:28px">
+      <div class="acct-section-head"><h3>Tus datos</h3></div>
+      <div id="account-body"></div>
+    </div>
+
+    <div class="acct-section" id="payout-section" hidden>
+      <div class="acct-section-head"><h3>Datos para cobrar</h3></div>
+      <div id="payout-body"></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Tu billetera</h3></div>
+      <div id="wallet-body"></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head">
+        <h3>Tu actividad</h3>
+        <button type="button" class="link-btn" data-goto="pedidos">Ver todos mis pedidos</button>
+      </div>
+      <div class="acct-stats" id="acct-stats"></div>
+    </div>
+
+    <button type="button" class="logout-btn" id="cuenta-logout-btn" style="max-width:220px">Cerrar sesión</button>
+  </section>
+
 </main>
 
 <footer>UsadoGamer — versión de prueba, conectada a una base de datos real.</footer>
@@ -610,15 +639,14 @@
       profileBtn.type = 'button';
       profileBtn.className = 'profile-btn';
       profileBtn.id = 'profile-btn';
-      profileBtn.setAttribute('aria-label', 'Tu cuenta y billetera');
+      profileBtn.setAttribute('aria-label', 'Tu cuenta');
       profileBtn.innerHTML = PROFILE_ICON;
-      profileBtn.addEventListener('click', toggleProfilePanel);
+      profileBtn.addEventListener('click', function(){ closeDrawer(); go('cuenta'); });
       authArea.appendChild(profileBtn);
 
       loadNotifications();
     } else {
       notifPanel.hidden = true;
-      profilePanel.hidden = true;
       var login = document.createElement('button');
       login.className = 'ghost-btn';
       login.type = 'button';
@@ -627,6 +655,7 @@
       authArea.appendChild(login);
     }
     document.getElementById('tab-pedidos').hidden = !currentUser;
+    document.getElementById('tab-cuenta').hidden = !currentUser;
     updatePublishAccess();
   }
 
@@ -660,7 +689,6 @@
 
   async function toggleNotifPanel(){
     var willOpen = notifPanel.hidden;
-    if (profilePanel) profilePanel.hidden = true;
     if (!willOpen){ notifPanel.hidden = true; return; }
     notifPanel.hidden = false;
     renderNotifList();
@@ -687,15 +715,14 @@
     if (notifPanel && !notifPanel.hidden && !notifPanel.contains(e.target) && !e.target.closest('#notif-btn')){
       notifPanel.hidden = true;
     }
-    if (profilePanel && !profilePanel.hidden && !profilePanel.contains(e.target) && !e.target.closest('#profile-btn')){
-      profilePanel.hidden = true;
-    }
   });
 
   setInterval(function(){ if (currentUser) loadNotifications(true); }, 45000);
 
-  // ---------- Datos de cuenta (perfil) ----------
+  // ---------- Mi cuenta: datos personales ----------
   var accountBody = document.getElementById('account-body');
+  var payoutSection = document.getElementById('payout-section');
+  var payoutBody = document.getElementById('payout-body');
   var profileCache = null;
 
   function escapeAttr(str){
@@ -708,10 +735,11 @@
 
   async function loadAccount(){
     if (!currentUser) return;
-    accountBody.innerHTML = '<p class="empty-note" style="padding:16px">Cargando...</p>';
-    var res = await sb.from('profiles').select('username,email,nombre,apellido,telefono,direccion').eq('id', currentUser.id).single();
+    accountBody.innerHTML = '<p class="empty-note" style="padding:20px">Cargando...</p>';
+    var res = await sb.from('profiles').select('username,email,nombre,apellido,telefono,direccion,rol,payout_alias,payout_cbu,payout_titular').eq('id', currentUser.id).single();
     profileCache = res.data || {};
     renderAccountView();
+    renderPayoutSection();
   }
 
   function renderAccountView(){
@@ -725,7 +753,7 @@
         acctRow('Teléfono', p.telefono || 'No cargado') +
         acctRow('Dirección', p.direccion || 'No cargada') +
       '</div>' +
-      '<div style="padding:0 16px 12px"><button type="button" class="link-btn" id="acct-edit-btn">Editar datos</button></div>';
+      '<div class="acct-foot"><button type="button" class="link-btn" id="acct-edit-btn">Editar datos</button></div>';
     document.getElementById('acct-edit-btn').addEventListener('click', renderAccountEdit);
   }
 
@@ -772,8 +800,87 @@
     });
   }
 
-  // ---------- Billetera (perfil) ----------
-  var profilePanel = document.getElementById('profile-panel');
+  // ---------- Mi cuenta: datos para cobrar (vendedores) ----------
+  function esVendedor(p){ return p.rol === 'vender' || p.rol === 'ambos'; }
+
+  function renderPayoutSection(){
+    var p = profileCache || {};
+    payoutSection.hidden = false;
+    if (esVendedor(p)){
+      renderPayoutView();
+    } else {
+      renderBecomeSeller();
+    }
+  }
+
+  function renderBecomeSeller(){
+    payoutBody.innerHTML =
+      '<div class="payout-note">' +
+        '<p>Tu cuenta está configurada solo para comprar. Si también querés vender, activá tu cuenta de vendedor y cargá los datos donde te vamos a depositar el dinero de tus ventas.</p>' +
+        '<button type="button" class="btn-primary" id="become-seller-btn" style="margin-top:14px; padding:10px 18px; font-size:.86rem">Quiero vender también</button>' +
+      '</div>';
+    document.getElementById('become-seller-btn').addEventListener('click', renderPayoutEdit);
+  }
+
+  function renderPayoutView(){
+    var p = profileCache || {};
+    payoutBody.innerHTML =
+      '<div class="acct-list">' +
+        acctRow('Alias', p.payout_alias || '—') +
+        acctRow('CBU', p.payout_cbu || '—') +
+        acctRow('Titular de la cuenta', p.payout_titular || '—') +
+      '</div>' +
+      '<div class="acct-foot"><button type="button" class="link-btn" id="payout-edit-btn">Editar datos de cobro</button></div>';
+    document.getElementById('payout-edit-btn').addEventListener('click', renderPayoutEdit);
+  }
+
+  function renderPayoutEdit(){
+    var p = profileCache || {};
+    payoutBody.innerHTML =
+      '<form id="payout-edit-form">' +
+        '<p class="hint" style="margin-top:0">El alias y el CBU son obligatorios: los necesitamos para poder depositarte cuando se libere un pago.</p>' +
+        '<label for="payout-alias">Alias de tu cuenta</label>' +
+        '<input id="payout-alias" type="text" required value="' + escapeAttr(p.payout_alias) + '" placeholder="Ej: mateo.gamer.mp">' +
+        '<label for="payout-cbu">CBU</label>' +
+        '<input id="payout-cbu" type="text" required inputmode="numeric" minlength="22" maxlength="22" value="' + escapeAttr(p.payout_cbu) + '" placeholder="22 dígitos">' +
+        '<label for="payout-titular">Titular de la cuenta</label>' +
+        '<input id="payout-titular" type="text" required value="' + escapeAttr(p.payout_titular) + '" placeholder="Nombre y apellido del titular">' +
+        '<div id="payout-edit-msg"></div>' +
+        '<div style="display:flex; gap:10px; margin-top:16px">' +
+          '<button type="submit" class="btn-primary" style="flex:1; padding:10px; font-size:.86rem">Guardar</button>' +
+          (esVendedor(p) ? '<button type="button" class="link-btn" id="payout-cancel-btn">Cancelar</button>' : '') +
+        '</div>' +
+      '</form>';
+    var cancelBtn = document.getElementById('payout-cancel-btn');
+    if (cancelBtn) cancelBtn.addEventListener('click', renderPayoutSection);
+    document.getElementById('payout-edit-form').addEventListener('submit', async function(e){
+      e.preventDefault();
+      var submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+      var wasVendedor = esVendedor(profileCache || {});
+      var updates = {
+        payout_alias: document.getElementById('payout-alias').value.trim(),
+        payout_cbu: document.getElementById('payout-cbu').value.trim(),
+        payout_titular: document.getElementById('payout-titular').value.trim()
+      };
+      if (!wasVendedor){
+        updates.rol = (profileCache && profileCache.rol === 'comprar') ? 'ambos' : (profileCache.rol || 'ambos');
+      }
+      var res = await sb.from('profiles').update(updates).eq('id', currentUser.id);
+      if (res.error){
+        var msg = document.getElementById('payout-edit-msg');
+        msg.innerHTML = '<div class="msg err" style="margin-top:10px">No se pudo guardar: ' + res.error.message + '</div>';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Guardar';
+        return;
+      }
+      profileCache = Object.assign({}, profileCache, updates);
+      renderPayoutSection();
+    });
+  }
+
+  // ---------- Mi cuenta: billetera ----------
   var walletBody = document.getElementById('wallet-body');
   var walletStatusLabels = {
     pago_confirmado: 'Pago confirmado · esperando que despaches',
@@ -783,7 +890,7 @@
 
   async function loadWallet(){
     if (!currentUser) return;
-    walletBody.innerHTML = '<p class="empty-note" style="padding:16px">Cargando...</p>';
+    walletBody.innerHTML = '<p class="empty-note" style="padding:20px">Cargando...</p>';
     var res = await sb.from('orders').select('*, products(title)')
       .eq('seller_id', currentUser.id)
       .in('status', ['pago_confirmado', 'despachado', 'confirmado_entrega'])
@@ -797,7 +904,7 @@
       '</div>';
 
     if (!held.length){
-      html += '<p class="empty-note" style="padding:16px">Por ahora no tenés ventas con pago retenido.</p>';
+      html += '<p class="empty-note" style="padding:20px">Por ahora no tenés ventas con pago retenido.</p>';
     } else {
       html += held.map(function(o){
         var net = Math.round(o.amount * (1 - COMMISSION_RATE));
@@ -812,18 +919,29 @@
     walletBody.innerHTML = html;
   }
 
-  function toggleProfilePanel(){
-    var willOpen = profilePanel.hidden;
-    if (notifPanel) notifPanel.hidden = true;
-    if (!willOpen){ profilePanel.hidden = true; return; }
-    profilePanel.hidden = false;
-    loadAccount();
-    loadWallet();
+  // ---------- Mi cuenta: resumen de actividad ----------
+  async function loadAcctStats(){
+    if (!currentUser) return;
+    var statsEl = document.getElementById('acct-stats');
+    statsEl.innerHTML = '<div class="acct-stat"><div class="n">…</div><div class="l">Cargando</div></div>';
+    var comprasRes = await sb.from('orders').select('amount,status').eq('buyer_id', currentUser.id);
+    var ventasRes = await sb.from('orders').select('amount,status').eq('seller_id', currentUser.id);
+    var compras = comprasRes.data || [];
+    var ventas = ventasRes.data || [];
+    var gastado = compras.filter(function(o){ return o.status !== 'cancelado' && o.status !== 'pendiente_pago'; })
+      .reduce(function(sum,o){ return sum + o.amount; }, 0);
+    var vendido = ventas.filter(function(o){ return o.status === 'liberado'; })
+      .reduce(function(sum,o){ return sum + Math.round(o.amount * (1 - COMMISSION_RATE)); }, 0);
+    statsEl.innerHTML =
+      '<div class="acct-stat"><div class="n tabular">' + compras.length + '</div><div class="l">Compras realizadas</div></div>' +
+      '<div class="acct-stat"><div class="n tabular">' + ventas.length + '</div><div class="l">Ventas realizadas</div></div>' +
+      '<div class="acct-stat"><div class="n tabular">' + money.format(gastado) + '</div><div class="l">Gastado en compras</div></div>' +
+      '<div class="acct-stat"><div class="n tabular">' + money.format(vendido) + '</div><div class="l">Cobrado en ventas</div></div>';
   }
 
-  document.getElementById('profile-logout-btn').addEventListener('click', async function(){
-    profilePanel.hidden = true;
+  document.getElementById('cuenta-logout-btn').addEventListener('click', async function(){
     await sb.auth.signOut();
+    go('explorar');
   });
 
   var authExtra = document.getElementById('auth-extra');
@@ -1724,15 +1842,18 @@
     publicar: document.getElementById('view-publicar'),
     'como-funciona': document.getElementById('view-como-funciona'),
     pedidos: document.getElementById('view-pedidos'),
+    cuenta: document.getElementById('view-cuenta'),
     producto: document.getElementById('view-producto'),
     checkout: document.getElementById('view-checkout')
   };
   function go(view){
+    if (view === 'cuenta' && !currentUser){ openAuth('login'); return; }
     tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.view === view)); });
     Object.keys(views).forEach(function(k){ views[k].hidden = (k !== view); });
     window.scrollTo(0,0);
     if (view === 'explorar') loadProducts();
     if (view === 'pedidos') loadPedidos();
+    if (view === 'cuenta'){ loadAccount(); loadWallet(); loadAcctStats(); }
   }
 
   var drawerOverlay = document.getElementById('drawer-overlay');
