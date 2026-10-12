@@ -114,6 +114,10 @@ create table if not exists public.orders (
 
 alter table public.orders enable row level security;
 
+-- Id del pago en Mercado Pago, para pedidos pagados con tarjeta (se completa
+-- automáticamente desde el webhook de Mercado Pago cuando se confirma el pago)
+alter table public.orders add column if not exists mp_payment_id text;
+
 -- El comprador y el vendedor de un pedido pueden verlo (nadie más)
 create policy "Comprador y vendedor ven su propio pedido"
   on public.orders for select
