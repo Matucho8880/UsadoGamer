@@ -195,6 +195,13 @@ alter table public.profiles enable row level security;
 -- Columna de dirección, para el panel de "Tu cuenta" (datos editables por el usuario)
 alter table public.profiles add column if not exists direccion text;
 
+-- Datos de cobro a nivel de cuenta (para vendedores): alias, CBU y nombre del
+-- titular de la cuenta. Antes esto se pedía por cada producto publicado; ahora
+-- vive en el perfil para que el usuario lo cargue una sola vez.
+alter table public.profiles add column if not exists payout_alias text;
+alter table public.profiles add column if not exists payout_cbu text;
+alter table public.profiles add column if not exists payout_titular text;
+
 -- Cada usuario solo puede ver y editar su propio perfil (tiene email y teléfono, no es público)
 create policy "Cada usuario ve su propio perfil"
   on public.profiles for select
