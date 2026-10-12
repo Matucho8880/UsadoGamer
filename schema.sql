@@ -612,6 +612,111 @@ create trigger on_question_answered
   after update on public.product_questions
   for each row execute function public.notify_question_answered();
 
+-- ============================================================
+-- Panel de administración (Mateo) — agregado para /dashboard
+-- ============================================================
+
+-- Columna para marcar qué cuenta es administradora. Por defecto nadie lo es;
+-- Mateo se marca a sí mismo a mano una sola vez (ver el UPDATE más abajo).
+alter table public.profiles add column if not exists is_admin boolean not null default false;
+
+-- Función que dice si el usuario logueado actualmente es administrador.
+-- security definer + search_path fijo para que ande bien usada dentro de policies.
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce((select is_admin from public.profiles where id = auth.uid()), false);
+$$;
+
+grant execute on function public.is_admin() to authenticated;
+
+-- El administrador puede ver TODOS los perfiles (además de cada usuario viendo el suyo)
+create policy "El administrador ve todos los perfiles"
+  on public.profiles for select
+  using (public.is_admin());
+
+-- El administrador puede ver y actualizar TODOS los pedidos (confirmar pagos, liberar dinero)
+create policy "El administrador ve todos los pedidos"
+  on public.orders for select
+  using (public.is_admin());
+
+create policy "El administrador actualiza todos los pedidos"
+  on public.orders for update
+  using (public.is_admin());
+
+-- Importante: después de ejecutar todo este archivo, correr UNA VEZ (reemplazando
+-- el email por el de Mateo) para convertirse en administrador:
+--   update public.profiles set is_admin = true where email = 'TU_EMAIL_AQUI';
+
+-- La tabla notifications tiene un check que limita los "type" permitidos.
+-- Hay que ampliarlo para que acepte los nuevos tipos de pago.
+alter table public.notifications drop constraint if exists notifications_type_check;
+alter table public.notifications add constraint notifications_type_check
+  check (type in ('pregunta','respuesta','oferta_nueva','oferta_aceptada','oferta_rechazada','pago_confirmado','pago_liberado'));
+
+-- Cuando Mateo confirma que recibió el pago (pasa a 'pago_confirmado'), se avisa
+-- por mail al comprador (que su compra está confirmada) y al vendedor (que ya
+-- puede despachar, y que va a cobrar cuando el comprador confirme la entrega).
+create or replace function public.notify_payment_confirmed()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.status = 'pago_confirmado' and old.status is distinct from 'pago_confirmado' then
+    insert into public.notifications (user_id, type, title, body, product_id)
+    values (new.buyer_id, 'pago_confirmado', 'Confirmamos tu pago', 'Tu compra fue confirmada. El vendedor va a despachar tu producto.', new.product_id);
+
+    insert into public.notifications (user_id, type, title, body, product_id)
+    values (new.seller_id, 'pago_confirmado', 'Pago confirmado — ya podés despachar', 'Confirmamos el pago del comprador. Despachá el producto cuando puedas.', new.product_id);
+
+    perform net.http_post(
+      url := 'https://usadogamer-projecarg.vercel.app/api/notify-payment-confirmed',
+      headers := jsonb_build_object('Content-Type', 'application/json'),
+      body := jsonb_build_object('order_id', new.id, 'secret', '7b0dbded63a6e04bb8e592cc348bca0585c8afe3de7aacfb')
+    );
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_payment_confirmed on public.orders;
+create trigger on_payment_confirmed
+  after update on public.orders
+  for each row execute function public.notify_payment_confirmed();
+
+-- Cuando Mateo libera el pago al vendedor (pasa a 'liberado'), se le avisa
+-- al vendedor por mail que el dinero ya está depositado en su cuenta.
+create or replace function public.notify_payment_released()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.status = 'liberado' and old.status is distinct from 'liberado' then
+    insert into public.notifications (user_id, type, title, body, product_id)
+    values (new.seller_id, 'pago_liberado', '¡Tu dinero ya está depositado!', 'Liberamos el pago de tu venta. El dinero ya está en tu cuenta.', new.product_id);
+
+    perform net.http_post(
+      url := 'https://usadogamer-projecarg.vercel.app/api/notify-payment-released',
+      headers := jsonb_build_object('Content-Type', 'application/json'),
+      body := jsonb_build_object('order_id', new.id, 'secret', '7b0dbded63a6e04bb8e592cc348bca0585c8afe3de7aacfb')
+    );
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_payment_released on public.orders;
+create trigger on_payment_released
+  after update on public.orders
+  for each row execute function public.notify_payment_released();
+
 create or replace function public.notify_offer_created()
 returns trigger
 language plpgsql
