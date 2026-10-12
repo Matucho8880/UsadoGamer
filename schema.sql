@@ -634,15 +634,18 @@ $$;
 grant execute on function public.is_admin() to authenticated;
 
 -- El administrador puede ver TODOS los perfiles (además de cada usuario viendo el suyo)
+drop policy if exists "El administrador ve todos los perfiles" on public.profiles;
 create policy "El administrador ve todos los perfiles"
   on public.profiles for select
   using (public.is_admin());
 
 -- El administrador puede ver y actualizar TODOS los pedidos (confirmar pagos, liberar dinero)
+drop policy if exists "El administrador ve todos los pedidos" on public.orders;
 create policy "El administrador ve todos los pedidos"
   on public.orders for select
   using (public.is_admin());
 
+drop policy if exists "El administrador actualiza todos los pedidos" on public.orders;
 create policy "El administrador actualiza todos los pedidos"
   on public.orders for update
   using (public.is_admin());
