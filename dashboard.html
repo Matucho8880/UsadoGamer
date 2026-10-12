@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel de administración — UsadoGamer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon-joystick.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --surface:#f7f7f8; --surface-2:#eff0f2; --fg:#0a0a0a; --muted:#64666c;
+    --accent:#2454ff; --accent-dim:#e8edff; --accent-ink:#ffffff;
+    --good:#0f9d6b; --good-bg:#e7f8f1; --border:#e3e3e6; --danger:#d93f3f; --danger-bg:#fdeaea;
+    --warn:#b4790f; --warn-bg:#fdf1de;
+    --font-display:'Space Grotesk', 'Segoe UI', sans-serif;
+    --font-body:'Inter', 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--surface); color:var(--fg); font-family:var(--font-body); margin:0; padding-inline:24px; -webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:var(--font-display); margin:0}
+  p{margin:0}
+  [hidden]{display:none!important}
+  .tabular{font-variant-numeric:tabular-nums}
+  .wrap{max-width:1120px; margin-inline:auto}
+
+  header.bar{background:var(--bg); border-bottom:1px solid var(--border); padding-block:16px; margin-inline:-24px; padding-inline:24px}
+  .barrow{max-width:1120px; margin-inline:auto; display:flex; align-items:center; gap:14px}
+  .logo{display:flex; align-items:center; gap:10px; font-family:'Outfit', var(--font-body); font-weight:700; font-size:1rem; flex:none}
+  .logo-mark{width:34px; height:34px; display:block; flex:none}
+  .logo-tag{color:var(--muted); font-weight:600; font-size:.82rem; border-left:1px solid var(--border); padding-left:12px; margin-left:2px}
+  .spacer{flex:1}
+  .logout-btn{font-family:var(--font-body); font-weight:700; font-size:.85rem; color:var(--danger); background:var(--danger-bg); border:1px solid var(--danger-bg); border-radius:9px; padding:9px 16px; cursor:pointer}
+
+  main{padding-block:32px 60px}
+
+  /* ---------- login gate ---------- */
+  .gate{min-height:70vh; display:flex; align-items:center; justify-content:center; padding-block:40px}
+  .gate-card{width:100%; max-width:380px; background:var(--bg); border:1px solid var(--border); border-radius:16px; padding:28px; box-shadow:0 18px 40px -16px rgba(10,10,10,.1)}
+  .gate-card h1{font-size:1.3rem; margin-bottom:6px}
+  .gate-card .sub{color:var(--muted); font-size:.88rem; margin-bottom:20px}
+  .field{margin-bottom:14px}
+  .field label{display:block; font-size:.82rem; font-weight:600; margin-bottom:6px}
+  .field input{width:100%; border:1px solid var(--border); border-radius:9px; padding:11px 12px; font-size:.95rem; font-family:var(--font-body)}
+  .field input:focus{outline:2px solid var(--accent-dim); border-color:var(--accent)}
+  .btn-primary{width:100%; font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:10px; padding:13px; cursor:pointer; margin-top:4px}
+  .btn-primary:disabled{opacity:.6; cursor:default}
+  .gate-msg{font-size:.85rem; margin-top:14px; padding:10px 12px; border-radius:9px}
+  .gate-msg.err{background:var(--danger-bg); color:var(--danger)}
+  .gate-msg.info{background:var(--accent-dim); color:var(--accent)}
+
+  /* ---------- stats ---------- */
+  .stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:36px}
+  .stat-card{background:var(--bg); border:1px solid var(--border); border-radius:14px; padding:18px}
+  .stat-card .n{font-family:var(--font-display); font-size:1.7rem; font-weight:700; line-height:1.1}
+  .stat-card .l{color:var(--muted); font-size:.8rem; margin-top:4px}
+
+  section.panel{background:var(--bg); border:1px solid var(--border); border-radius:14px; margin-bottom:28px; overflow:hidden}
+  .panel-head{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+  .panel-head h2{font-size:1.05rem}
+  .panel-head .count{color:var(--muted); font-size:.85rem}
+  .panel-body{padding:4px 0}
+  .empty-row{padding:22px 20px; color:var(--muted); font-size:.88rem}
+
+  .order-row{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap}
+  .order-row:last-child{border-bottom:none}
+  .order-info{flex:1; min-width:220px}
+  .order-info .t{font-weight:700; font-size:.92rem}
+  .order-info .d{color:var(--muted); font-size:.82rem; margin-top:5px; line-height:1.5}
+  .order-info .d b{color:var(--fg)}
+  .order-actions{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .btn-sm{font-family:var(--font-body); font-weight:700; font-size:.82rem; border-radius:8px; padding:9px 14px; cursor:pointer; border:1px solid transparent; white-space:nowrap}
+  .btn-sm.confirm{background:var(--good-bg); color:var(--good)}
+  .btn-sm.release{background:var(--accent-dim); color:var(--accent)}
+  .btn-sm.link{background:var(--surface-2); color:var(--fg)}
+  .btn-sm:disabled{opacity:.55; cursor:default}
+  .badge{display:inline-block; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:20px}
+  .badge.warn{background:var(--warn-bg); color:var(--warn)}
+  .badge.good{background:var(--good-bg); color:var(--good)}
+
+  .denied{min-height:60vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:40px}
+  .denied p{color:var(--muted); margin-top:8px}
+
+  @media (max-width:480px){
+    body{padding-inline:16px}
+    header.bar{margin-inline:-16px; padding-inline:16px}
+    .order-row{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="barrow">
+    <div class="logo"><img class="logo-mark" src="logo-gaming-intercambio.png" alt="UsadoGamer"><span>UsadoGamer</span></div>
+    <span class="logo-tag">Panel de administración</span>
+    <div class="spacer"></div>
+    <button type="button" class="logout-btn" id="logout-btn" hidden>Cerrar sesión</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Pantalla de login -->
+  <div class="gate" id="gate">
+    <div class="gate-card">
+      <h1>Acceso administrador</h1>
+      <p class="sub">Iniciá sesión con tu cuenta de UsadoGamer.</p>
+      <form id="login-form">
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="login-pass">Contraseña</label>
+          <input type="password" id="login-pass" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn-primary" id="login-submit">Entrar</button>
+      </form>
+      <div class="gate-msg" id="gate-msg" hidden></div>
+    </div>
+  </div>
+
+  <!-- Acceso denegado (logueado pero no admin) -->
+  <div class="denied" id="denied" hidden>
+    <div>
+      <h1>Acceso denegado</h1>
+      <p>Esta cuenta no tiene permisos de administrador.</p>
+    </div>
+  </div>
+
+  <!-- Panel real -->
+  <div id="panel" hidden>
+
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Pagos a confirmar</h2>
+        <span class="count" id="count-confirm"></span>
+      </div>
+      <div class="panel-body" id="list-confirm"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Listos para liberar pago</h2>
+        <span class="count" id="count-release"></span>
+      </div>
+      <div class="panel-body" id="list-release"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Todos los pedidos</h2>
+        <span class="count" id="count-all"></span>
+      </div>
+      <div class="panel-body" id="list-all"></div>
+    </section>
+
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  var SUPABASE_URL = 'https://waqechpbjdvupnmktojg.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_WG2_nhM4dn41R8oMM5s8lA_Aax7oDTj';
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  var COMMISSION_RATE = 0.08;
+  var money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+  var dateFmt = function(d){ return d ? new Date(d).toLocaleString('es-AR', { dateStyle:'short', timeStyle:'short' }) : '—'; };
+
+  var gate = document.getElementById('gate');
+  var denied = document.getElementById('denied');
+  var panel = document.getElementById('panel');
+  var loginForm = document.getElementById('login-form');
+  var loginSubmit = document.getElementById('login-submit');
+  var gateMsg = document.getElementById('gate-msg');
+  var logoutBtn = document.getElementById('logout-btn');
+
+  function showGateMsg(text, kind){
+    gateMsg.textContent = text;
+    gateMsg.className = 'gate-msg ' + (kind || 'err');
+    gateMsg.hidden = false;
+  }
+
+  loginForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    loginSubmit.disabled = true;
+    loginSubmit.textContent = 'Entrando...';
+    gateMsg.hidden = true;
+    var email = document.getElementById('login-email').value.trim();
+    var pass = document.getElementById('login-pass').value;
+    var res = await sb.auth.signInWithPassword({ email: email, password: pass });
+    if (res.error){
+      showGateMsg('No pudimos iniciar sesión: ' + res.error.message);
+      loginSubmit.disabled = false;
+      loginSubmit.textContent = 'Entrar';
+      return;
+    }
+    await checkAccess();
+  });
+
+  logoutBtn.addEventListener('click', async function(){
+    await sb.auth.signOut();
+    location.reload();
+  });
+
+  async function checkAccess(){
+    var sess = await sb.auth.getSession();
+    var user = sess.data.session && sess.data.session.user;
+    if (!user){
+      gate.hidden = false; denied.hidden = true; panel.hidden = true; logoutBtn.hidden = true;
+      return;
+    }
+    var profRes = await sb.from('profiles').select('is_admin,nombre').eq('id', user.id).single();
+    if (profRes.error || !profRes.data || !profRes.data.is_admin){
+      gate.hidden = true; denied.hidden = false; panel.hidden = true; logoutBtn.hidden = false;
+      return;
+    }
+    gate.hidden = true; denied.hidden = true; panel.hidden = false; logoutBtn.hidden = false;
+    loadDashboard();
+  }
+
+  // ---------- Dashboard data ----------
+  var STATUS_LABEL = {
+    pendiente_pago: 'Pendiente de pago',
+    pago_confirmado: 'Pago confirmado',
+    despachado: 'Despachado',
+    confirmado_entrega: 'Entrega confirmada',
+    liberado: 'Liberado',
+    disputado: 'Disputado',
+    cancelado: 'Cancelado'
+  };
+
+  async function loadDashboard(){
+    var statsGrid = document.getElementById('stats-grid');
+    statsGrid.innerHTML = '<div class="stat-card"><div class="n">…</div><div class="l">Cargando</div></div>';
+
+    var productsRes = await sb.from('products').select('id,status');
+    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,products(title)');
+
+    var products = (productsRes.data || []);
+    var orders = (ordersRes.data || []);
+
+    // orders no tiene una foreign key directa a profiles (apunta a auth.users),
+    // así que los nombres de comprador/vendedor se buscan aparte y se combinan a mano.
+    var userIds = [];
+    orders.forEach(function(o){
+      if (userIds.indexOf(o.buyer_id) === -1) userIds.push(o.buyer_id);
+      if (userIds.indexOf(o.seller_id) === -1) userIds.push(o.seller_id);
+    });
+    var profilesById = {};
+    if (userIds.length){
+      var profRows = await sb.from('profiles').select('id,nombre,email').in('id', userIds);
+      (profRows.data || []).forEach(function(p){ profilesById[p.id] = p; });
+    }
+    orders.forEach(function(o){
+      o.buyer = profilesById[o.buyer_id];
+      o.seller = profilesById[o.seller_id];
+    });
+
+    renderStats(products, orders);
+    renderQueue('list-confirm', 'count-confirm', orders.filter(function(o){ return o.status === 'pendiente_pago' && o.receipt_url; }), 'confirm');
+    renderQueue('list-release', 'count-release', orders.filter(function(o){ return o.status === 'confirmado_entrega'; }), 'release');
+    renderQueue('list-all', 'count-all', orders.slice().sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); }), 'view');
+  }
+
+  function renderStats(products, orders){
+    var activos = products.filter(function(p){ return p.status === 'disponible'; }).length;
+    var reservados = products.filter(function(p){ return p.status === 'reservado'; }).length;
+    var vendidos = products.filter(function(p){ return p.status === 'vendido'; }).length;
+
+    var retenido = orders.filter(function(o){ return ['pago_confirmado','despachado','confirmado_entrega'].indexOf(o.status) !== -1; })
+      .reduce(function(sum,o){ return sum + o.amount; }, 0);
+    var comisionGanada = orders.filter(function(o){ return o.status === 'liberado'; })
+      .reduce(function(sum,o){ return sum + Math.round(o.amount * COMMISSION_RATE); }, 0);
+    var volumenTotal = orders.filter(function(o){ return o.status !== 'cancelado' && o.status !== 'pendiente_pago'; })
+      .reduce(function(sum,o){ return sum + o.amount; }, 0);
+    var aConfirmar = orders.filter(function(o){ return o.status === 'pendiente_pago' && o.receipt_url; }).length;
+    var aLiberar = orders.filter(function(o){ return o.status === 'confirmado_entrega'; }).length;
+
+    var cards = [
+      { n: activos, l: 'Publicaciones activas' },
+      { n: reservados, l: 'Reservados (en proceso)' },
+      { n: vendidos, l: 'Vendidos' },
+      { n: aConfirmar, l: 'Pagos a confirmar' },
+      { n: aLiberar, l: 'Listos para liberar' },
+      { n: money.format(retenido), l: 'Dinero retenido ahora' },
+      { n: money.format(volumenTotal), l: 'Volumen transaccionado' },
+      { n: money.format(comisionGanada), l: 'Comisión ganada (liberados)' }
+    ];
+    document.getElementById('stats-grid').innerHTML = cards.map(function(c){
+      return '<div class="stat-card"><div class="n tabular">' + c.n + '</div><div class="l">' + c.l + '</div></div>';
+    }).join('');
+  }
+
+  function renderQueue(listId, countId, list, mode){
+    var el = document.getElementById(listId);
+    document.getElementById(countId).textContent = list.length + (list.length === 1 ? ' pedido' : ' pedidos');
+    if (!list.length){
+      el.innerHTML = '<div class="empty-row">No hay pedidos en esta lista por ahora.</div>';
+      return;
+    }
+    el.innerHTML = list.map(function(o){ return orderRowHtml(o, mode); }).join('');
+
+    list.forEach(function(o){
+      if (mode === 'confirm'){
+        var btn = document.getElementById('confirm-' + o.id);
+        if (btn) btn.addEventListener('click', function(){ confirmPayment(o.id, btn); });
+      }
+      if (mode === 'release'){
+        var btn2 = document.getElementById('release-' + o.id);
+        if (btn2) btn2.addEventListener('click', function(){ releasePayment(o.id, btn2); });
+      }
+    });
+  }
+
+  function orderRowHtml(o, mode){
+    var title = (o.products && o.products.title) || 'Producto';
+    var buyerLabel = (o.buyer && (o.buyer.nombre || o.buyer.email)) || o.buyer_id.slice(0,8);
+    var sellerLabel = (o.seller && (o.seller.nombre || o.seller.email)) || o.seller_id.slice(0,8);
+    var statusTxt = STATUS_LABEL[o.status] || o.status;
+    var badgeClass = (o.status === 'liberado' || o.status === 'confirmado_entrega') ? 'good' : 'warn';
+
+    var actions = '';
+    if (mode === 'confirm'){
+      actions += o.receipt_url ? '<a class="btn-sm link" href="' + o.receipt_url + '" target="_blank" rel="noopener">Ver comprobante</a>' : '';
+      actions += '<button type="button" class="btn-sm confirm" id="confirm-' + o.id + '">Confirmar pago</button>';
+    } else if (mode === 'release'){
+      actions += '<button type="button" class="btn-sm release" id="release-' + o.id + '">Liberar pago</button>';
+    } else {
+      actions += '<span class="badge ' + badgeClass + '">' + statusTxt + '</span>';
+    }
+
+    return '' +
+      '<div class="order-row">' +
+        '<div class="order-info">' +
+          '<div class="t">' + title + ' — ' + money.format(o.amount) + '</div>' +
+          '<div class="d">Comprador: <b>' + buyerLabel + '</b> · Vendedor: <b>' + sellerLabel + '</b></div>' +
+          '<div class="d">Método: ' + (o.payment_method === 'transferencia' ? 'Transferencia' : 'Tarjeta') + ' · Creado: ' + dateFmt(o.created_at) +
+          (mode !== 'view' ? ' · <span class="badge ' + badgeClass + '">' + statusTxt + '</span>' : '') + '</div>' +
+        '</div>' +
+        '<div class="order-actions">' + actions + '</div>' +
+      '</div>';
+  }
+
+  async function confirmPayment(orderId, btn){
+    btn.disabled = true;
+    btn.textContent = 'Confirmando...';
+    var res = await sb.from('orders').update({ status: 'pago_confirmado' }).eq('id', orderId);
+    if (res.error){
+      alert('No se pudo confirmar: ' + res.error.message);
+      btn.disabled = false;
+      btn.textContent = 'Confirmar pago';
+      return;
+    }
+    loadDashboard();
+  }
+
+  async function releasePayment(orderId, btn){
+    btn.disabled = true;
+    btn.textContent = 'Liberando...';
+    var res = await sb.from('orders').update({ status: 'liberado', released_at: new Date().toISOString() }).eq('id', orderId);
+    if (res.error){
+      alert('No se pudo liberar: ' + res.error.message);
+      btn.disabled = false;
+      btn.textContent = 'Liberar pago';
+      return;
+    }
+    loadDashboard();
+  }
+
+  sb.auth.onAuthStateChange(function(){ /* checkAccess ya se llama explícitamente tras login */ });
+  checkAccess();
+})();
+</script>
+</body>
+</html>
