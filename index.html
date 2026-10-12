@@ -403,7 +403,7 @@
         <label>Forma de pago</label>
         <div class="checklist" style="margin-top:0">
           <label><input type="radio" name="checkout-pm" value="transferencia" checked> Transferencia bancaria (más barato)</label>
-          <label><input type="radio" name="checkout-pm" value="tarjeta" disabled> Tarjeta con Mercado Pago (próximamente)</label>
+          <label><input type="radio" name="checkout-pm" value="tarjeta"> Tarjeta con Mercado Pago</label>
         </div>
 
         <div id="checkout-transferencia-box" style="margin-top:16px">
@@ -411,6 +411,10 @@
           <div class="price-hint" style="display:block" id="checkout-alias-box"></div>
           <label for="checkout-receipt" style="margin-top:16px">Comprobante de transferencia</label>
           <input id="checkout-receipt" type="file" accept="image/*,application/pdf">
+        </div>
+
+        <div id="checkout-tarjeta-box" style="margin-top:16px" hidden>
+          <p class="hint" style="margin-top:0">Te vamos a redirigir a Mercado Pago para que completes el pago con tarjeta. El dinero también queda retenido hasta que confirmes que recibiste el producto.</p>
         </div>
 
         <div id="checkout-msg"></div>
@@ -536,6 +540,7 @@
   <section id="view-pedidos" hidden>
     <h2 style="font-size:1.5rem; margin-bottom:4px; padding-top:40px">Mis pedidos</h2>
     <p style="color:var(--muted); margin-top:8px">Acá ves el estado de lo que compraste y lo que vendiste.</p>
+    <div id="pedidos-mp-msg" style="margin-top:16px"></div>
 
     <h3 style="margin-top:32px; font-size:1.05rem">Mis compras</h3>
     <div id="pedidos-compras" style="display:flex; flex-direction:column; gap:12px; margin-top:12px"><p class="empty-note">Cargando...</p></div>
@@ -1698,7 +1703,7 @@
     checkoutSummaryRows.innerHTML =
       '<div class="order-summary-row"><span>Precio del producto</span><span class="tabular">' + money.format(amount) + '</span></div>' +
       (checkoutExistingOrder ? '<div class="order-summary-row"><span>Oferta aceptada</span><span></span></div>' : '') +
-      '<div class="order-summary-row total"><span>Total a transferir</span><span class="tabular">' + money.format(amount) + '</span></div>';
+      '<div class="order-summary-row total"><span>Total a pagar</span><span class="tabular">' + money.format(amount) + '</span></div>';
 
     checkoutAliasBox.innerHTML =
       'Transferí <b class="tabular">' + money.format(amount) + '</b> a:<br>' +
@@ -1706,8 +1711,22 @@
       '<button type="button" class="copy-btn" data-copy="' + escapeHtml(MATEO_ALIAS) + '" aria-label="Copiar alias">' + COPY_ICON + '</button><br>' +
       'CBU: <b class="tabular">' + escapeHtml(MATEO_CBU) + '</b> ' +
       '<button type="button" class="copy-btn" data-copy="' + escapeHtml(MATEO_CBU) + '" aria-label="Copiar CBU">' + COPY_ICON + '</button>';
+
+    document.querySelector('input[name="checkout-pm"][value="transferencia"]').checked = true;
+    updateCheckoutPmView();
     go('checkout');
   }
+
+  function updateCheckoutPmView(){
+    var pm = document.querySelector('input[name="checkout-pm"]:checked').value;
+    document.getElementById('checkout-transferencia-box').hidden = (pm !== 'transferencia');
+    document.getElementById('checkout-tarjeta-box').hidden = (pm !== 'tarjeta');
+    checkoutSubmit.textContent = (pm === 'tarjeta') ? 'Pagar con Mercado Pago' : 'Confirmar compra';
+  }
+
+  document.querySelectorAll('input[name="checkout-pm"]').forEach(function(r){
+    r.addEventListener('change', updateCheckoutPmView);
+  });
 
   checkoutAliasBox.addEventListener('click', function(e){
     var btn = e.target.closest('[data-copy]');
@@ -1723,8 +1742,51 @@
     if (checkoutProduct) openProductDetail(checkoutProduct); else go('explorar');
   });
 
+  async function getOrCreateCheckoutOrder(paymentMethod){
+    if (checkoutExistingOrder){
+      if (checkoutExistingOrder.payment_method !== paymentMethod){
+        var patchRes = await sb.from('orders').update({ payment_method: paymentMethod }).eq('id', checkoutExistingOrder.id);
+        if (patchRes.error) throw patchRes.error;
+        checkoutExistingOrder.payment_method = paymentMethod;
+      }
+      return checkoutExistingOrder;
+    }
+    var insertRes = await sb.from('orders').insert({
+      product_id: checkoutProduct.id,
+      buyer_id: currentUser.id,
+      seller_id: checkoutProduct.user_id,
+      amount: checkoutProduct.price,
+      payment_method: paymentMethod,
+      status: 'pendiente_pago'
+    }).select().single();
+    if (insertRes.error) throw insertRes.error;
+    return insertRes.data;
+  }
+
   checkoutSubmit.addEventListener('click', async function(){
     if (!checkoutProduct || !currentUser) return;
+    var pm = document.querySelector('input[name="checkout-pm"]:checked').value;
+
+    if (pm === 'tarjeta'){
+      checkoutSubmit.disabled = true;
+      checkoutMsg.innerHTML = '';
+      try {
+        var orderRow = await getOrCreateCheckoutOrder('tarjeta');
+        var prefRes = await fetch('/api/mp-create-preference', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order_id: orderRow.id })
+        });
+        var prefData = await prefRes.json();
+        if (!prefRes.ok || !prefData.init_point) throw new Error(prefData.error || 'No se pudo iniciar el pago con Mercado Pago.');
+        window.location.href = prefData.init_point;
+      } catch (err) {
+        checkoutMsg.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo iniciar el pago.') + '</div>';
+        checkoutSubmit.disabled = false;
+      }
+      return;
+    }
+
     var file = checkoutReceipt.files[0];
     if (!file){
       checkoutMsg.innerHTML = '<div class="msg err">Subí el comprobante de la transferencia para continuar.</div>';
@@ -1733,21 +1795,7 @@
     checkoutSubmit.disabled = true;
     checkoutMsg.innerHTML = '';
     try {
-      var orderRow;
-      if (checkoutExistingOrder){
-        orderRow = checkoutExistingOrder;
-      } else {
-        var insertRes = await sb.from('orders').insert({
-          product_id: checkoutProduct.id,
-          buyer_id: currentUser.id,
-          seller_id: checkoutProduct.user_id,
-          amount: checkoutProduct.price,
-          payment_method: 'transferencia',
-          status: 'pendiente_pago'
-        }).select().single();
-        if (insertRes.error) throw insertRes.error;
-        orderRow = insertRes.data;
-      }
+      var orderRow = await getOrCreateCheckoutOrder('transferencia');
 
       var titleSlug = (checkoutProduct.title || 'producto')
         .toLowerCase()
@@ -1913,6 +1961,25 @@
   if (deepLinkId){
     sb.from('products').select('*').eq('id', deepLinkId).single().then(function(res){
       if (res.data) openProductDetail(res.data);
+    });
+  }
+
+  // Si vuelven de Mercado Pago (?mp_return=1|0&order=ID), llevarlos a "Mis
+  // pedidos" con un aviso. La confirmación real del pago no pasa por acá —
+  // llega aparte, del lado del servidor, por el webhook de Mercado Pago.
+  var mpReturn = new URLSearchParams(window.location.search).get('mp_return');
+  var mpOrderId = new URLSearchParams(window.location.search).get('order');
+  if (mpReturn !== null && mpOrderId){
+    history.replaceState(null, '', window.location.pathname);
+    sb.auth.getSession().then(function(){
+      if (!currentUser){ openAuth('login'); return; }
+      go('pedidos');
+      var mpMsg = document.getElementById('pedidos-mp-msg');
+      if (mpMsg){
+        mpMsg.innerHTML = (mpReturn === '1')
+          ? '<div class="msg ok">¡Gracias! Estamos confirmando tu pago con Mercado Pago, puede tardar unos segundos. Te vamos a avisar apenas quede confirmado.</div>'
+          : '<div class="msg err">El pago con Mercado Pago no se completó. Podés volver a intentarlo desde el producto.</div>';
+      }
     });
   }
 })();
