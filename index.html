@@ -129,6 +129,10 @@
   .hero-actions{display:flex; gap:12px; flex-wrap:wrap}
   .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:0; padding:14px 24px; cursor:pointer}
   .btn-primary:disabled{opacity:.6; cursor:default}
+  /* Botón de pago con Mercado Pago: usa el amarillo de su marca, para que se
+     reconozca igual que el botón oficial de ellos. */
+  .btn-primary.btn-mp{background:#ffe600; color:#001a4d}
+  .btn-primary.btn-mp:hover:not(:disabled){background:#f5dc00}
 
   .hero-visual{position:relative; height:400px; overflow:hidden}
   @media (max-width:760px){ .hero-visual{height:300px; margin-top:16px} }
@@ -256,10 +260,14 @@
   .copy-btn svg{width:15px; height:15px; display:block}
   .gallery-main{height:340px; background:var(--surface-2); border-radius:0; display:flex; align-items:center; justify-content:center; font-size:3rem; overflow:hidden}
   @media (max-width:480px){ .gallery-main{height:260px} }
-  .gallery-main img{width:100%; height:100%; object-fit:cover}
+  .gallery-main img{width:100%; height:100%; object-fit:cover; cursor:zoom-in}
   .gallery-thumbs{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
   .gallery-thumbs img{width:60px; height:60px; object-fit:cover; border-radius:0; cursor:pointer; border:2px solid transparent}
   .gallery-thumbs img[aria-current="true"]{border-color:var(--accent)}
+  .lightbox{position:fixed; inset:0; z-index:999; background:rgba(8,9,14,.9); display:flex; align-items:center; justify-content:center; padding:24px; cursor:zoom-out}
+  .lightbox[hidden]{display:none}
+  .lightbox img{max-width:100%; max-height:100%; object-fit:contain}
+  .lightbox-close{position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:0; border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.4); color:#fff; font-size:1.3rem; line-height:1; cursor:pointer}
   .qa-item{border:1px solid var(--border); border-radius:0; padding:12px}
   .qa-item .q{font-weight:600; font-size:.88rem}
   .qa-item .a{color:var(--muted); font-size:.86rem; margin-top:6px; padding-top:6px; border-top:1px solid var(--border)}
@@ -278,6 +286,11 @@
 <div id="notif-panel" class="notif-panel" hidden>
   <div class="notif-head">Notificaciones</div>
   <div id="notif-list"></div>
+</div>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Cerrar">&times;</button>
+  <img id="lightbox-img" src="" alt="">
 </div>
 
 <div class="drawer-overlay" id="drawer-overlay">
@@ -400,7 +413,19 @@
 
     <div class="checkout-layout">
       <div>
-        <label>Forma de pago</label>
+        <label>Forma de entrega</label>
+        <p class="hint" style="margin-top:0">El transporte físico del producto lo hace el correo que elija el vendedor, no UsadoGamer. Tu pago sí queda retenido acá hasta que confirmes que lo recibiste — por tu seguridad, toda la compra (pago, seguimiento y reclamos) tiene que quedar siempre dentro de la plataforma. Si tenés dudas sobre el envío antes de comprar, preguntale al vendedor desde "Preguntas al vendedor" en la publicación; no compartan datos de contacto personal ni cierren la operación por fuera.</p>
+        <div class="checklist" style="margin-top:8px">
+          <label><input type="radio" name="checkout-delivery" value="retiro_sucursal" checked> Retiro en sucursal (más económico)</label>
+          <label><input type="radio" name="checkout-delivery" value="domicilio"> Envío a domicilio</label>
+        </div>
+        <div id="checkout-delivery-domicilio-box" style="margin-top:12px" hidden>
+          <label for="checkout-delivery-address">Dirección de entrega</label>
+          <input id="checkout-delivery-address" type="text" placeholder="Calle, número, localidad, provincia">
+          <p class="hint" style="margin-top:8px">El costo del envío no está incluido en el precio del producto. Según el correo que use el vendedor (algunos, como Correo Argentino o Andreani, ofrecen envíos "a pagar en destino"), puede que lo pagues en efectivo al recibirlo, o que el vendedor te lo sume de otra forma — preguntale antes de comprar desde la sección de preguntas de la publicación.</p>
+        </div>
+
+        <label style="margin-top:20px">Forma de pago</label>
         <div class="checklist" style="margin-top:0">
           <label><input type="radio" name="checkout-pm" value="transferencia" checked> Transferencia bancaria (más barato)</label>
           <label><input type="radio" name="checkout-pm" value="tarjeta"> Tarjeta con Mercado Pago</label>
@@ -1689,6 +1714,9 @@
     checkoutExistingOrder = existingOrder || null;
     checkoutMsg.innerHTML = '';
     checkoutReceipt.value = '';
+    document.querySelector('input[name="checkout-delivery"][value="retiro_sucursal"]').checked = true;
+    document.getElementById('checkout-delivery-address').value = '';
+    updateCheckoutDeliveryView();
     var amount = checkoutExistingOrder ? checkoutExistingOrder.amount : product.price;
 
     var thumb = product.photo_url
@@ -1722,10 +1750,20 @@
     document.getElementById('checkout-transferencia-box').hidden = (pm !== 'transferencia');
     document.getElementById('checkout-tarjeta-box').hidden = (pm !== 'tarjeta');
     checkoutSubmit.textContent = (pm === 'tarjeta') ? 'Pagar con Mercado Pago' : 'Confirmar compra';
+    checkoutSubmit.classList.toggle('btn-mp', pm === 'tarjeta');
   }
 
   document.querySelectorAll('input[name="checkout-pm"]').forEach(function(r){
     r.addEventListener('change', updateCheckoutPmView);
+  });
+
+  function updateCheckoutDeliveryView(){
+    var delivery = document.querySelector('input[name="checkout-delivery"]:checked').value;
+    document.getElementById('checkout-delivery-domicilio-box').hidden = (delivery !== 'domicilio');
+  }
+
+  document.querySelectorAll('input[name="checkout-delivery"]').forEach(function(r){
+    r.addEventListener('change', updateCheckoutDeliveryView);
   });
 
   checkoutAliasBox.addEventListener('click', function(e){
@@ -1742,13 +1780,26 @@
     if (checkoutProduct) openProductDetail(checkoutProduct); else go('explorar');
   });
 
+  function getCheckoutDeliveryInfo(){
+    var method = document.querySelector('input[name="checkout-delivery"]:checked').value;
+    var address = document.getElementById('checkout-delivery-address').value.trim();
+    if (method === 'domicilio' && !address){
+      throw new Error('Ingresá la dirección de entrega.');
+    }
+    return { delivery_method: method, delivery_address: method === 'domicilio' ? address : null };
+  }
+
   async function getOrCreateCheckoutOrder(paymentMethod){
+    var delivery = getCheckoutDeliveryInfo();
+
     if (checkoutExistingOrder){
-      if (checkoutExistingOrder.payment_method !== paymentMethod){
-        var patchRes = await sb.from('orders').update({ payment_method: paymentMethod }).eq('id', checkoutExistingOrder.id);
-        if (patchRes.error) throw patchRes.error;
-        checkoutExistingOrder.payment_method = paymentMethod;
-      }
+      var patch = {};
+      if (checkoutExistingOrder.payment_method !== paymentMethod) patch.payment_method = paymentMethod;
+      patch.delivery_method = delivery.delivery_method;
+      patch.delivery_address = delivery.delivery_address;
+      var patchRes = await sb.from('orders').update(patch).eq('id', checkoutExistingOrder.id);
+      if (patchRes.error) throw patchRes.error;
+      Object.assign(checkoutExistingOrder, patch);
       return checkoutExistingOrder;
     }
     // Por si el comprador ya tenía un pedido pendiente para este mismo
@@ -1763,11 +1814,11 @@
       .limit(1);
     if (!existingRes.error && existingRes.data && existingRes.data.length){
       var reused = existingRes.data[0];
-      if (reused.payment_method !== paymentMethod){
-        var patchRes2 = await sb.from('orders').update({ payment_method: paymentMethod }).eq('id', reused.id);
-        if (patchRes2.error) throw patchRes2.error;
-        reused.payment_method = paymentMethod;
-      }
+      var patch2 = { delivery_method: delivery.delivery_method, delivery_address: delivery.delivery_address };
+      if (reused.payment_method !== paymentMethod) patch2.payment_method = paymentMethod;
+      var patchRes2 = await sb.from('orders').update(patch2).eq('id', reused.id);
+      if (patchRes2.error) throw patchRes2.error;
+      Object.assign(reused, patch2);
       return reused;
     }
     var insertRes = await sb.from('orders').insert({
@@ -1776,6 +1827,8 @@
       seller_id: checkoutProduct.user_id,
       amount: checkoutProduct.price,
       payment_method: paymentMethod,
+      delivery_method: delivery.delivery_method,
+      delivery_address: delivery.delivery_address,
       status: 'pendiente_pago'
     }).select().single();
     if (insertRes.error) throw insertRes.error;
@@ -1888,6 +1941,14 @@
       var html = '<div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">' +
         '<b>' + escapeHtml(title) + '</b><span class="tabular">' + money.format(order.amount) + '</span></div>' +
         '<p class="hint" style="margin-top:6px">Estado: ' + (statusLabels[order.status] || order.status) + '</p>';
+
+      if (order.delivery_method){
+        html += '<p class="hint" style="margin-top:4px">Entrega: ' +
+          (order.delivery_method === 'domicilio'
+            ? 'A domicilio — ' + escapeHtml(order.delivery_address || 'sin dirección cargada')
+            : 'Retiro en sucursal') +
+          '</p>';
+      }
 
       if (tipo === 'compra' && order.status === 'pendiente_pago' && !order.receipt_url){
         var deadlineTxt = order.payment_deadline
@@ -2028,6 +2089,24 @@
       }
     });
   }
+
+  // ---------- Lightbox: ver la foto del producto completa, sin recortar ----------
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightbox-img');
+  function openLightbox(src){
+    lightboxImg.src = src;
+    lightbox.hidden = false;
+  }
+  function closeLightbox(){
+    lightbox.hidden = true;
+    lightboxImg.src = '';
+  }
+  lightbox.addEventListener('click', closeLightbox);
+  document.getElementById('lightbox-close').addEventListener('click', function(e){ e.stopPropagation(); closeLightbox(); });
+  productoGallery.addEventListener('click', function(e){
+    var img = e.target.closest('#gallery-main-img');
+    if (img) openLightbox(img.src);
+  });
 })();
 </script>
 </body>
