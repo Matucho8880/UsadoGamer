@@ -242,7 +242,7 @@
     statsGrid.innerHTML = '<div class="stat-card"><div class="n">…</div><div class="l">Cargando</div></div>';
 
     var productsRes = await sb.from('products').select('id,status');
-    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,products(title)');
+    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,products(title)');
 
     var products = (productsRes.data || []);
     var orders = (ordersRes.data || []);
@@ -256,7 +256,7 @@
     });
     var profilesById = {};
     if (userIds.length){
-      var profRows = await sb.from('profiles').select('id,nombre,email').in('id', userIds);
+      var profRows = await sb.from('profiles').select('id,username,nombre,apellido,email,telefono,direccion,payout_alias,payout_cbu,payout_titular').in('id', userIds);
       (profRows.data || []).forEach(function(p){ profilesById[p.id] = p; });
     }
     orders.forEach(function(o){
@@ -320,6 +320,19 @@
     });
   }
 
+  function personLine(label, p, fallbackId){
+    if (!p) return '<div class="d">' + label + ': <b>' + fallbackId.slice(0,8) + '</b></div>';
+    var nombreCompleto = [p.nombre, p.apellido].filter(Boolean).join(' ') || '(sin nombre cargado)';
+    var parts = [
+      nombreCompleto,
+      '@' + (p.username || '—'),
+      p.email || '(sin email)',
+      p.telefono || '(sin teléfono)',
+      p.direccion || '(sin dirección)'
+    ];
+    return '<div class="d">' + label + ': <b>' + parts.join('</b> · <b>') + '</b></div>';
+  }
+
   function orderRowHtml(o, mode){
     var title = (o.products && o.products.title) || 'Producto';
     var buyerLabel = (o.buyer && (o.buyer.nombre || o.buyer.email)) || o.buyer_id.slice(0,8);
@@ -337,11 +350,38 @@
       actions += '<span class="badge ' + badgeClass + '">' + statusTxt + '</span>';
     }
 
+    // En "Todos los pedidos" (mode view) mostramos el detalle completo de
+    // comprador y vendedor, no solo el nombre, para que Mateo tenga todos
+    // los datos a mano sin tener que ir a buscar cada perfil aparte.
+    var detailBlock = (mode === 'view')
+      ? personLine('Comprador', o.buyer, o.buyer_id) + personLine('Vendedor', o.seller, o.seller_id)
+      : '<div class="d">Comprador: <b>' + buyerLabel + '</b> · Vendedor: <b>' + sellerLabel + '</b></div>';
+
+    var deliveryBlock = o.delivery_method
+      ? '<div class="d">Entrega: <b>' + (o.delivery_method === 'domicilio'
+          ? 'A domicilio — ' + (o.delivery_address || 'sin dirección cargada')
+          : 'Retiro en sucursal') + '</b></div>'
+      : '';
+
+    // Para liberar el pago hace falta saber a dónde transferirle al vendedor,
+    // así que mostramos sus datos de cobro justo en esa acción.
+    var payoutBlock = '';
+    if (mode === 'release' && o.seller){
+      var hasPayout = o.seller.payout_alias || o.seller.payout_cbu;
+      payoutBlock = '<div class="d">Cobra el vendedor: <b>' +
+        (hasPayout
+          ? 'Alias ' + (o.seller.payout_alias || '—') + ' · CBU ' + (o.seller.payout_cbu || '—') + ' · Titular ' + (o.seller.payout_titular || '—')
+          : 'Todavía no cargó sus datos de cobro') +
+        '</b></div>';
+    }
+
     return '' +
       '<div class="order-row">' +
         '<div class="order-info">' +
           '<div class="t">' + title + ' — ' + money.format(o.amount) + '</div>' +
-          '<div class="d">Comprador: <b>' + buyerLabel + '</b> · Vendedor: <b>' + sellerLabel + '</b></div>' +
+          detailBlock +
+          deliveryBlock +
+          payoutBlock +
           '<div class="d">Método: ' + (o.payment_method === 'transferencia' ? 'Transferencia' : 'Tarjeta') + ' · Creado: ' + dateFmt(o.created_at) +
           (mode !== 'view' ? ' · <span class="badge ' + badgeClass + '">' + statusTxt + '</span>' : '') + '</div>' +
         '</div>' +
