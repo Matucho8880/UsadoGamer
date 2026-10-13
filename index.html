@@ -1751,6 +1751,25 @@
       }
       return checkoutExistingOrder;
     }
+    // Por si el comprador ya tenía un pedido pendiente para este mismo
+    // producto (p.ej. volvió atrás y entró de nuevo a pagar) reutilizamos
+    // ese pedido en vez de crear uno nuevo, para no dejar pedidos duplicados.
+    var existingRes = await sb.from('orders')
+      .select('*')
+      .eq('product_id', checkoutProduct.id)
+      .eq('buyer_id', currentUser.id)
+      .eq('status', 'pendiente_pago')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (!existingRes.error && existingRes.data && existingRes.data.length){
+      var reused = existingRes.data[0];
+      if (reused.payment_method !== paymentMethod){
+        var patchRes2 = await sb.from('orders').update({ payment_method: paymentMethod }).eq('id', reused.id);
+        if (patchRes2.error) throw patchRes2.error;
+        reused.payment_method = paymentMethod;
+      }
+      return reused;
+    }
     var insertRes = await sb.from('orders').insert({
       product_id: checkoutProduct.id,
       buyer_id: currentUser.id,
@@ -1875,7 +1894,14 @@
           ? ' Tenés hasta el ' + new Date(order.payment_deadline).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) + ' para pagar.'
           : '';
         html += '<p class="hint" style="margin-top:6px">Todavía falta subir el comprobante.' + deadlineTxt + '</p>' +
-          '<button type="button" class="ghost-btn" style="margin-top:4px" data-pay-order="' + order.id + '" data-pay-product="' + order.product_id + '" data-pay-amount="' + order.amount + '">Pagar ahora</button>';
+          '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px">' +
+          '<button type="button" class="ghost-btn" data-pay-order="' + order.id + '" data-pay-product="' + order.product_id + '" data-pay-amount="' + order.amount + '">Pagar ahora</button>' +
+          '<button type="button" class="ghost-btn" data-cancel-order="' + order.id + '">Cancelar pedido</button>' +
+          '</div>';
+      }
+      if (tipo === 'compra' && order.status === 'pendiente_pago' && order.receipt_url){
+        html += '<p class="hint" style="margin-top:6px">Ya subiste el comprobante. Estamos revisando tu pago.</p>' +
+          '<button type="button" class="ghost-btn" style="margin-top:4px" data-cancel-order="' + order.id + '">Cancelar pedido</button>';
       }
       if (tipo === 'compra' && order.status === 'despachado'){
         html += '<button type="button" class="ghost-btn" style="margin-top:8px" data-confirm-receipt="' + order.id + '">Confirmar recepción</button>';
@@ -1899,6 +1925,26 @@
         openCheckout(prodRes.data, { id: payBtn.dataset.payOrder, amount: parseFloat(payBtn.dataset.payAmount) });
       }
       payBtn.disabled = false;
+      return;
+    }
+    var cancelBtn = e.target.closest('[data-cancel-order]');
+    if (cancelBtn){
+      var sure = window.confirm('¿Seguro que querés cancelar este pedido? El producto va a quedar disponible de nuevo para la venta.');
+      if (!sure) return;
+      cancelBtn.disabled = true;
+      // El "where status = pendiente_pago" es por seguridad: si justo en este
+      // instante se confirmó el pago (o ya se despachó), la actualización no
+      // encuentra ninguna fila y no cancela nada por error.
+      var cancelRes = await sb.from('orders')
+        .update({ status: 'cancelado' })
+        .eq('id', cancelBtn.dataset.cancelOrder)
+        .eq('status', 'pendiente_pago');
+      if (cancelRes.error){
+        alert('No se pudo cancelar el pedido: ' + cancelRes.error.message);
+        cancelBtn.disabled = false;
+        return;
+      }
+      loadPedidos();
       return;
     }
     var confirmBtn = e.target.closest('[data-confirm-receipt]');
