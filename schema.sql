@@ -118,6 +118,14 @@ alter table public.orders enable row level security;
 -- automáticamente desde el webhook de Mercado Pago cuando se confirma el pago)
 alter table public.orders add column if not exists mp_payment_id text;
 
+-- Forma de entrega que eligió el comprador al pagar: retirar en una sucursal
+-- del correo (más barato) o que se lo manden a domicilio. El envío en sí lo
+-- coordinan comprador y vendedor por fuera de la plataforma; esto solo queda
+-- registrado para que ambos sepan qué se acordó.
+alter table public.orders add column if not exists delivery_method text
+  check (delivery_method in ('retiro_sucursal','domicilio'));
+alter table public.orders add column if not exists delivery_address text;
+
 -- El comprador y el vendedor de un pedido pueden verlo (nadie más)
 create policy "Comprador y vendedor ven su propio pedido"
   on public.orders for select
@@ -810,3 +818,4 @@ begin
   return new;
 end;
 $$;
+
