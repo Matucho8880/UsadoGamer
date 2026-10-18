@@ -21,7 +21,7 @@ module.exports = async function handler(req, res) {
 
     var rows = await helpers.supabaseServiceQuery(
       'orders?id=eq.' + encodeURIComponent(orderId) +
-      '&select=id,amount,status,product_id,products(title)'
+      '&select=id,amount,delivery_cost,status,product_id,products(title)'
     );
     var order = rows[0];
     if (!order || !order.products) {
@@ -32,6 +32,12 @@ module.exports = async function handler(req, res) {
       res.status(400).json({ error: 'Este pedido ya no está pendiente de pago.' });
       return;
     }
+    if (order.delivery_cost === null || order.delivery_cost === undefined) {
+      res.status(400).json({ error: 'Todavía falta que el vendedor cargue el costo de envío.' });
+      return;
+    }
+
+    var totalAmount = Number(order.amount) + Number(order.delivery_cost);
 
     var accessToken = process.env.MP_ACCESS_TOKEN;
     if (!accessToken) {
@@ -46,7 +52,7 @@ module.exports = async function handler(req, res) {
         title: order.products.title || 'Producto UsadoGamer',
         quantity: 1,
         currency_id: 'ARS',
-        unit_price: Number(order.amount)
+        unit_price: totalAmount
       }],
       external_reference: order.id,
       notification_url: siteUrl + '/api/mp-webhook',

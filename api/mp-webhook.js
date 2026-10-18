@@ -56,7 +56,7 @@ module.exports = async function handler(req, res) {
     }
 
     var orders = await helpers.supabaseServiceQuery(
-      'orders?id=eq.' + encodeURIComponent(orderId) + '&select=id,status,amount'
+      'orders?id=eq.' + encodeURIComponent(orderId) + '&select=id,status,amount,delivery_cost'
     );
     var order = orders[0];
     if (!order) {
@@ -73,7 +73,7 @@ module.exports = async function handler(req, res) {
     // chico por redondeo), para que nadie pueda pagar de menos y que igual
     // se confirme el pedido completo.
     var paidAmount = Number(payment.transaction_amount);
-    var expectedAmount = Number(order.amount);
+    var expectedAmount = Number(order.amount) + Number(order.delivery_cost || 0);
     if (!paidAmount || Math.abs(paidAmount - expectedAmount) > 1) {
       res.status(200).json({ ok: false, error: 'El monto pagado (' + paidAmount + ') no coincide con el del pedido (' + expectedAmount + ')' });
       return;
