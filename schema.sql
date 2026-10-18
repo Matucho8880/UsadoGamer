@@ -819,3 +819,74 @@ begin
 end;
 $$;
 
+-- ============================================================
+-- Cotización manual del envío (sin API de Correo Argentino todavía).
+-- El comprador manda los datos de entrega sin pagar nada; el vendedor carga
+-- cuánto sale el envío (delivery_cost); recién ahí el comprador ve el total
+-- exacto (producto + envío) y puede pagar.
+-- ============================================================
+
+alter table public.orders add column if not exists delivery_cost numeric;
+
+-- Se amplía otra vez el check de "type" para los nuevos avisos de envío.
+alter table public.notifications drop constraint if exists notifications_type_check;
+alter table public.notifications add constraint notifications_type_check
+  check (type in ('pregunta','respuesta','oferta_nueva','oferta_aceptada','oferta_rechazada','pago_confirmado','pago_liberado','envio_a_cotizar','envio_cotizado'));
+
+-- Cuando el comprador manda por primera vez sus datos de envío (delivery_method
+-- pasa a tener un valor y todavía no hay delivery_cost), se le avisa al
+-- vendedor que tiene que calcular y cargar el costo del envío.
+create or replace function public.notify_delivery_quote_requested()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.delivery_method is not null and new.delivery_cost is null
+     and (tg_op = 'INSERT' or old.delivery_method is distinct from new.delivery_method) then
+    insert into public.notifications (user_id, type, title, body, product_id)
+    values (new.seller_id, 'envio_a_cotizar', 'Un comprador necesita que cotices el envío', 'Cargá el costo de envío para que el comprador pueda pagar.', new.product_id);
+
+    perform net.http_post(
+      url := 'https://usadogamer-projecarg.vercel.app/api/notify-delivery-quote-requested',
+      headers := jsonb_build_object('Content-Type', 'application/json'),
+      body := jsonb_build_object('order_id', new.id, 'secret', '7b0dbded63a6e04bb8e592cc348bca0585c8afe3de7aacfb')
+    );
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_delivery_quote_requested on public.orders;
+create trigger on_delivery_quote_requested
+  after insert or update on public.orders
+  for each row execute function public.notify_delivery_quote_requested();
+
+-- Cuando el vendedor carga el costo de envío (delivery_cost pasa de null a
+-- un valor), se le avisa al comprador que ya puede pagar el total exacto.
+create or replace function public.notify_delivery_quote_ready()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if old.delivery_cost is null and new.delivery_cost is not null then
+    insert into public.notifications (user_id, type, title, body, product_id)
+    values (new.buyer_id, 'envio_cotizado', 'Ya podés pagar tu compra', 'El vendedor cargó el costo de envío. Entrá a "Mis pedidos" para ver el total y pagar.', new.product_id);
+
+    perform net.http_post(
+      url := 'https://usadogamer-projecarg.vercel.app/api/notify-delivery-quote-ready',
+      headers := jsonb_build_object('Content-Type', 'application/json'),
+      body := jsonb_build_object('order_id', new.id, 'secret', '7b0dbded63a6e04bb8e592cc348bca0585c8afe3de7aacfb')
+    );
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_delivery_quote_ready on public.orders;
+create trigger on_delivery_quote_ready
+  after update on public.orders
+  for each row execute function public.notify_delivery_quote_ready();

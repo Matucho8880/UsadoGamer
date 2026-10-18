@@ -242,7 +242,7 @@
     statsGrid.innerHTML = '<div class="stat-card"><div class="n">…</div><div class="l">Cargando</div></div>';
 
     var productsRes = await sb.from('products').select('id,status');
-    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,products(title)');
+    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,products(title)');
 
     var products = (productsRes.data || []);
     var orders = (ordersRes.data || []);
@@ -360,7 +360,8 @@
     var deliveryBlock = o.delivery_method
       ? '<div class="d">Entrega: <b>' + (o.delivery_method === 'domicilio'
           ? 'A domicilio — ' + (o.delivery_address || 'sin dirección cargada')
-          : 'Retiro en sucursal') + '</b></div>'
+          : 'Retiro en sucursal — ' + (o.delivery_address || 'sin localidad cargada')) +
+          (o.delivery_cost != null ? ' · Envío: ' + money.format(o.delivery_cost) : ' · Envío: a cotizar') + '</b></div>'
       : '';
 
     // Para liberar el pago hace falta saber a dónde transferirle al vendedor,
@@ -378,7 +379,7 @@
     return '' +
       '<div class="order-row">' +
         '<div class="order-info">' +
-          '<div class="t">' + title + ' — ' + money.format(o.amount) + '</div>' +
+          '<div class="t">' + title + ' — ' + money.format(o.amount + Number(o.delivery_cost || 0)) + (o.delivery_cost != null ? ' (prod. + envío)' : '') + '</div>' +
           detailBlock +
           deliveryBlock +
           payoutBlock +
