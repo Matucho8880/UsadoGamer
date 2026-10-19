@@ -11,6 +11,11 @@
 // confirma un pago a mano desde el panel de administración.
 var helpers = require('./_resend');
 
+// Tiene que ser el mismo valor que en api/mp-create-preference.js: ahí se
+// suma al monto que se le cobra al comprador, y acá se vuelve a sumar para
+// verificar que lo que llegó pagado coincide con lo esperado.
+var MP_FEE_RATE = 0.046;
+
 module.exports = async function handler(req, res) {
   try {
     // Mercado Pago manda la notificación a veces por GET (con query params),
@@ -73,8 +78,9 @@ module.exports = async function handler(req, res) {
     // chico por redondeo), para que nadie pueda pagar de menos y que igual
     // se confirme el pedido completo.
     var paidAmount = Number(payment.transaction_amount);
-    var expectedAmount = Number(order.amount) + Number(order.delivery_cost || 0);
-    if (!paidAmount || Math.abs(paidAmount - expectedAmount) > 1) {
+    var subtotal = Number(order.amount) + Number(order.delivery_cost || 0);
+    var expectedAmount = Math.round(subtotal * (1 + MP_FEE_RATE));
+    if (!paidAmount || Math.abs(paidAmount - expectedAmount) > 2) {
       res.status(200).json({ ok: false, error: 'El monto pagado (' + paidAmount + ') no coincide con el del pedido (' + expectedAmount + ')' });
       return;
     }

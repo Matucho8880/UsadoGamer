@@ -6,6 +6,13 @@
 // (api/mp-webhook.js) — nunca por esta respuesta ni por la vuelta del navegador.
 var helpers = require('./_resend');
 
+// Mercado Pago cobra esta comisión sobre el total cuando se paga con
+// tarjeta (no aplica a la transferencia). Se suma acá, del lado del
+// servidor, para que el comprador pague el precio + envío + comisión, y el
+// vendedor reciba el precio + envío completo sin que la comisión se la
+// coma a él.
+var MP_FEE_RATE = 0.046;
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Método no permitido' });
@@ -37,7 +44,8 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    var totalAmount = Number(order.amount) + Number(order.delivery_cost);
+    var subtotal = Number(order.amount) + Number(order.delivery_cost);
+    var totalAmount = Math.round(subtotal * (1 + MP_FEE_RATE));
 
     var accessToken = process.env.MP_ACCESS_TOKEN;
     if (!accessToken) {
