@@ -129,10 +129,14 @@
   .hero-actions{display:flex; gap:12px; flex-wrap:wrap}
   .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:0; padding:14px 24px; cursor:pointer}
   .btn-primary:disabled{opacity:.6; cursor:default}
-  /* Botón de pago con Mercado Pago: usa el amarillo de su marca, para que se
-     reconozca igual que el botón oficial de ellos. */
-  .btn-primary.btn-mp{background:#ffe600; color:#001a4d}
+  /* Botón de pago con Mercado Pago: usa el amarillo exacto de su marca y un
+     azul marino similar al de su isotipo, para que se reconozca como un
+     botón de pago oficial y no como un botón amarillo cualquiera. */
+  .btn-primary.btn-mp{background:#ffe600; color:#2a3067}
   .btn-primary.btn-mp:hover:not(:disabled){background:#f5dc00}
+  .btn-primary.btn-mp .mp-word{font-family:var(--font-display); letter-spacing:-.01em}
+  .btn-primary.btn-mp .mp-word b{font-weight:800}
+  #checkout-delivery-domicilio-fields input, #checkout-delivery-domicilio-fields select{min-width:0}
 
   .hero-visual{position:relative; height:400px; overflow:hidden}
   @media (max-width:760px){ .hero-visual{height:300px; margin-top:16px} }
@@ -420,8 +424,69 @@
             <label><input type="radio" name="checkout-delivery" value="retiro_sucursal" checked> Retiro en sucursal</label>
             <label><input type="radio" name="checkout-delivery" value="domicilio"> Envío a domicilio</label>
           </div>
-          <label style="margin-top:12px" id="checkout-delivery-address-label">Localidad o sucursal de Correo Argentino más cercana a vos</label>
-          <input id="checkout-delivery-address" type="text" placeholder="Ej: Localidad, provincia">
+
+          <div id="checkout-delivery-sucursal-fields">
+            <label style="margin-top:12px">Localidad o sucursal de Correo Argentino más cercana a vos</label>
+            <input id="checkout-delivery-address" type="text" placeholder="Ej: Localidad, provincia">
+          </div>
+
+          <div id="checkout-delivery-domicilio-fields" hidden>
+            <div style="display:flex; gap:10px; margin-top:12px">
+              <div style="flex:3">
+                <label for="checkout-dom-calle">Calle</label>
+                <input id="checkout-dom-calle" type="text" placeholder="Ej: San Martín">
+              </div>
+              <div style="flex:1">
+                <label for="checkout-dom-numero">Número</label>
+                <input id="checkout-dom-numero" type="text" inputmode="numeric" placeholder="1234">
+              </div>
+            </div>
+            <label for="checkout-dom-piso">Piso / depto (opcional)</label>
+            <input id="checkout-dom-piso" type="text" placeholder="Ej: Piso 4, depto B">
+            <div style="display:flex; gap:10px">
+              <div style="flex:2">
+                <label for="checkout-dom-localidad">Localidad</label>
+                <input id="checkout-dom-localidad" type="text" placeholder="Ej: Rosario">
+              </div>
+              <div style="flex:2">
+                <label for="checkout-dom-provincia">Provincia</label>
+                <select id="checkout-dom-provincia">
+                  <option value="">Elegí tu provincia</option>
+                  <option>Buenos Aires</option>
+                  <option>Catamarca</option>
+                  <option>Chaco</option>
+                  <option>Chubut</option>
+                  <option>Ciudad Autónoma de Buenos Aires</option>
+                  <option>Córdoba</option>
+                  <option>Corrientes</option>
+                  <option>Entre Ríos</option>
+                  <option>Formosa</option>
+                  <option>Jujuy</option>
+                  <option>La Pampa</option>
+                  <option>La Rioja</option>
+                  <option>Mendoza</option>
+                  <option>Misiones</option>
+                  <option>Neuquén</option>
+                  <option>Río Negro</option>
+                  <option>Salta</option>
+                  <option>San Juan</option>
+                  <option>San Luis</option>
+                  <option>Santa Cruz</option>
+                  <option>Santa Fe</option>
+                  <option>Santiago del Estero</option>
+                  <option>Tierra del Fuego</option>
+                  <option>Tucumán</option>
+                </select>
+              </div>
+              <div style="flex:1">
+                <label for="checkout-dom-cp">Código postal</label>
+                <input id="checkout-dom-cp" type="text" inputmode="numeric" placeholder="2000">
+              </div>
+            </div>
+            <label for="checkout-dom-notas">Notas para la entrega (opcional)</label>
+            <textarea id="checkout-dom-notas" placeholder="Ej: casa con portón negro, dejar en portería, mejor horario para recibirlo, etc."></textarea>
+          </div>
+
           <p class="hint" style="margin-top:8px">El costo del envío no está incluido en el precio del producto: varía según a dónde lo mandemos. Con estos datos, el vendedor calcula cuánto sale y te mostramos el total exacto (producto + envío) antes de que pagues algo.</p>
           <div id="checkout-delivery-msg"></div>
           <button class="btn-primary" type="button" style="width:100%; margin-top:18px" id="checkout-request-quote">Pedir costo de envío</button>
@@ -430,19 +495,19 @@
         <div id="checkout-step-payment" hidden>
           <label>Forma de pago</label>
           <div class="checklist" style="margin-top:0">
-            <label><input type="radio" name="checkout-pm" value="transferencia" checked> Transferencia bancaria (más barato)</label>
-            <label><input type="radio" name="checkout-pm" value="tarjeta"> Tarjeta con Mercado Pago</label>
+            <label><input type="radio" name="checkout-pm" value="transferencia" checked> Transferencia bancaria <span style="color:var(--good); font-weight:700">(sin comisiones)</span></label>
+            <label><input type="radio" name="checkout-pm" value="tarjeta"> Tarjeta con Mercado Pago <span style="color:var(--muted); font-weight:700">(+4,60% de comisión)</span></label>
           </div>
 
           <div id="checkout-transferencia-box" style="margin-top:16px">
-            <p class="hint" style="margin-top:0">Transferí el monto exacto a este alias y subí el comprobante. Una vez que confirmemos que llegó el pago, le avisamos al vendedor.</p>
+            <p class="hint" style="margin-top:0">Transferí el monto exacto a este CVU y subí el comprobante. No se cobra ninguna comisión extra por pagar por transferencia. Una vez que confirmemos que llegó el pago, le avisamos al vendedor.</p>
             <div class="price-hint" style="display:block" id="checkout-alias-box"></div>
             <label for="checkout-receipt" style="margin-top:16px">Comprobante de transferencia</label>
             <input id="checkout-receipt" type="file" accept="image/*,application/pdf">
           </div>
 
           <div id="checkout-tarjeta-box" style="margin-top:16px" hidden>
-            <p class="hint" style="margin-top:0">Te vamos a redirigir a Mercado Pago para que completes el pago con tarjeta. El dinero también queda retenido hasta que confirmes que recibiste el producto.</p>
+            <p class="hint" style="margin-top:0">Te vamos a redirigir a Mercado Pago para que completes el pago con tarjeta. Mercado Pago cobra una comisión del 4,60% sobre el total, que ya está sumada en el monto que te van a pedir ahí. El dinero queda retenido hasta que confirmes que recibiste el producto.</p>
           </div>
 
           <div id="checkout-msg"></div>
@@ -665,9 +730,17 @@
   var money = new Intl.NumberFormat('es-AR', {style:'currency', currency:'ARS', maximumFractionDigits:0});
   var currentUser = null;
 
-  // Alias/CBU de Mateo para recibir transferencias de los compradores.
-  var MATEO_ALIAS = 'mateobonino.mp';
-  var MATEO_CBU = '0000003100036799820309';
+  // CVU de Mateo para recibir transferencias de los compradores. Mostramos
+  // solo el CVU (no el alias) y el nombre del titular, para que no queden
+  // dudas de a quién le están transfiriendo.
+  var MATEO_CVU = '0000003100036799820309';
+  var MATEO_TITULAR = 'Mateo L. Bonino';
+
+  // Mercado Pago cobra esta comisión sobre el total cuando se paga con
+  // tarjeta; con transferencia no hay ninguna comisión extra. El cobro real
+  // siempre lo calcula el servidor (api/mp-create-preference.js), esto es
+  // solo para mostrarle al comprador el total estimado antes de pagar.
+  var MP_FEE_RATE = 0.046;
 
   // ---------- Auth UI ----------
   var authArea = document.getElementById('auth-area');
@@ -1711,7 +1784,6 @@
   var checkoutStepDelivery = document.getElementById('checkout-step-delivery');
   var checkoutStepPayment = document.getElementById('checkout-step-payment');
   var checkoutDeliveryAddress = document.getElementById('checkout-delivery-address');
-  var checkoutDeliveryAddressLabel = document.getElementById('checkout-delivery-address-label');
   var checkoutDeliveryMsg = document.getElementById('checkout-delivery-msg');
   var checkoutRequestQuoteBtn = document.getElementById('checkout-request-quote');
   var checkoutProduct = null;
@@ -1726,10 +1798,19 @@
     checkoutDeliveryMsg.innerHTML = '';
     checkoutReceipt.value = '';
 
-    var deliveryMethod = (checkoutExistingOrder && checkoutExistingOrder.delivery_method) || 'retiro_sucursal';
-    document.querySelector('input[name="checkout-delivery"][value="' + deliveryMethod + '"]').checked = true;
-    checkoutDeliveryAddress.value = (checkoutExistingOrder && checkoutExistingOrder.delivery_address) || '';
-    updateCheckoutDeliveryLabel();
+    // El paso de envío solo se muestra cuando todavía no hay delivery_method
+    // cargado (ver needsDeliveryStep más abajo), así que siempre lo
+    // arrancamos limpio en "Retiro en sucursal".
+    document.querySelector('input[name="checkout-delivery"][value="retiro_sucursal"]').checked = true;
+    checkoutDeliveryAddress.value = '';
+    document.getElementById('checkout-dom-calle').value = '';
+    document.getElementById('checkout-dom-numero').value = '';
+    document.getElementById('checkout-dom-piso').value = '';
+    document.getElementById('checkout-dom-localidad').value = '';
+    document.getElementById('checkout-dom-provincia').value = '';
+    document.getElementById('checkout-dom-cp').value = '';
+    document.getElementById('checkout-dom-notas').value = '';
+    updateCheckoutDeliveryFields();
 
     renderCheckoutSummary();
 
@@ -1753,7 +1834,16 @@
     var product = checkoutProduct;
     var amount = checkoutExistingOrder ? checkoutExistingOrder.amount : product.price;
     var deliveryCost = checkoutExistingOrder ? checkoutExistingOrder.delivery_cost : null;
-    var total = amount + Number(deliveryCost || 0);
+    var subtotal = amount + Number(deliveryCost || 0);
+
+    // La comisión de Mercado Pago solo se cobra si se paga con tarjeta, así
+    // que el resumen cambia según el medio de pago elegido. El cobro real
+    // siempre lo calcula el servidor; esto es solo para mostrar el total.
+    var pmRadio = document.querySelector('input[name="checkout-pm"]:checked');
+    var pm = pmRadio ? pmRadio.value : 'transferencia';
+    var showFee = (pm === 'tarjeta' && deliveryCost != null);
+    var fee = showFee ? subtotal * MP_FEE_RATE : 0;
+    var total = subtotal + fee;
 
     var thumb = product.photo_url
       ? '<img src="' + product.photo_url + '" alt="">'
@@ -1769,15 +1859,15 @@
       '<div class="order-summary-row"><span>Precio del producto</span><span class="tabular">' + money.format(amount) + '</span></div>' +
       (checkoutExistingOrder ? '<div class="order-summary-row"><span>Oferta aceptada</span><span></span></div>' : '') +
       '<div class="order-summary-row"><span>Costo de envío</span><span class="tabular">' + (deliveryCost != null ? money.format(deliveryCost) : 'A confirmar') + '</span></div>' +
+      (showFee ? '<div class="order-summary-row"><span>Comisión Mercado Pago (4,60%)</span><span class="tabular">' + money.format(fee) + '</span></div>' : '') +
       '<div class="order-summary-row total"><span>Total a pagar</span><span class="tabular">' + (deliveryCost != null ? money.format(total) : '—') + '</span></div>';
 
     if (deliveryCost != null){
       checkoutAliasBox.innerHTML =
-        'Transferí <b class="tabular">' + money.format(total) + '</b> a:<br>' +
-        'Alias: <b>' + escapeHtml(MATEO_ALIAS) + '</b> ' +
-        '<button type="button" class="copy-btn" data-copy="' + escapeHtml(MATEO_ALIAS) + '" aria-label="Copiar alias">' + COPY_ICON + '</button><br>' +
-        'CBU: <b class="tabular">' + escapeHtml(MATEO_CBU) + '</b> ' +
-        '<button type="button" class="copy-btn" data-copy="' + escapeHtml(MATEO_CBU) + '" aria-label="Copiar CBU">' + COPY_ICON + '</button>';
+        'Transferí <b class="tabular">' + money.format(subtotal) + '</b> (sin comisiones) a:<br>' +
+        'CVU: <b class="tabular">' + escapeHtml(MATEO_CVU) + '</b> ' +
+        '<button type="button" class="copy-btn" data-copy="' + escapeHtml(MATEO_CVU) + '" aria-label="Copiar CVU">' + COPY_ICON + '</button><br>' +
+        'Titular: <b>' + escapeHtml(MATEO_TITULAR) + '</b>';
     }
   }
 
@@ -1785,23 +1875,27 @@
     var pm = document.querySelector('input[name="checkout-pm"]:checked').value;
     document.getElementById('checkout-transferencia-box').hidden = (pm !== 'transferencia');
     document.getElementById('checkout-tarjeta-box').hidden = (pm !== 'tarjeta');
-    checkoutSubmit.textContent = (pm === 'tarjeta') ? 'Pagar con Mercado Pago' : 'Confirmar compra';
+    if (pm === 'tarjeta'){
+      checkoutSubmit.innerHTML = 'Pagar con <span class="mp-word">mercado<b>pago</b></span>';
+    } else {
+      checkoutSubmit.textContent = 'Confirmar compra';
+    }
     checkoutSubmit.classList.toggle('btn-mp', pm === 'tarjeta');
+    renderCheckoutSummary();
   }
 
   document.querySelectorAll('input[name="checkout-pm"]').forEach(function(r){
     r.addEventListener('change', updateCheckoutPmView);
   });
 
-  function updateCheckoutDeliveryLabel(){
+  function updateCheckoutDeliveryFields(){
     var delivery = document.querySelector('input[name="checkout-delivery"]:checked').value;
-    checkoutDeliveryAddressLabel.textContent = (delivery === 'domicilio')
-      ? 'Dirección de entrega'
-      : 'Localidad o sucursal de Correo Argentino más cercana a vos';
+    document.getElementById('checkout-delivery-sucursal-fields').hidden = (delivery !== 'retiro_sucursal');
+    document.getElementById('checkout-delivery-domicilio-fields').hidden = (delivery !== 'domicilio');
   }
 
   document.querySelectorAll('input[name="checkout-delivery"]').forEach(function(r){
-    r.addEventListener('change', updateCheckoutDeliveryLabel);
+    r.addEventListener('change', updateCheckoutDeliveryFields);
   });
 
   checkoutAliasBox.addEventListener('click', function(e){
@@ -1820,11 +1914,29 @@
 
   function getCheckoutDeliveryInfo(){
     var method = document.querySelector('input[name="checkout-delivery"]:checked').value;
-    var address = checkoutDeliveryAddress.value.trim();
-    if (!address){
-      throw new Error(method === 'domicilio' ? 'Ingresá la dirección de entrega.' : 'Ingresá la localidad o sucursal más cercana.');
+
+    if (method === 'domicilio'){
+      var calle = document.getElementById('checkout-dom-calle').value.trim();
+      var numero = document.getElementById('checkout-dom-numero').value.trim();
+      var piso = document.getElementById('checkout-dom-piso').value.trim();
+      var localidad = document.getElementById('checkout-dom-localidad').value.trim();
+      var provincia = document.getElementById('checkout-dom-provincia').value;
+      var cp = document.getElementById('checkout-dom-cp').value.trim();
+      var notas = document.getElementById('checkout-dom-notas').value.trim();
+      if (!calle || !numero || !localidad || !provincia || !cp){
+        throw new Error('Completá calle, número, localidad, provincia y código postal.');
+      }
+      var address = calle + ' ' + numero + (piso ? ', ' + piso : '') +
+        ', ' + localidad + ', ' + provincia + ' (CP ' + cp + ')' +
+        (notas ? ' — Notas: ' + notas : '');
+      return { delivery_method: method, delivery_address: address };
     }
-    return { delivery_method: method, delivery_address: address };
+
+    var sucursal = checkoutDeliveryAddress.value.trim();
+    if (!sucursal){
+      throw new Error('Ingresá la localidad o sucursal más cercana.');
+    }
+    return { delivery_method: method, delivery_address: sucursal };
   }
 
   // Paso 1: el comprador manda sus datos de envío (todavía sin pagar nada).
