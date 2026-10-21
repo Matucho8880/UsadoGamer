@@ -130,14 +130,14 @@
   .hero-actions{display:flex; gap:12px; flex-wrap:wrap}
   .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:0; padding:14px 24px; cursor:pointer}
   .btn-primary:disabled{opacity:.6; cursor:default}
-  /* Botón de pago con Mercado Pago: usa el amarillo exacto de su marca y un
-     azul marino similar al de su isotipo, para que se reconozca como un
-     botón de pago oficial y no como un botón amarillo cualquiera. */
-  .btn-primary.btn-mp{background:#ffe600; color:#2a3067}
-  .btn-primary.btn-mp:hover:not(:disabled){background:#f5dc00}
-  .btn-primary.btn-mp .mp-word{font-family:var(--font-display); letter-spacing:-.01em}
-  .btn-primary.btn-mp .mp-word b{font-weight:800}
-  #checkout-delivery-domicilio-fields input, #checkout-delivery-domicilio-fields select{min-width:0}
+  /* Botón de pago con Mercado Pago: mismo color que el resto de los botones
+     de la página (no el amarillo de la marca, que quedaba como un botón
+     "trucho" aparte del resto del sitio) — solo cambia la tipografía de la
+     palabra para que se note que es un pago distinto. */
+  .mp-word{font-family:var(--font-display); letter-spacing:-.01em}
+  .mp-word b{font-weight:800}
+  #checkout-delivery-domicilio-fields input, #checkout-delivery-domicilio-fields select,
+  #checkout-step-buyer input, #checkout-step-buyer select{min-width:0}
 
   .hero-visual{position:relative; height:400px; overflow:hidden}
   @media (max-width:760px){ .hero-visual{height:300px; margin-top:16px} }
@@ -225,6 +225,12 @@
   .checklist input[type=radio]{width:auto; flex:none; margin-top:3px}
   .checklist label:has(input:disabled){color:var(--muted); cursor:default}
   input:disabled, select:disabled, textarea:disabled{opacity:.6; cursor:not-allowed; background:var(--surface-2, #f2f2f2)}
+
+  /* Método de envío deshabilitado (Andreani): insignia + tooltip prolijo al pasar el mouse */
+  .carrier-soon{position:relative}
+  .badge-soon{display:inline-block; font-size:.68rem; font-weight:700; letter-spacing:.02em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); border-radius:20px; padding:2px 8px; margin-left:6px; vertical-align:middle}
+  .carrier-tooltip{position:absolute; left:0; bottom:calc(100% + 8px); z-index:5; width:240px; max-width:70vw; background:var(--fg); color:var(--bg); font-size:.8rem; font-weight:500; line-height:1.4; border-radius:0; padding:10px 12px; box-shadow:0 12px 30px -10px rgba(10,10,10,.4); opacity:0; transform:translateY(4px); pointer-events:none; transition:opacity .15s ease, transform .15s ease}
+  .carrier-soon:hover .carrier-tooltip, .carrier-soon:focus-within .carrier-tooltip{opacity:1; transform:translateY(0)}
   .msg{border-radius:0; padding:10px 12px; font-size:.85rem; margin-top:14px}
   .msg.ok{background:var(--good-bg); color:var(--good)}
   .msg.err{background:var(--danger-bg); color:var(--danger)}
@@ -437,8 +443,61 @@
           <input id="checkout-buyer-mail" type="email" disabled>
           <label for="checkout-buyer-telefono">Teléfono</label>
           <input id="checkout-buyer-telefono" type="tel" placeholder="Ej: 341 555 1234">
-          <label for="checkout-buyer-direccion">Dirección</label>
-          <input id="checkout-buyer-direccion" type="text" placeholder="Calle, número, ciudad">
+
+          <label style="margin-top:10px">Dirección</label>
+          <div style="display:flex; gap:10px; margin-top:4px">
+            <div style="flex:3">
+              <label for="checkout-buyer-calle">Calle</label>
+              <input id="checkout-buyer-calle" type="text" placeholder="Ej: San Martín">
+            </div>
+            <div style="flex:1">
+              <label for="checkout-buyer-numero">Número</label>
+              <input id="checkout-buyer-numero" type="text" inputmode="numeric" placeholder="1234">
+            </div>
+          </div>
+          <label for="checkout-buyer-piso">Piso / depto (opcional)</label>
+          <input id="checkout-buyer-piso" type="text" placeholder="Ej: Piso 4, depto B">
+          <div style="display:flex; gap:10px">
+            <div style="flex:2">
+              <label for="checkout-buyer-localidad">Localidad</label>
+              <input id="checkout-buyer-localidad" type="text" placeholder="Ej: Rosario">
+            </div>
+            <div style="flex:2">
+              <label for="checkout-buyer-provincia">Provincia</label>
+              <select id="checkout-buyer-provincia">
+                <option value="">Elegí tu provincia</option>
+                <option>Buenos Aires</option>
+                <option>Catamarca</option>
+                <option>Chaco</option>
+                <option>Chubut</option>
+                <option>Ciudad Autónoma de Buenos Aires</option>
+                <option>Córdoba</option>
+                <option>Corrientes</option>
+                <option>Entre Ríos</option>
+                <option>Formosa</option>
+                <option>Jujuy</option>
+                <option>La Pampa</option>
+                <option>La Rioja</option>
+                <option>Mendoza</option>
+                <option>Misiones</option>
+                <option>Neuquén</option>
+                <option>Río Negro</option>
+                <option>Salta</option>
+                <option>San Juan</option>
+                <option>San Luis</option>
+                <option>Santa Cruz</option>
+                <option>Santa Fe</option>
+                <option>Santiago del Estero</option>
+                <option>Tierra del Fuego</option>
+                <option>Tucumán</option>
+              </select>
+            </div>
+            <div style="flex:1">
+              <label for="checkout-buyer-cp">CP</label>
+              <input id="checkout-buyer-cp" type="text" inputmode="numeric" placeholder="2000">
+            </div>
+          </div>
+
           <p class="hint" style="margin-top:10px">El transporte físico del producto lo hace el correo que elija el vendedor, no UsadoGamer. Tu pago sí queda retenido acá hasta que confirmes que lo recibiste — por tu seguridad, toda la compra (pago, seguimiento y reclamos) tiene que quedar siempre dentro de la plataforma.</p>
         </div>
 
@@ -446,7 +505,11 @@
           <label>Método de envío</label>
           <div class="checklist" style="margin-top:4px">
             <label><input type="radio" name="checkout-carrier" value="correo_argentino" checked> Correo Argentino</label>
-            <label title="Estamos trabajando en ello. Andreani estará disponible como método de envío próximamente." style="color:var(--muted)"><input type="radio" name="checkout-carrier" value="andreani" disabled> Andreani <span class="hint" style="display:inline">(muy pronto)</span></label>
+            <label class="carrier-soon">
+              <input type="radio" name="checkout-carrier" value="andreani" disabled>
+              <span>Andreani <span class="badge-soon">Próximamente</span></span>
+              <span class="carrier-tooltip">Estamos trabajando en ello. Andreani va a estar disponible como método de envío muy pronto.</span>
+            </label>
           </div>
 
           <label for="checkout-delivery-method" style="margin-top:12px">Retiro en</label>
@@ -1836,7 +1899,12 @@
   var checkoutBuyerApellido = document.getElementById('checkout-buyer-apellido');
   var checkoutBuyerMail = document.getElementById('checkout-buyer-mail');
   var checkoutBuyerTelefono = document.getElementById('checkout-buyer-telefono');
-  var checkoutBuyerDireccion = document.getElementById('checkout-buyer-direccion');
+  var checkoutBuyerCalle = document.getElementById('checkout-buyer-calle');
+  var checkoutBuyerNumero = document.getElementById('checkout-buyer-numero');
+  var checkoutBuyerPiso = document.getElementById('checkout-buyer-piso');
+  var checkoutBuyerLocalidad = document.getElementById('checkout-buyer-localidad');
+  var checkoutBuyerProvincia = document.getElementById('checkout-buyer-provincia');
+  var checkoutBuyerCp = document.getElementById('checkout-buyer-cp');
   var checkoutStepShipping = document.getElementById('checkout-step-shipping');
   var checkoutDeliveryMethodSelect = document.getElementById('checkout-delivery-method');
   var checkoutDeliveryAddress = document.getElementById('checkout-delivery-address');
@@ -1868,7 +1936,15 @@
     checkoutBuyerApellido.value = (checkoutExistingOrder && checkoutExistingOrder.buyer_nombre ? checkoutExistingOrder.buyer_nombre.split(' ').slice(1).join(' ') : '') || profile.apellido || '';
     checkoutBuyerMail.value = currentUser.email || '';
     checkoutBuyerTelefono.value = (checkoutExistingOrder && checkoutExistingOrder.buyer_telefono) || profile.telefono || '';
-    checkoutBuyerDireccion.value = (checkoutExistingOrder && checkoutExistingOrder.buyer_direccion) || profile.direccion || '';
+    // La dirección se pide siempre con el formulario completo (calle, número,
+    // localidad, provincia, CP), así que no se puede autocompletar desde el
+    // texto libre que guarda el perfil — el comprador la completa de nuevo acá.
+    checkoutBuyerCalle.value = '';
+    checkoutBuyerNumero.value = '';
+    checkoutBuyerPiso.value = '';
+    checkoutBuyerLocalidad.value = '';
+    checkoutBuyerProvincia.value = '';
+    checkoutBuyerCp.value = '';
 
     // El paso de envío (pedir cotización) solo tiene sentido cuando todavía
     // no existe un pedido (si ya existe, p.ej. por una oferta aceptada, el
@@ -1971,7 +2047,7 @@
       (checkoutExistingOrder ? '<div class="order-summary-row"><span>Oferta aceptada</span><span></span></div>' : '') +
       (deliveryIncluded
         ? '<div class="order-summary-row"><span>Costo de envío</span><span class="tabular">' + money.format(deliveryCost) + '</span></div>'
-        : '<div class="order-summary-row"><span>Envío</span><span>Se pide y se paga después, aparte</span></div>') +
+        : '') +
       (fee ? '<div class="order-summary-row"><span>Comisión Mercado Pago (4,60%)</span><span class="tabular">' + money.format(fee) + '</span></div>' : '') +
       '<div class="order-summary-row total"><span>Total a pagar ahora</span><span class="tabular">' + money.format(total) + '</span></div>';
 
@@ -1991,7 +2067,6 @@
     } else {
       checkoutSubmit.textContent = 'Confirmar compra';
     }
-    checkoutSubmit.classList.toggle('btn-mp', pm === 'tarjeta');
     renderCheckoutSummary();
   }
 
@@ -2017,10 +2092,17 @@
     var nombre = checkoutBuyerNombre.value.trim();
     var apellido = checkoutBuyerApellido.value.trim();
     var telefono = checkoutBuyerTelefono.value.trim();
-    var direccion = checkoutBuyerDireccion.value.trim();
-    if (!nombre || !apellido || !telefono || !direccion){
-      throw new Error('Completá tu nombre, apellido, teléfono y dirección antes de pagar.');
+    var calle = checkoutBuyerCalle.value.trim();
+    var numero = checkoutBuyerNumero.value.trim();
+    var piso = checkoutBuyerPiso.value.trim();
+    var localidad = checkoutBuyerLocalidad.value.trim();
+    var provincia = checkoutBuyerProvincia.value;
+    var cp = checkoutBuyerCp.value.trim();
+    if (!nombre || !apellido || !telefono || !calle || !numero || !localidad || !provincia || !cp){
+      throw new Error('Completá tu nombre, apellido, teléfono y dirección completa antes de pagar.');
     }
+    var direccion = calle + ' ' + numero + (piso ? ', ' + piso : '') +
+      ', ' + localidad + ', ' + provincia + ' (CP ' + cp + ')';
     return { buyer_nombre: nombre + ' ' + apellido, buyer_telefono: telefono, buyer_direccion: direccion };
   }
 
@@ -2356,7 +2438,7 @@
         '<input type="file" accept="image/*,application/pdf" id="pd-delivery-receipt-' + order.id + '">' +
         '<button type="button" class="ghost-btn" style="margin-top:8px" data-pd-pay-delivery-transfer="' + order.id + '">Ya transferí, subir comprobante</button>' +
         '<p class="hint" style="margin-top:10px">O pagá con tarjeta (Mercado Pago cobra 4,60% de comisión sobre el envío, ya incluida en el monto):</p>' +
-        '<button type="button" class="btn-primary btn-mp" style="width:auto; display:inline-block" data-pd-pay-delivery-mp="' + order.id + '">Pagar con <span class="mp-word">mercado<b>pago</b></span></button>' +
+        '<button type="button" class="btn-primary" style="width:auto; display:inline-block" data-pd-pay-delivery-mp="' + order.id + '">Pagar con <span class="mp-word">mercado<b>pago</b></span></button>' +
         '<div id="pd-pay-delivery-msg-' + order.id + '"></div>' +
       '</div>' +
     '</div>';
