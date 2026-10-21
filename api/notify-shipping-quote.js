@@ -46,7 +46,7 @@ async function handleRequested(quoteId, res) {
 async function handleReady(quoteId, res) {
   var rows = await helpers.supabaseServiceQuery(
     'shipping_quotes?id=eq.' + encodeURIComponent(quoteId) +
-    '&select=id,cost,buyer_id,product_id,delivery_method,delivery_address,products(id,title)'
+    '&select=id,cost,origin_address,buyer_id,product_id,delivery_method,delivery_address,products(id,title)'
   );
   var q = rows[0];
   if (!q || !q.products) { res.status(404).json({ error: 'No se encontró la consulta o el producto.' }); return; }
@@ -63,11 +63,13 @@ async function handleReady(quoteId, res) {
   var entrega = q.delivery_method === 'domicilio'
     ? 'Envío a domicilio — ' + (q.delivery_address || '')
     : 'Retiro en sucursal — ' + (q.delivery_address || '');
+  var origen = q.origin_address ? '<p>Se despacha desde: ' + q.origin_address + '</p>' : '';
 
   var buyerHtml =
     '<p>Hola' + (buyer.nombre ? ' ' + buyer.nombre : '') + ',</p>' +
     '<p>Ya calculamos cuánto sale el envío de <b>' + q.products.title + '</b>: <b>' + money.format(q.cost) + '</b>.</p>' +
     '<p>' + entrega + '</p>' +
+    origen +
     '<p>Esto no reservó el producto ni te compromete a nada. Si querés comprarlo, entrá a la publicación y al pagar ya te vamos a sumar este costo de envío automáticamente.</p>' +
     '<p><a href="' + link + '">Ver la publicación</a></p>' +
     '<p style="color:#64666c; font-size:13px">UsadoGamer</p>';
