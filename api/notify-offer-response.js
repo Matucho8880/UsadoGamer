@@ -41,7 +41,7 @@ module.exports = async function handler(req, res) {
 
     var money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
     var siteUrl = process.env.SITE_URL || 'https://usadogamer-projecarg.vercel.app';
-    var link = siteUrl + '/?producto=' + encodeURIComponent(o.product_id);
+    var link = siteUrl + '/producto/' + encodeURIComponent(o.product_id);
     var html;
 
     if (o.status === 'aceptada') {

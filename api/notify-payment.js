@@ -32,7 +32,7 @@ async function handleConfirmed(orderId, res) {
 
   var money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
   var siteUrl = process.env.SITE_URL || 'https://usadogamer-projecarg.vercel.app';
-  var link = siteUrl + '/?producto=' + encodeURIComponent(o.product_id);
+  var link = siteUrl + '/producto/' + encodeURIComponent(o.product_id);
 
   var buyerHtml =
     '<p>Hola' + (buyer.nombre ? ' ' + buyer.nombre : '') + ',</p>' +
@@ -70,7 +70,7 @@ async function handleReleased(orderId, res) {
   var net = Math.round(o.amount * (1 - COMMISSION_RATE));
   var money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
   var siteUrl = process.env.SITE_URL || 'https://usadogamer-projecarg.vercel.app';
-  var link = siteUrl + '/?producto=' + encodeURIComponent(o.product_id);
+  var link = siteUrl + '/producto/' + encodeURIComponent(o.product_id);
 
   var html =
     '<p>Hola' + (seller.nombre ? ' ' + seller.nombre : '') + ',</p>' +

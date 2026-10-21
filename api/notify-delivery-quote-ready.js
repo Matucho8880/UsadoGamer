@@ -24,7 +24,7 @@ module.exports = async function handler(req, res) {
 
     var rows = await helpers.supabaseServiceQuery(
       'orders?id=eq.' + encodeURIComponent(orderId) +
-      '&select=id,delivery_cost,buyer_id,product_id,products(id,title)'
+      '&select=id,delivery_cost,delivery_origin_address,buyer_id,product_id,products(id,title)'
     );
     var o = rows[0];
     if (!o || !o.products) {
@@ -43,11 +43,14 @@ module.exports = async function handler(req, res) {
 
     var money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
     var siteUrl = process.env.SITE_URL || 'https://usadogamer-projecarg.vercel.app';
-    var link = siteUrl + '/?producto=' + encodeURIComponent(o.product_id);
+    var link = siteUrl + '/producto/' + encodeURIComponent(o.product_id);
+
+    var origen = o.delivery_origin_address ? '<p>Se despacha desde: ' + o.delivery_origin_address + '</p>' : '';
 
     var buyerHtml =
       '<p>Hola' + (buyer.nombre ? ' ' + buyer.nombre : '') + ',</p>' +
       '<p>Ya calculamos el costo de envío de <b>' + o.products.title + '</b>: <b>' + money.format(o.delivery_cost) + '</b>.</p>' +
+      origen +
       '<p>El producto ya está pagado — esto es solo el envío, que se paga aparte. Entrá a "Mis pedidos" en la web para pagarlo.</p>' +
       '<p><a href="' + link + '">Ver la publicación</a></p>' +
       '<p style="color:#64666c; font-size:13px">UsadoGamer</p>';

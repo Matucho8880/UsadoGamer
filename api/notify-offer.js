@@ -45,7 +45,7 @@ module.exports = async function handler(req, res) {
       '<p>Hola' + (seller.nombre ? ' ' + seller.nombre : '') + ',</p>' +
       '<p>Te hicieron una oferta nueva en tu publicación <b>' + o.products.title + '</b>:</p>' +
       '<p style="background:#f7f7f8; border-radius:8px; padding:12px; font-size:1.1rem"><b>' + money.format(o.offered_price) + '</b></p>' +
-      '<p><a href="' + siteUrl + '/?producto=' + encodeURIComponent(o.products.id) + '">Entrá a aceptarla o rechazarla</a></p>' +
+      '<p><a href="' + siteUrl + '/producto/' + encodeURIComponent(o.products.id) + '">Entrá a aceptarla o rechazarla</a></p>' +
       '<p style="color:#64666c; font-size:13px">UsadoGamer</p>';
 
     var result = await helpers.sendEmail({ to: seller.email, subject: 'Te hicieron una oferta en UsadoGamer', html: html });

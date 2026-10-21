@@ -59,7 +59,7 @@ async function handleReady(quoteId, res) {
 
   var money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
   var siteUrl = process.env.SITE_URL || 'https://usadogamer-projecarg.vercel.app';
-  var link = siteUrl + '/?producto=' + encodeURIComponent(q.product_id);
+  var link = siteUrl + '/producto/' + encodeURIComponent(q.product_id);
   var entrega = q.delivery_method === 'domicilio'
     ? 'Envío a domicilio — ' + (q.delivery_address || '')
     : 'Retiro en sucursal — ' + (q.delivery_address || '');

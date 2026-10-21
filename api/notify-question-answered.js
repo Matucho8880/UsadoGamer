@@ -44,7 +44,7 @@ module.exports = async function handler(req, res) {
       '<p>Hola' + (asker.nombre ? ' ' + asker.nombre : '') + ',</p>' +
       '<p>Te respondieron la pregunta que hiciste en <b>' + q.products.title + '</b>:</p>' +
       '<p style="background:#f7f7f8; border-radius:8px; padding:12px"><i>"' + q.question + '"</i><br><br><b>Respuesta:</b> ' + q.answer + '</p>' +
-      '<p><a href="' + siteUrl + '/?producto=' + encodeURIComponent(q.product_id) + '">Ver la publicación</a></p>' +
+      '<p><a href="' + siteUrl + '/producto/' + encodeURIComponent(q.product_id) + '">Ver la publicación</a></p>' +
       '<p style="color:#64666c; font-size:13px">UsadoGamer</p>';
 
     var result = await helpers.sendEmail({ to: asker.email, subject: 'Te respondieron en UsadoGamer', html: html });
