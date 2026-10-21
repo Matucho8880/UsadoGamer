@@ -114,11 +114,21 @@
   .hero{
     position:relative; width:100vw; left:50%; margin-left:-50vw;
     padding-block:56px 64px; padding-inline:24px;
-    background:radial-gradient(120% 140% at 85% 0%, #1a2550 0%, #0c1226 55%, #080b18 100%);
+    background:var(--bg);
     color:#f3f4fa;
   }
+  /* Fondo diagonal: la mancha oscura cubre un 60-65% del ancho a la izquierda
+     (más angosta abajo que arriba) y el resto queda blanco, el fondo normal
+     de la página. Es un div aparte en vez de ser el fondo de .hero para poder
+     recortarlo con clip-path sin afectar el texto ni la ilustración. */
+  .hero-bg{
+    position:absolute; inset:0; z-index:0;
+    background:radial-gradient(120% 140% at 85% 0%, #1a2550 0%, #0c1226 55%, #080b18 100%);
+    clip-path:polygon(0 0, 66% 0, 50% 100%, 0 100%);
+  }
+  @media (max-width:760px){ .hero-bg{ clip-path:polygon(0 0, 100% 0, 100% 72%, 0 100%); } }
   @media (max-width:480px){ .hero{padding-inline:16px} }
-  .hero-inner{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; max-width:1120px; margin-inline:auto}
+  .hero-inner{position:relative; z-index:1; display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; max-width:1120px; margin-inline:auto}
   @media (max-width:760px){ .hero-inner{grid-template-columns:1fr} .hero{padding-block:36px 48px} }
   .eyebrow{display:inline-flex; align-items:center; gap:7px; color:#8fb0ff; font-weight:700; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; margin-bottom:18px}
   .eyebrow .pip{width:7px; height:7px; border-radius:50%; background:#8fb0ff}
@@ -139,16 +149,13 @@
   #checkout-delivery-domicilio-fields input, #checkout-delivery-domicilio-fields select,
   #checkout-step-buyer input, #checkout-step-buyer select{min-width:0}
 
-  .hero-visual{position:relative; height:400px; overflow:hidden}
-  @media (max-width:760px){ .hero-visual{height:300px; margin-top:16px} }
-  .hv-float{position:absolute; display:block; filter:drop-shadow(0 20px 30px rgba(0,0,0,.5))}
-  .hv-monitor{top:4%; right:2%; width:50%}
-  .hv-keyboard{left:8%; bottom:6%; width:76%; transform:rotate(-6deg); z-index:2}
-  .hv-mouse{left:0; bottom:26%; width:13%; transform:rotate(-8deg); z-index:1}
-  @media (max-width:760px){
-    .hv-monitor{width:46%}
-    .hv-keyboard{width:68%}
-  }
+  /* Ilustración de la mano que entrega el joystick: un SVG hecho a mano
+     (no tenemos generador de imágenes), pensado para "atravesar" la línea
+     diagonal del fondo, como en el boceto. En celular se oculta: el fondo
+     oscuro pasa a cubrir casi todo el ancho y el texto ocupa todo el lugar. */
+  .hero-visual{position:relative; height:400px; z-index:1}
+  .hero-visual svg{position:absolute; top:50%; left:-22%; transform:translateY(-50%); width:140%; max-width:640px; height:auto}
+  @media (max-width:760px){ .hero-visual{display:none} }
 
   .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
   .chip{font-family:var(--font-body); font-weight:600; font-size:.86rem; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:0; padding:8px 15px; cursor:pointer}
@@ -337,20 +344,43 @@
 
   <section id="view-explorar">
     <div class="hero">
+      <div class="hero-bg" aria-hidden="true"></div>
       <div class="hero-inner">
         <div>
-          <span class="eyebrow"><span class="pip"></span>Pago protegido</span>
-          <h1>Comprá y vendé gaming usado, <em>sin miedo</em>.</h1>
-          <p class="lead">Productos de segunda mano, publicados por gente real, con el pago retenido hasta que el producto llega como se describió — para que comprador y vendedor terminen tranquilos y contentos los dos.</p>
+          <span class="eyebrow"><span class="pip"></span>Compra protegida</span>
+          <h1>Comprá y vendé productos gamer usados, <em>con total confianza</em>.</h1>
+          <p class="lead">Productos de segunda mano, publicados por gente real de todo el país. Con la compra protegida, retenemos el pago hasta que el producto sea recibido en condiciones por el comprador — para que los dos terminen tranquilos y contentos.</p>
           <div class="hero-actions">
             <button class="btn-primary" type="button" data-goto="publicar">Publicar un producto</button>
             <button class="ghost-btn" type="button" data-goto="como-funciona">Cómo funciona la protección</button>
           </div>
         </div>
         <div class="hero-visual" aria-hidden="true">
-          <img class="hv-float hv-monitor" src="hero-monitor.png" alt="">
-          <img class="hv-float hv-mouse" src="hero-mouse.png" alt="">
-          <img class="hv-float hv-keyboard" src="hero-keyboard.png?v=2" alt="">
+          <svg viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg" focusable="false">
+            <g stroke="#8fb0ff" stroke-width="5" stroke-linecap="round" opacity=".55">
+              <line x1="205" y1="78" x2="172" y2="122"/>
+              <line x1="236" y1="68" x2="203" y2="112"/>
+              <line x1="267" y1="60" x2="234" y2="104"/>
+            </g>
+            <rect x="-50" y="160" width="130" height="95" rx="40" fill="#f3f4fa"/>
+            <rect x="65" y="145" width="115" height="125" rx="42" fill="#f3f4fa"/>
+            <rect x="150" y="172" width="62" height="72" rx="22" fill="#f3f4fa" transform="rotate(-14 181 208)"/>
+            <rect x="520" y="165" width="130" height="90" rx="38" fill="#141b3a"/>
+            <rect x="420" y="150" width="110" height="120" rx="40" fill="#141b3a"/>
+            <rect x="392" y="175" width="58" height="68" rx="22" fill="#141b3a" transform="rotate(13 420 209)"/>
+            <rect x="212" y="176" width="180" height="84" rx="42" fill="#1a2550" stroke="#7c9cff" stroke-width="3"/>
+            <rect x="243" y="208" width="10" height="28" rx="3" fill="#8fb0ff"/>
+            <rect x="229" y="222" width="38" height="10" rx="3" fill="#8fb0ff"/>
+            <circle cx="347" cy="200" r="7" fill="#7c9cff"/>
+            <circle cx="367" cy="218" r="7" fill="#8fb0ff"/>
+            <circle cx="347" cy="236" r="7" fill="#7c9cff"/>
+            <circle cx="327" cy="218" r="7" fill="#8fb0ff"/>
+            <g stroke="#1a2550" stroke-width="5" stroke-linecap="round" opacity=".32">
+              <line x1="402" y1="330" x2="369" y2="374"/>
+              <line x1="433" y1="320" x2="400" y2="364"/>
+              <line x1="464" y1="310" x2="431" y2="354"/>
+            </g>
+          </svg>
         </div>
       </div>
     </div>
@@ -421,7 +451,7 @@
           <legend>Resumen</legend>
           <p class="price tabular" id="producto-price" style="font-size:1.7rem; margin-top:4px"></p>
           <p class="hint" id="producto-shipping-row" style="margin-top:4px" hidden></p>
-          <p class="badge protected" style="display:inline-block; margin-top:10px">Pago protegido</p>
+          <p class="badge protected" style="display:inline-block; margin-top:10px">Compra protegida</p>
           <button type="button" class="btn-primary" style="width:100%; margin-top:18px" id="producto-buy-btn">Comprar</button>
           <div id="oferta-box" style="margin-top:14px"></div>
           <p class="hint" id="producto-own-note" style="margin-top:10px" hidden>Esta publicación es tuya.</p>
@@ -1584,7 +1614,7 @@
         '<div class="card-body">' +
           '<div class="card-cat">' + p.category + '</div>' +
           '<div class="card-title">' + escapeHtml(p.title) + '</div>' +
-          '<div class="badges"><span class="badge cond">' + escapeHtml(p.condition) + '</span><span class="badge protected">Pago protegido</span></div>' +
+          '<div class="badges"><span class="badge cond">' + escapeHtml(p.condition) + '</span><span class="badge protected">Compra protegida</span></div>' +
           '<div class="card-foot"><span class="price tabular">' + money.format(p.price) + '</span></div>' +
           '<button type="button" class="btn-primary" style="width:100%; margin-top:4px" data-product-btn="' + p.id + '">' + (isMine ? 'Ver publicación' : 'Comprar') + '</button>' +
         '</div>';
@@ -1806,7 +1836,7 @@
       (product.works_ok ? '<span class="badge cond">Funciona bien</span>' : '') +
       (product.has_box ? '<span class="badge cond">Con caja</span>' : '') +
       (product.has_warranty ? '<span class="badge cond">Con garantía</span>' : '') +
-      '<span class="badge protected">Pago protegido</span>';
+      '<span class="badge protected">Compra protegida</span>';
     productoPrice.textContent = money.format(product.price);
     var isMine = currentUser && product.user_id === currentUser.id;
     var isAvailable = (product.status || 'disponible') === 'disponible';
