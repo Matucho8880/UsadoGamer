@@ -13,6 +13,7 @@
     --bg:#ffffff; --surface:#f7f7f8; --surface-2:#eff0f2; --fg:#0a0a0a; --muted:#64666c;
     --accent:#2454ff; --accent-dim:#e8edff; --accent-ink:#ffffff;
     --good:#0f9d6b; --good-bg:#e7f8f1; --border:#e3e3e6; --danger:#d93f3f; --danger-bg:#fdeaea;
+    --warn:#b4790f; --warn-bg:#fdf1de;
     --font-display:'Space Grotesk', 'Segoe UI', sans-serif;
     --font-body:'Inter', 'Segoe UI', sans-serif;
   }
@@ -222,6 +223,8 @@
   .checklist label{display:flex; align-items:flex-start; gap:8px; font-weight:500; color:var(--fg); margin-top:10px}
   .checklist input[type=checkbox],
   .checklist input[type=radio]{width:auto; flex:none; margin-top:3px}
+  .checklist label:has(input:disabled){color:var(--muted); cursor:default}
+  input:disabled, select:disabled, textarea:disabled{opacity:.6; cursor:not-allowed; background:var(--surface-2, #f2f2f2)}
   .msg{border-radius:0; padding:10px 12px; font-size:.85rem; margin-top:14px}
   .msg.ok{background:var(--good-bg); color:var(--good)}
   .msg.err{background:var(--danger-bg); color:var(--danger)}
@@ -417,21 +420,48 @@
 
     <div class="checkout-layout">
       <div>
-        <div id="checkout-step-delivery">
-          <label>Forma de entrega</label>
-          <p class="hint" style="margin-top:0">El transporte físico del producto lo hace el correo que elija el vendedor, no UsadoGamer. Tu pago sí queda retenido acá hasta que confirmes que lo recibiste — por tu seguridad, toda la compra (pago, seguimiento y reclamos) tiene que quedar siempre dentro de la plataforma. Si tenés dudas antes de comprar, preguntale al vendedor desde "Preguntas al vendedor" en la publicación; no compartan datos de contacto personal ni cierren la operación por fuera.</p>
-          <div class="checklist" style="margin-top:8px">
-            <label><input type="radio" name="checkout-delivery" value="retiro_sucursal" checked> Retiro en sucursal</label>
-            <label><input type="radio" name="checkout-delivery" value="domicilio"> Envío a domicilio</label>
+        <div id="checkout-step-buyer">
+          <label>Tus datos</label>
+          <p class="hint" style="margin-top:0">Verificá que estén bien antes de pagar. Son solo para este pedido — no modifican los datos de tu cuenta.</p>
+          <div style="display:flex; gap:10px; margin-top:10px">
+            <div style="flex:1">
+              <label for="checkout-buyer-nombre">Nombre</label>
+              <input id="checkout-buyer-nombre" type="text" placeholder="Nombre">
+            </div>
+            <div style="flex:1">
+              <label for="checkout-buyer-apellido">Apellido</label>
+              <input id="checkout-buyer-apellido" type="text" placeholder="Apellido">
+            </div>
+          </div>
+          <label for="checkout-buyer-mail">Mail</label>
+          <input id="checkout-buyer-mail" type="email" disabled>
+          <label for="checkout-buyer-telefono">Teléfono</label>
+          <input id="checkout-buyer-telefono" type="tel" placeholder="Ej: 341 555 1234">
+          <label for="checkout-buyer-direccion">Dirección</label>
+          <input id="checkout-buyer-direccion" type="text" placeholder="Calle, número, ciudad">
+          <p class="hint" style="margin-top:10px">El transporte físico del producto lo hace el correo que elija el vendedor, no UsadoGamer. Tu pago sí queda retenido acá hasta que confirmes que lo recibiste — por tu seguridad, toda la compra (pago, seguimiento y reclamos) tiene que quedar siempre dentro de la plataforma.</p>
+        </div>
+
+        <div id="checkout-step-shipping">
+          <label>Método de envío</label>
+          <div class="checklist" style="margin-top:4px">
+            <label><input type="radio" name="checkout-carrier" value="correo_argentino" checked> Correo Argentino</label>
+            <label title="Estamos trabajando en ello. Andreani estará disponible como método de envío próximamente." style="color:var(--muted)"><input type="radio" name="checkout-carrier" value="andreani" disabled> Andreani <span class="hint" style="display:inline">(muy pronto)</span></label>
           </div>
 
+          <label for="checkout-delivery-method" style="margin-top:12px">Retiro en</label>
+          <select id="checkout-delivery-method">
+            <option value="retiro_sucursal">Sucursal</option>
+            <option value="domicilio">Domicilio</option>
+          </select>
+
           <div id="checkout-delivery-sucursal-fields">
-            <label style="margin-top:12px">Localidad o sucursal de Correo Argentino más cercana a vos</label>
+            <label style="margin-top:10px">Localidad o sucursal de Correo Argentino más cercana a vos</label>
             <input id="checkout-delivery-address" type="text" placeholder="Ej: Localidad, provincia">
           </div>
 
           <div id="checkout-delivery-domicilio-fields" hidden>
-            <div style="display:flex; gap:10px; margin-top:12px">
+            <div style="display:flex; gap:10px; margin-top:10px">
               <div style="flex:3">
                 <label for="checkout-dom-calle">Calle</label>
                 <input id="checkout-dom-calle" type="text" placeholder="Ej: San Martín">
@@ -487,12 +517,13 @@
             <textarea id="checkout-dom-notas" placeholder="Ej: casa con portón negro, dejar en portería, mejor horario para recibirlo, etc."></textarea>
           </div>
 
-          <p class="hint" style="margin-top:8px">El costo del envío no está incluido en el precio del producto: varía según a dónde lo mandemos. Con estos datos, el vendedor calcula cuánto sale y te mostramos el total exacto (producto + envío) antes de que pagues algo.</p>
-          <div id="checkout-delivery-msg"></div>
-          <button class="btn-primary" type="button" style="width:100%; margin-top:18px" id="checkout-request-quote">Pedir costo de envío</button>
+          <p class="hint" style="margin-top:10px">Pedir el costo de envío NO reserva el producto ni te compromete a nada — solo te avisamos cuánto sale. Podés pagar el producto ya mismo y el envío después, o esperar a saber el total y pagar todo junto.</p>
+          <div id="checkout-shipping-status" hidden></div>
+          <div id="checkout-shipping-msg"></div>
+          <button type="button" class="btn-primary" style="width:100%; margin-top:10px; background:var(--good)" id="checkout-request-quote">Solicitar costo de envío</button>
         </div>
 
-        <div id="checkout-step-payment" hidden>
+        <div id="checkout-step-payment">
           <label>Forma de pago</label>
           <div class="checklist" style="margin-top:0">
             <label><input type="radio" name="checkout-pm" value="transferencia" checked> Transferencia bancaria <span style="color:var(--good); font-weight:700">(sin comisiones)</span></label>
@@ -676,6 +707,23 @@
 </main>
 
 <footer>UsadoGamer — versión de prueba, conectada a una base de datos real.</footer>
+
+<div class="overlay" id="sq-overlay" hidden>
+  <div class="modal">
+    <div id="sq-modal-step1">
+      <h2>¡Listo!</h2>
+      <p class="sub">Ya recibimos tu solicitud para calcular el envío. En los próximos minutos te vamos a avisar el costo, para que sepas el total de tu compra.</p>
+      <p class="hint" style="margin-bottom:10px">Mientras tanto, elegí qué preferís:</p>
+      <button type="button" class="btn-primary" style="width:100%" id="sq-modal-pay-now">Pagar el producto ahora (el envío se paga aparte, después)</button>
+      <button type="button" class="ghost-btn" style="width:100%; margin-top:10px" id="sq-modal-pay-later">Esperar el total y pagar todo junto</button>
+    </div>
+    <div id="sq-modal-step2" hidden>
+      <h2>¡Listo!</h2>
+      <p class="sub">Tu solicitud fue registrada con éxito. Te avisamos por mail en cuanto sepamos el costo del envío.</p>
+      <button type="button" class="btn-primary" style="width:100%" id="sq-modal-done">Entendido</button>
+    </div>
+  </div>
+</div>
 
 <div class="overlay" id="auth-overlay" hidden>
   <div class="modal">
@@ -1774,75 +1822,138 @@
     btn.disabled = false;
   });
 
-  // ---------- Checkout: paso 1 (envío) y paso 2 (pago) ----------
+  // ---------- Checkout: datos del comprador + pago (un solo paso) ----------
+  // El envío ya NO se pide acá: o se consultó antes de pagar (shipping_quotes,
+  // se suma automático si ya está contestada) o se pide después desde "Mis
+  // pedidos" una vez pagado (Camino A, se paga aparte más adelante).
   var checkoutAliasBox = document.getElementById('checkout-alias-box');
   var checkoutMsg = document.getElementById('checkout-msg');
   var checkoutReceipt = document.getElementById('checkout-receipt');
   var checkoutSubmit = document.getElementById('checkout-submit');
   var checkoutSummaryProduct = document.getElementById('checkout-summary-product');
   var checkoutSummaryRows = document.getElementById('checkout-summary-rows');
-  var checkoutStepDelivery = document.getElementById('checkout-step-delivery');
-  var checkoutStepPayment = document.getElementById('checkout-step-payment');
+  var checkoutBuyerNombre = document.getElementById('checkout-buyer-nombre');
+  var checkoutBuyerApellido = document.getElementById('checkout-buyer-apellido');
+  var checkoutBuyerMail = document.getElementById('checkout-buyer-mail');
+  var checkoutBuyerTelefono = document.getElementById('checkout-buyer-telefono');
+  var checkoutBuyerDireccion = document.getElementById('checkout-buyer-direccion');
+  var checkoutStepShipping = document.getElementById('checkout-step-shipping');
+  var checkoutDeliveryMethodSelect = document.getElementById('checkout-delivery-method');
   var checkoutDeliveryAddress = document.getElementById('checkout-delivery-address');
-  var checkoutDeliveryMsg = document.getElementById('checkout-delivery-msg');
+  var checkoutShippingStatus = document.getElementById('checkout-shipping-status');
+  var checkoutShippingMsg = document.getElementById('checkout-shipping-msg');
   var checkoutRequestQuoteBtn = document.getElementById('checkout-request-quote');
   var checkoutProduct = null;
   var checkoutExistingOrder = null;
+  var checkoutPendingQuote = null;
+  var checkoutUnansweredQuote = null;
 
-  function openCheckout(product, existingOrder){
+  async function openCheckout(product, existingOrder){
     if (!product) return;
     if (!currentUser){ openAuth('login'); return; }
     checkoutProduct = product;
     checkoutExistingOrder = existingOrder || null;
+    checkoutPendingQuote = null;
+    checkoutUnansweredQuote = null;
     checkoutMsg.innerHTML = '';
-    checkoutDeliveryMsg.innerHTML = '';
+    checkoutShippingMsg.innerHTML = '';
     checkoutReceipt.value = '';
 
-    // El paso de envío solo se muestra cuando todavía no hay delivery_method
-    // cargado (ver needsDeliveryStep más abajo), así que siempre lo
-    // arrancamos limpio en "Retiro en sucursal".
-    document.querySelector('input[name="checkout-delivery"][value="retiro_sucursal"]').checked = true;
-    checkoutDeliveryAddress.value = '';
-    document.getElementById('checkout-dom-calle').value = '';
-    document.getElementById('checkout-dom-numero').value = '';
-    document.getElementById('checkout-dom-piso').value = '';
-    document.getElementById('checkout-dom-localidad').value = '';
-    document.getElementById('checkout-dom-provincia').value = '';
-    document.getElementById('checkout-dom-cp').value = '';
-    document.getElementById('checkout-dom-notas').value = '';
-    updateCheckoutDeliveryFields();
+    // Autocompletamos con los datos de la cuenta, pero son editables y no
+    // se guardan de vuelta en el perfil: quedan solo en este pedido. El
+    // mail queda fijo (no editable): ahí es donde mandamos los avisos.
+    var profileRes = await sb.from('profiles').select('nombre,apellido,telefono,direccion').eq('id', currentUser.id).single();
+    var profile = (!profileRes.error && profileRes.data) ? profileRes.data : {};
+    checkoutBuyerNombre.value = (checkoutExistingOrder && checkoutExistingOrder.buyer_nombre ? checkoutExistingOrder.buyer_nombre.split(' ')[0] : '') || profile.nombre || '';
+    checkoutBuyerApellido.value = (checkoutExistingOrder && checkoutExistingOrder.buyer_nombre ? checkoutExistingOrder.buyer_nombre.split(' ').slice(1).join(' ') : '') || profile.apellido || '';
+    checkoutBuyerMail.value = currentUser.email || '';
+    checkoutBuyerTelefono.value = (checkoutExistingOrder && checkoutExistingOrder.buyer_telefono) || profile.telefono || '';
+    checkoutBuyerDireccion.value = (checkoutExistingOrder && checkoutExistingOrder.buyer_direccion) || profile.direccion || '';
 
-    renderCheckoutSummary();
+    // El paso de envío (pedir cotización) solo tiene sentido cuando todavía
+    // no existe un pedido (si ya existe, p.ej. por una oferta aceptada, el
+    // envío se pide después desde "Mis pedidos", igual que el Camino A).
+    checkoutStepShipping.hidden = !!checkoutExistingOrder;
+    if (!checkoutExistingOrder){
+      document.querySelector('input[name="checkout-carrier"][value="correo_argentino"]').checked = true;
+      checkoutDeliveryMethodSelect.value = 'retiro_sucursal';
+      checkoutDeliveryAddress.value = '';
+      document.getElementById('checkout-dom-calle').value = '';
+      document.getElementById('checkout-dom-numero').value = '';
+      document.getElementById('checkout-dom-piso').value = '';
+      document.getElementById('checkout-dom-localidad').value = '';
+      document.getElementById('checkout-dom-provincia').value = '';
+      document.getElementById('checkout-dom-cp').value = '';
+      document.getElementById('checkout-dom-notas').value = '';
+      updateCheckoutDeliveryFields();
 
-    // Si todavía no sabemos cuánto sale el envío, mostramos el paso de
-    // envío primero; recién cuando el vendedor ya cargó el costo pasamos
-    // directo al paso de pago.
-    var needsDeliveryStep = !checkoutExistingOrder || checkoutExistingOrder.delivery_cost == null;
-    checkoutStepDelivery.hidden = !needsDeliveryStep;
-    checkoutStepPayment.hidden = needsDeliveryStep;
-
-    if (!needsDeliveryStep){
-      var pm = checkoutExistingOrder.payment_method || 'transferencia';
-      document.querySelector('input[name="checkout-pm"][value="' + pm + '"]').checked = true;
-      updateCheckoutPmView();
+      // Nos fijamos si ya hay una consulta de envío de este comprador para
+      // este producto (contestada, para sumarla al pago; o sin contestar,
+      // para no dejar pedir otra de nuevo).
+      var quoteRes = await sb.from('shipping_quotes')
+        .select('*')
+        .eq('product_id', product.id)
+        .eq('buyer_id', currentUser.id)
+        .is('order_id', null)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      var quote = (!quoteRes.error && quoteRes.data && quoteRes.data.length) ? quoteRes.data[0] : null;
+      if (quote && quote.cost != null) checkoutPendingQuote = quote;
+      else if (quote) checkoutUnansweredQuote = quote;
     }
+    renderCheckoutShippingSection();
+
+    var pm = (checkoutExistingOrder && checkoutExistingOrder.payment_method) || 'transferencia';
+    document.querySelector('input[name="checkout-pm"][value="' + pm + '"]').checked = true;
+    updateCheckoutPmView();
 
     go('checkout');
+  }
+
+  // El bloque de "pedir envío" dentro del checkout tiene tres estados:
+  // sin consulta todavía (mostramos el formulario), consulta pedida pero
+  // sin contestar (mostramos un aviso, nada de formulario para no duplicar
+  // el pedido) o consulta ya contestada (se suma sola al total, mostramos
+  // el dato nomás).
+  function renderCheckoutShippingSection(){
+    var showForm = !checkoutPendingQuote && !checkoutUnansweredQuote;
+
+    checkoutDeliveryMethodSelect.disabled = !showForm;
+    checkoutRequestQuoteBtn.hidden = !showForm;
+    document.querySelectorAll('#checkout-step-shipping input[name="checkout-carrier"]').forEach(function(r){ if (r.value === 'correo_argentino') r.disabled = !showForm; });
+    document.getElementById('checkout-delivery-sucursal-fields').hidden = !showForm || (checkoutDeliveryMethodSelect.value !== 'retiro_sucursal');
+    document.getElementById('checkout-delivery-domicilio-fields').hidden = !showForm || (checkoutDeliveryMethodSelect.value !== 'domicilio');
+
+    if (checkoutPendingQuote){
+      checkoutShippingStatus.hidden = false;
+      var dTxt = checkoutPendingQuote.delivery_method === 'domicilio'
+        ? 'A domicilio — ' + checkoutPendingQuote.delivery_address
+        : 'Retiro en sucursal — ' + checkoutPendingQuote.delivery_address;
+      checkoutShippingStatus.innerHTML = '<p class="msg ok">Envío calculado: <b class="tabular">' + money.format(checkoutPendingQuote.cost) + '</b> (' + dTxt + '). Ya está sumado al total.</p>';
+    } else if (checkoutUnansweredQuote){
+      checkoutShippingStatus.hidden = false;
+      var dTxt2 = checkoutUnansweredQuote.delivery_method === 'domicilio'
+        ? 'a domicilio — ' + checkoutUnansweredQuote.delivery_address
+        : 'retiro en sucursal — ' + checkoutUnansweredQuote.delivery_address;
+      checkoutShippingStatus.innerHTML = '<p class="hint" style="margin-top:0">Ya pedimos el costo de envío (' + dTxt2 + '). Te avisamos por mail en cuanto lo sepamos. Mientras tanto podés pagar el producto ahora y el envío lo pagás aparte después.</p>';
+    } else {
+      checkoutShippingStatus.hidden = true;
+    }
   }
 
   function renderCheckoutSummary(){
     var product = checkoutProduct;
     var amount = checkoutExistingOrder ? checkoutExistingOrder.amount : product.price;
-    var deliveryCost = checkoutExistingOrder ? checkoutExistingOrder.delivery_cost : null;
-    var subtotal = amount + Number(deliveryCost || 0);
+    var deliveryIncluded = checkoutExistingOrder ? checkoutExistingOrder.delivery_included_in_payment : !!checkoutPendingQuote;
+    var deliveryCost = checkoutExistingOrder ? checkoutExistingOrder.delivery_cost : (checkoutPendingQuote ? checkoutPendingQuote.cost : null);
+    var subtotal = amount + (deliveryIncluded ? Number(deliveryCost || 0) : 0);
 
     // La comisión de Mercado Pago solo se cobra si se paga con tarjeta, así
     // que el resumen cambia según el medio de pago elegido. El cobro real
     // siempre lo calcula el servidor; esto es solo para mostrar el total.
     var pmRadio = document.querySelector('input[name="checkout-pm"]:checked');
     var pm = pmRadio ? pmRadio.value : 'transferencia';
-    var showFee = (pm === 'tarjeta' && deliveryCost != null);
-    var fee = showFee ? subtotal * MP_FEE_RATE : 0;
+    var fee = (pm === 'tarjeta') ? subtotal * MP_FEE_RATE : 0;
     var total = subtotal + fee;
 
     var thumb = product.photo_url
@@ -1858,17 +1969,17 @@
     checkoutSummaryRows.innerHTML =
       '<div class="order-summary-row"><span>Precio del producto</span><span class="tabular">' + money.format(amount) + '</span></div>' +
       (checkoutExistingOrder ? '<div class="order-summary-row"><span>Oferta aceptada</span><span></span></div>' : '') +
-      '<div class="order-summary-row"><span>Costo de envío</span><span class="tabular">' + (deliveryCost != null ? money.format(deliveryCost) : 'A confirmar') + '</span></div>' +
-      (showFee ? '<div class="order-summary-row"><span>Comisión Mercado Pago (4,60%)</span><span class="tabular">' + money.format(fee) + '</span></div>' : '') +
-      '<div class="order-summary-row total"><span>Total a pagar</span><span class="tabular">' + (deliveryCost != null ? money.format(total) : '—') + '</span></div>';
+      (deliveryIncluded
+        ? '<div class="order-summary-row"><span>Costo de envío</span><span class="tabular">' + money.format(deliveryCost) + '</span></div>'
+        : '<div class="order-summary-row"><span>Envío</span><span>Se pide y se paga después, aparte</span></div>') +
+      (fee ? '<div class="order-summary-row"><span>Comisión Mercado Pago (4,60%)</span><span class="tabular">' + money.format(fee) + '</span></div>' : '') +
+      '<div class="order-summary-row total"><span>Total a pagar ahora</span><span class="tabular">' + money.format(total) + '</span></div>';
 
-    if (deliveryCost != null){
-      checkoutAliasBox.innerHTML =
-        'Transferí <b class="tabular">' + money.format(subtotal) + '</b> (sin comisiones) a:<br>' +
-        'CVU: <b class="tabular">' + escapeHtml(MATEO_CVU) + '</b> ' +
-        '<button type="button" class="copy-btn" data-copy="' + escapeHtml(MATEO_CVU) + '" aria-label="Copiar CVU">' + COPY_ICON + '</button><br>' +
-        'Titular: <b>' + escapeHtml(MATEO_TITULAR) + '</b>';
-    }
+    checkoutAliasBox.innerHTML =
+      'Transferí <b class="tabular">' + money.format(subtotal) + '</b> (sin comisiones) a:<br>' +
+      'CVU: <b class="tabular">' + escapeHtml(MATEO_CVU) + '</b> ' +
+      '<button type="button" class="copy-btn" data-copy="' + escapeHtml(MATEO_CVU) + '" aria-label="Copiar CVU">' + COPY_ICON + '</button><br>' +
+      'Titular: <b>' + escapeHtml(MATEO_TITULAR) + '</b>';
   }
 
   function updateCheckoutPmView(){
@@ -1888,16 +1999,6 @@
     r.addEventListener('change', updateCheckoutPmView);
   });
 
-  function updateCheckoutDeliveryFields(){
-    var delivery = document.querySelector('input[name="checkout-delivery"]:checked').value;
-    document.getElementById('checkout-delivery-sucursal-fields').hidden = (delivery !== 'retiro_sucursal');
-    document.getElementById('checkout-delivery-domicilio-fields').hidden = (delivery !== 'domicilio');
-  }
-
-  document.querySelectorAll('input[name="checkout-delivery"]').forEach(function(r){
-    r.addEventListener('change', updateCheckoutDeliveryFields);
-  });
-
   checkoutAliasBox.addEventListener('click', function(e){
     var btn = e.target.closest('[data-copy]');
     if (!btn) return;
@@ -1912,9 +2013,27 @@
     if (checkoutProduct) openProductDetail(checkoutProduct); else go('explorar');
   });
 
-  function getCheckoutDeliveryInfo(){
-    var method = document.querySelector('input[name="checkout-delivery"]:checked').value;
+  function getCheckoutBuyerInfo(){
+    var nombre = checkoutBuyerNombre.value.trim();
+    var apellido = checkoutBuyerApellido.value.trim();
+    var telefono = checkoutBuyerTelefono.value.trim();
+    var direccion = checkoutBuyerDireccion.value.trim();
+    if (!nombre || !apellido || !telefono || !direccion){
+      throw new Error('Completá tu nombre, apellido, teléfono y dirección antes de pagar.');
+    }
+    return { buyer_nombre: nombre + ' ' + apellido, buyer_telefono: telefono, buyer_direccion: direccion };
+  }
 
+  function updateCheckoutDeliveryFields(){
+    var delivery = checkoutDeliveryMethodSelect.value;
+    document.getElementById('checkout-delivery-sucursal-fields').hidden = (delivery !== 'retiro_sucursal');
+    document.getElementById('checkout-delivery-domicilio-fields').hidden = (delivery !== 'domicilio');
+  }
+
+  checkoutDeliveryMethodSelect.addEventListener('change', updateCheckoutDeliveryFields);
+
+  function getCheckoutDeliveryInfo(){
+    var method = checkoutDeliveryMethodSelect.value;
     if (method === 'domicilio'){
       var calle = document.getElementById('checkout-dom-calle').value.trim();
       var numero = document.getElementById('checkout-dom-numero').value.trim();
@@ -1931,7 +2050,6 @@
         (notas ? ' — Notas: ' + notas : '');
       return { delivery_method: method, delivery_address: address };
     }
-
     var sucursal = checkoutDeliveryAddress.value.trim();
     if (!sucursal){
       throw new Error('Ingresá la localidad o sucursal más cercana.');
@@ -1939,83 +2057,147 @@
     return { delivery_method: method, delivery_address: sucursal };
   }
 
-  // Paso 1: el comprador manda sus datos de envío (todavía sin pagar nada).
-  // Esto crea o reutiliza el pedido con delivery_cost = null; el vendedor
-  // lo completa después desde "Mis ventas" y ahí recién se puede pagar.
-  async function submitDeliveryRequest(){
+  // El botón verde "Solicitar costo de envío": crea la consulta (no reserva
+  // nada) y abre el pop-up con los dos caminos — pagar el producto ya
+  // mismo (el envío queda para pagarse aparte, Camino A) o esperar el
+  // total y pagar todo junto (Camino B).
+  checkoutRequestQuoteBtn.addEventListener('click', async function(){
     if (!checkoutProduct || !currentUser) return;
     var delivery;
     try {
       delivery = getCheckoutDeliveryInfo();
     } catch (err) {
-      checkoutDeliveryMsg.innerHTML = '<div class="msg err">' + err.message + '</div>';
+      checkoutShippingMsg.innerHTML = '<div class="msg err">' + err.message + '</div>';
       return;
     }
     checkoutRequestQuoteBtn.disabled = true;
-    checkoutDeliveryMsg.innerHTML = '';
+    checkoutShippingMsg.innerHTML = '';
     try {
-      var orderRow;
-      if (checkoutExistingOrder){
-        var patch = { delivery_method: delivery.delivery_method, delivery_address: delivery.delivery_address };
-        var patchRes = await sb.from('orders').update(patch).eq('id', checkoutExistingOrder.id);
-        if (patchRes.error) throw patchRes.error;
-        Object.assign(checkoutExistingOrder, patch);
-        orderRow = checkoutExistingOrder;
-      } else {
-        // Por si el comprador ya tenía un pedido pendiente para este mismo
-        // producto (p.ej. volvió atrás y entró de nuevo) reutilizamos ese
-        // pedido en vez de crear uno nuevo, para no dejar pedidos duplicados.
-        var existingRes = await sb.from('orders')
-          .select('*')
-          .eq('product_id', checkoutProduct.id)
-          .eq('buyer_id', currentUser.id)
-          .eq('status', 'pendiente_pago')
-          .order('created_at', { ascending: false })
-          .limit(1);
-        if (!existingRes.error && existingRes.data && existingRes.data.length){
-          var reused = existingRes.data[0];
-          var patch2 = { delivery_method: delivery.delivery_method, delivery_address: delivery.delivery_address };
-          var patchRes2 = await sb.from('orders').update(patch2).eq('id', reused.id);
-          if (patchRes2.error) throw patchRes2.error;
-          Object.assign(reused, patch2);
-          orderRow = reused;
-        } else {
-          var insertRes = await sb.from('orders').insert({
-            product_id: checkoutProduct.id,
-            buyer_id: currentUser.id,
-            seller_id: checkoutProduct.user_id,
-            amount: checkoutProduct.price,
-            payment_method: 'transferencia',
-            delivery_method: delivery.delivery_method,
-            delivery_address: delivery.delivery_address,
-            status: 'pendiente_pago'
-          }).select().single();
-          if (insertRes.error) throw insertRes.error;
-          orderRow = insertRes.data;
-        }
-      }
-      checkoutExistingOrder = orderRow;
-      checkoutDeliveryMsg.innerHTML = '<div class="msg ok">¡Listo! Le avisamos al vendedor para que calcule el costo de envío. Te vamos a notificar en cuanto esté listo para que completes el pago.</div>';
-      setTimeout(function(){ go('pedidos'); }, 1800);
+      var insertRes = await sb.from('shipping_quotes').insert({
+        product_id: checkoutProduct.id,
+        buyer_id: currentUser.id,
+        seller_id: checkoutProduct.user_id,
+        delivery_method: delivery.delivery_method,
+        delivery_address: delivery.delivery_address
+      }).select().single();
+      if (insertRes.error) throw insertRes.error;
+      checkoutUnansweredQuote = insertRes.data;
+      openShippingQuoteModal();
     } catch (err) {
-      checkoutDeliveryMsg.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo registrar el pedido.') + '</div>';
+      checkoutShippingMsg.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo enviar la consulta.') + '</div>';
     } finally {
       checkoutRequestQuoteBtn.disabled = false;
     }
+  });
+
+  // ---------- Pop-up de "pedimos tu cotización": pagar ahora o más tarde ----------
+  var sqOverlay = document.getElementById('sq-overlay');
+  var sqModalStep1 = document.getElementById('sq-modal-step1');
+  var sqModalStep2 = document.getElementById('sq-modal-step2');
+
+  function openShippingQuoteModal(){
+    sqModalStep1.hidden = false;
+    sqModalStep2.hidden = true;
+    sqOverlay.hidden = false;
+  }
+  function closeShippingQuoteModal(){
+    sqOverlay.hidden = true;
   }
 
-  checkoutRequestQuoteBtn.addEventListener('click', submitDeliveryRequest);
+  document.getElementById('sq-modal-pay-now').addEventListener('click', function(){
+    closeShippingQuoteModal();
+    renderCheckoutShippingSection();
+    var paymentSection = document.getElementById('checkout-step-payment');
+    if (paymentSection && paymentSection.scrollIntoView) paymentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 
-  // Paso 2: ya sabemos el costo de envío (delivery_cost ya cargado por el
-  // vendedor), así que esta función solo ajusta el medio de pago elegido.
+  document.getElementById('sq-modal-pay-later').addEventListener('click', function(){
+    sqModalStep1.hidden = true;
+    sqModalStep2.hidden = false;
+  });
+
+  document.getElementById('sq-modal-done').addEventListener('click', function(){
+    closeShippingQuoteModal();
+    if (checkoutProduct) openProductDetail(checkoutProduct); else go('explorar');
+  });
+
+  // Crea el pedido (o lo reutiliza si ya existía, p.ej. por una oferta
+  // aceptada) y, si había una consulta de envío ya contestada, la suma acá
+  // mismo (delivery_included_in_payment = true) y la marca como usada. Si
+  // no, el pedido queda con delivery_cost = null — Camino A: se pide y se
+  // paga el envío más adelante, desde "Mis pedidos".
   async function getOrCreateCheckoutOrder(paymentMethod){
-    if (!checkoutExistingOrder) throw new Error('Falta completar los datos de envío.');
-    if (checkoutExistingOrder.payment_method !== paymentMethod){
-      var patchRes = await sb.from('orders').update({ payment_method: paymentMethod }).eq('id', checkoutExistingOrder.id);
+    var buyerInfo = getCheckoutBuyerInfo();
+
+    if (checkoutExistingOrder){
+      var patch = Object.assign({ payment_method: paymentMethod }, buyerInfo);
+      var patchRes = await sb.from('orders').update(patch).eq('id', checkoutExistingOrder.id);
       if (patchRes.error) throw patchRes.error;
-      checkoutExistingOrder.payment_method = paymentMethod;
+      Object.assign(checkoutExistingOrder, patch);
+      return checkoutExistingOrder;
     }
-    return checkoutExistingOrder;
+
+    // Por si el comprador ya tenía un pedido pendiente para este mismo
+    // producto (p.ej. volvió atrás y entró de nuevo) reutilizamos ese
+    // pedido en vez de crear uno nuevo, para no dejar pedidos duplicados.
+    var existingRes = await sb.from('orders')
+      .select('*')
+      .eq('product_id', checkoutProduct.id)
+      .eq('buyer_id', currentUser.id)
+      .eq('status', 'pendiente_pago')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    var orderRow;
+    if (!existingRes.error && existingRes.data && existingRes.data.length){
+      var reused = existingRes.data[0];
+      var patch2 = Object.assign({ payment_method: paymentMethod }, buyerInfo);
+      // Si todavía no tiene método de envío cargado y el comprador pidió una
+      // cotización sin contestar (Camino A), se la copiamos acá para que
+      // aparezca en la cola de "Calcular envío (pedido ya pagado)" del panel.
+      if (checkoutUnansweredQuote && !reused.delivery_method){
+        patch2.delivery_method = checkoutUnansweredQuote.delivery_method;
+        patch2.delivery_address = checkoutUnansweredQuote.delivery_address;
+      }
+      var patchRes2 = await sb.from('orders').update(patch2).eq('id', reused.id);
+      if (patchRes2.error) throw patchRes2.error;
+      Object.assign(reused, patch2);
+      orderRow = reused;
+      if (checkoutUnansweredQuote && !checkoutUnansweredQuote.order_id){
+        await sb.from('shipping_quotes').update({ order_id: orderRow.id }).eq('id', checkoutUnansweredQuote.id);
+      }
+    } else {
+      var insertData = Object.assign({
+        product_id: checkoutProduct.id,
+        buyer_id: currentUser.id,
+        seller_id: checkoutProduct.user_id,
+        amount: checkoutProduct.price,
+        payment_method: paymentMethod,
+        status: 'pendiente_pago'
+      }, buyerInfo);
+      if (checkoutPendingQuote){
+        insertData.delivery_method = checkoutPendingQuote.delivery_method;
+        insertData.delivery_address = checkoutPendingQuote.delivery_address;
+        insertData.delivery_cost = checkoutPendingQuote.cost;
+        insertData.delivery_included_in_payment = true;
+      } else if (checkoutUnansweredQuote){
+        // Camino A: el comprador ya pidió el costo de envío pero todavía no
+        // se lo contestamos. Copiamos el método/dirección al pedido (así
+        // Mateo lo ve en la cola de envíos ya pagados) y dejamos la consulta
+        // vieja enlazada para que no quede dando vueltas sin dueño.
+        insertData.delivery_method = checkoutUnansweredQuote.delivery_method;
+        insertData.delivery_address = checkoutUnansweredQuote.delivery_address;
+      }
+      var insertRes = await sb.from('orders').insert(insertData).select().single();
+      if (insertRes.error) throw insertRes.error;
+      orderRow = insertRes.data;
+      if (checkoutPendingQuote){
+        await sb.from('shipping_quotes').update({ order_id: orderRow.id }).eq('id', checkoutPendingQuote.id);
+      } else if (checkoutUnansweredQuote){
+        await sb.from('shipping_quotes').update({ order_id: orderRow.id }).eq('id', checkoutUnansweredQuote.id);
+      }
+    }
+    checkoutExistingOrder = orderRow;
+    return orderRow;
   }
 
   checkoutSubmit.addEventListener('click', async function(){
@@ -2030,7 +2212,7 @@
         var prefRes = await fetch('/api/mp-create-preference', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order_id: orderRow.id })
+          body: JSON.stringify({ order_id: orderRow.id, charge: 'product' })
         });
         var prefData = await prefRes.json();
         if (!prefRes.ok || !prefData.init_point) throw new Error(prefData.error || 'No se pudo iniciar el pago con Mercado Pago.');
@@ -2111,6 +2293,75 @@
     }
   }
 
+  // Color a la izquierda de cada pedido según su estado, para poder
+  // distinguirlos de un vistazo: verde = compra/venta ya completada (pago
+  // liberado), rojo = cancelada o en disputa, amarillo = cualquier otra
+  // cosa en curso (reservado, pago pendiente, despachado, etc).
+  function statusBorderColor(status){
+    if (status === 'liberado') return 'var(--good)';
+    if (status === 'cancelado' || status === 'disputado') return 'var(--danger)';
+    return 'var(--warn)';
+  }
+
+  function provinciaOptionsHtml(){
+    return '<option value="">Elegí tu provincia</option>' +
+      ['Buenos Aires','Catamarca','Chaco','Chubut','Ciudad Autónoma de Buenos Aires','Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa','La Rioja','Mendoza','Misiones','Neuquén','Río Negro','Salta','San Juan','San Luis','Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego','Tucumán']
+        .map(function(p){ return '<option>' + p + '</option>'; }).join('');
+  }
+
+  // El pedido en sí ya reservó el producto (se pagó o se está pagando), así
+  // que pedir el costo de envío acá adentro es solo informativo: escribe
+  // directo sobre ESTE pedido, nunca crea uno nuevo ni reserva nada más.
+  function pdShippingRequestHtml(order){
+    return '<div class="pd-shipping-request" style="margin-top:8px">' +
+      '<button type="button" class="ghost-btn" data-pd-shipping-toggle="' + order.id + '">Pedir costo de envío</button>' +
+      '<div id="pd-shipping-form-' + order.id + '" hidden style="margin-top:8px">' +
+        '<div class="checklist">' +
+        '<label><input type="radio" name="pd-delivery-' + order.id + '" value="retiro_sucursal" checked> Retiro en sucursal</label>' +
+        '<label><input type="radio" name="pd-delivery-' + order.id + '" value="domicilio"> Envío a domicilio</label>' +
+        '</div>' +
+        '<div id="pd-sucursal-' + order.id + '">' +
+          '<label style="margin-top:8px">Localidad o sucursal más cercana</label>' +
+          '<input type="text" id="pd-address-' + order.id + '" placeholder="Ej: Localidad, provincia">' +
+        '</div>' +
+        '<div id="pd-domicilio-' + order.id + '" hidden>' +
+          '<div style="display:flex; gap:10px; margin-top:8px">' +
+            '<div style="flex:3"><label>Calle</label><input type="text" id="pd-calle-' + order.id + '" placeholder="Ej: San Martín"></div>' +
+            '<div style="flex:1"><label>Número</label><input type="text" inputmode="numeric" id="pd-numero-' + order.id + '" placeholder="1234"></div>' +
+          '</div>' +
+          '<label>Piso / depto (opcional)</label><input type="text" id="pd-piso-' + order.id + '" placeholder="Ej: Piso 4, depto B">' +
+          '<div style="display:flex; gap:10px">' +
+            '<div style="flex:2"><label>Localidad</label><input type="text" id="pd-localidad-' + order.id + '" placeholder="Ej: Rosario"></div>' +
+            '<div style="flex:2"><label>Provincia</label><select id="pd-provincia-' + order.id + '">' + provinciaOptionsHtml() + '</select></div>' +
+            '<div style="flex:1"><label>CP</label><input type="text" inputmode="numeric" id="pd-cp-' + order.id + '" placeholder="2000"></div>' +
+          '</div>' +
+          '<label>Notas (opcional)</label><textarea id="pd-notas-' + order.id + '" placeholder="Ej: casa con portón negro, mejor horario, etc."></textarea>' +
+        '</div>' +
+        '<div id="pd-shipping-msg-' + order.id + '"></div>' +
+        '<button type="button" class="ghost-btn" style="margin-top:8px" data-pd-shipping-submit="' + order.id + '">Enviar datos de envío</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // Camino A: el producto ya se pagó, el envío se pide y se paga aparte,
+  // como un segundo pago — mismo flujo de transferencia o Mercado Pago.
+  function pdPayDeliveryHtml(order){
+    return '<div class="pd-pay-delivery" style="margin-top:8px">' +
+      '<p class="hint" style="margin-top:0">Envío: <b class="tabular">' + money.format(order.delivery_cost) + '</b> — todavía no pagado (es aparte del producto).</p>' +
+      '<button type="button" class="ghost-btn" data-pd-pay-delivery-toggle="' + order.id + '">Pagar envío</button>' +
+      '<div id="pd-pay-delivery-form-' + order.id + '" hidden style="margin-top:8px">' +
+        '<p class="hint" style="margin-top:0">Transferí <b class="tabular">' + money.format(order.delivery_cost) + '</b> (sin comisiones) a:<br>' +
+        'CVU: <b class="tabular">' + escapeHtml(MATEO_CVU) + '</b><br>Titular: <b>' + escapeHtml(MATEO_TITULAR) + '</b></p>' +
+        '<label>Comprobante de transferencia</label>' +
+        '<input type="file" accept="image/*,application/pdf" id="pd-delivery-receipt-' + order.id + '">' +
+        '<button type="button" class="ghost-btn" style="margin-top:8px" data-pd-pay-delivery-transfer="' + order.id + '">Ya transferí, subir comprobante</button>' +
+        '<p class="hint" style="margin-top:10px">O pagá con tarjeta (Mercado Pago cobra 4,60% de comisión sobre el envío, ya incluida en el monto):</p>' +
+        '<button type="button" class="btn-primary btn-mp" style="width:auto; display:inline-block" data-pd-pay-delivery-mp="' + order.id + '">Pagar con <span class="mp-word">mercado<b>pago</b></span></button>' +
+        '<div id="pd-pay-delivery-msg-' + order.id + '"></div>' +
+      '</div>' +
+    '</div>';
+  }
+
   function renderPedidosList(container, rows, tipo){
     if (!rows || !rows.length){
       container.innerHTML = '<p class="empty-note">' + (tipo === 'compra' ? 'Todavía no compraste nada.' : 'Todavía no vendiste nada.') + '</p>';
@@ -2119,7 +2370,7 @@
     container.innerHTML = '';
     rows.forEach(function(order){
       var box = document.createElement('div');
-      box.style.cssText = 'border:1px solid var(--border); border-radius:0; padding:14px';
+      box.style.cssText = 'border:1px solid var(--border); border-left:4px solid ' + statusBorderColor(order.status) + '; border-radius:0; padding:14px';
       var title = order.products ? order.products.title : 'Producto';
       var html = '<div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">' +
         '<b>' + escapeHtml(title) + '</b><span class="tabular">' + money.format(order.amount) + '</span></div>' +
@@ -2130,21 +2381,12 @@
           (order.delivery_method === 'domicilio'
             ? 'A domicilio — ' + escapeHtml(order.delivery_address || 'sin dirección cargada')
             : 'Retiro en sucursal — ' + escapeHtml(order.delivery_address || 'sin localidad cargada')) +
-          (order.delivery_cost != null ? ' · Envío: ' + money.format(order.delivery_cost) : '') +
+          (order.delivery_cost != null ? ' · Envío: ' + money.format(order.delivery_cost) + (order.delivery_included_in_payment ? ' (incluido en el pago)' : '') : '') +
           '</p>';
       }
 
       if (tipo === 'compra' && order.status === 'pendiente_pago'){
-        if (!order.delivery_method){
-          html += '<p class="hint" style="margin-top:6px">Faltan los datos de envío para que el vendedor calcule el costo.</p>' +
-            '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px">' +
-            '<button type="button" class="ghost-btn" data-complete-delivery="' + order.id + '" data-delivery-product="' + order.product_id + '">Completar datos de envío</button>' +
-            '<button type="button" class="ghost-btn" data-cancel-order="' + order.id + '">Cancelar pedido</button>' +
-            '</div>';
-        } else if (order.delivery_cost == null){
-          html += '<p class="hint" style="margin-top:6px">Esperando que el vendedor calcule el costo de envío. Te avisamos apenas esté listo.</p>' +
-            '<button type="button" class="ghost-btn" style="margin-top:4px" data-cancel-order="' + order.id + '">Cancelar pedido</button>';
-        } else if (!order.receipt_url){
+        if (!order.receipt_url){
           var deadlineTxt = order.payment_deadline
             ? ' Tenés hasta el ' + new Date(order.payment_deadline).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) + ' para pagar.'
             : '';
@@ -2161,12 +2403,27 @@
       if (tipo === 'compra' && order.status === 'despachado'){
         html += '<button type="button" class="ghost-btn" style="margin-top:8px" data-confirm-receipt="' + order.id + '">Confirmar recepción</button>';
       }
-      if (tipo === 'venta' && order.status === 'pendiente_pago' && order.delivery_method && order.delivery_cost == null){
-        html += '<p class="hint" style="margin-top:6px">El comprador pidió cotización de envío. Fijate cuánto sale enviarlo a donde indicó y cargalo acá para que pueda pagar.</p>' +
-          '<label style="margin-top:8px">Costo de envío (ARS)</label>' +
-          '<input type="number" min="1" step="1" class="tabular" inputmode="numeric" data-delivery-cost-input="' + order.id + '" placeholder="0">' +
-          '<div data-delivery-cost-msg="' + order.id + '"></div>' +
-          '<button type="button" class="ghost-btn" style="margin-top:8px" data-set-delivery-cost="' + order.id + '">Cargar costo de envío</button>';
+
+      // Envío: independiente del estado del pago del producto (menos si se
+      // canceló), porque pedirlo ya no reserva nada — el pedido ya existe.
+      if (tipo === 'compra' && order.status !== 'cancelado'){
+        if (!order.delivery_method){
+          html += pdShippingRequestHtml(order);
+        } else if (order.delivery_cost == null){
+          html += '<p class="hint" style="margin-top:8px">Estamos calculando el costo de envío. Te avisamos apenas esté listo.</p>';
+        } else if (!order.delivery_included_in_payment){
+          if (order.delivery_payment_status === 'confirmado'){
+            html += '<p class="hint" style="margin-top:8px">Envío pagado: <b class="tabular">' + money.format(order.delivery_cost) + '</b>.</p>';
+          } else if (order.delivery_payment_status === 'comprobante_subido'){
+            html += '<p class="hint" style="margin-top:8px">Ya subiste el comprobante del envío. Estamos revisando ese pago.</p>';
+          } else {
+            html += pdPayDeliveryHtml(order);
+          }
+        }
+      }
+
+      if (tipo === 'venta' && order.status !== 'cancelado' && order.delivery_method && order.delivery_cost == null){
+        html += '<p class="hint" style="margin-top:6px">El comprador pidió el costo de envío. Mateo lo calcula desde el panel de administración, no tenés que hacer nada.</p>';
       }
       if (tipo === 'venta' && order.status === 'pago_confirmado'){
         html += '<label style="margin-top:10px">Número de seguimiento (opcional)</label>' +
@@ -2190,34 +2447,107 @@
       payBtn.disabled = false;
       return;
     }
-    var deliveryBtn = e.target.closest('[data-complete-delivery]');
-    if (deliveryBtn){
-      deliveryBtn.disabled = true;
-      var orderRes2 = await sb.from('orders').select('*').eq('id', deliveryBtn.dataset.completeDelivery).single();
-      var prodRes2 = await sb.from('products').select('*').eq('id', deliveryBtn.dataset.deliveryProduct).single();
-      if (prodRes2.data && orderRes2.data){
-        openCheckout(prodRes2.data, orderRes2.data);
-      }
-      deliveryBtn.disabled = false;
+    var sqToggleBtn = e.target.closest('[data-pd-shipping-toggle]');
+    if (sqToggleBtn){
+      var form = document.getElementById('pd-shipping-form-' + sqToggleBtn.dataset.pdShippingToggle);
+      if (form) form.hidden = !form.hidden;
       return;
     }
-    var setCostBtn = e.target.closest('[data-set-delivery-cost]');
-    if (setCostBtn){
-      var costInput = document.querySelector('[data-delivery-cost-input="' + setCostBtn.dataset.setDeliveryCost + '"]');
-      var costMsg = document.querySelector('[data-delivery-cost-msg="' + setCostBtn.dataset.setDeliveryCost + '"]');
-      var costVal = costInput ? parseFloat(costInput.value) : NaN;
-      if (!costVal || costVal <= 0){
-        if (costMsg) costMsg.innerHTML = '<div class="msg err">Ingresá un costo de envío válido.</div>';
+    var sqSubmitBtn = e.target.closest('[data-pd-shipping-submit]');
+    if (sqSubmitBtn){
+      var orderId = sqSubmitBtn.dataset.pdShippingSubmit;
+      var msgBox = document.getElementById('pd-shipping-msg-' + orderId);
+      var method = document.querySelector('input[name="pd-delivery-' + orderId + '"]:checked').value;
+      var delivery;
+      try {
+        if (method === 'domicilio'){
+          var calle = document.getElementById('pd-calle-' + orderId).value.trim();
+          var numero = document.getElementById('pd-numero-' + orderId).value.trim();
+          var piso = document.getElementById('pd-piso-' + orderId).value.trim();
+          var localidad = document.getElementById('pd-localidad-' + orderId).value.trim();
+          var provincia = document.getElementById('pd-provincia-' + orderId).value;
+          var cp = document.getElementById('pd-cp-' + orderId).value.trim();
+          var notas = document.getElementById('pd-notas-' + orderId).value.trim();
+          if (!calle || !numero || !localidad || !provincia || !cp){
+            throw new Error('Completá calle, número, localidad, provincia y código postal.');
+          }
+          var address = calle + ' ' + numero + (piso ? ', ' + piso : '') +
+            ', ' + localidad + ', ' + provincia + ' (CP ' + cp + ')' +
+            (notas ? ' — Notas: ' + notas : '');
+          delivery = { delivery_method: method, delivery_address: address };
+        } else {
+          var sucursal = document.getElementById('pd-address-' + orderId).value.trim();
+          if (!sucursal) throw new Error('Ingresá la localidad o sucursal más cercana.');
+          delivery = { delivery_method: method, delivery_address: sucursal };
+        }
+      } catch (err) {
+        if (msgBox) msgBox.innerHTML = '<div class="msg err">' + err.message + '</div>';
         return;
       }
-      setCostBtn.disabled = true;
-      var setCostRes = await sb.from('orders').update({ delivery_cost: costVal }).eq('id', setCostBtn.dataset.setDeliveryCost).eq('seller_id', currentUser.id);
-      if (setCostRes.error){
-        if (costMsg) costMsg.innerHTML = '<div class="msg err">No se pudo cargar: ' + setCostRes.error.message + '</div>';
-        setCostBtn.disabled = false;
+      sqSubmitBtn.disabled = true;
+      var updRes = await sb.from('orders').update(delivery).eq('id', orderId);
+      sqSubmitBtn.disabled = false;
+      if (updRes.error){
+        if (msgBox) msgBox.innerHTML = '<div class="msg err">' + updRes.error.message + '</div>';
         return;
       }
       loadPedidos();
+      return;
+    }
+    var payDelToggleBtn = e.target.closest('[data-pd-pay-delivery-toggle]');
+    if (payDelToggleBtn){
+      var form2 = document.getElementById('pd-pay-delivery-form-' + payDelToggleBtn.dataset.pdPayDeliveryToggle);
+      if (form2) form2.hidden = !form2.hidden;
+      return;
+    }
+    var payDelTransferBtn = e.target.closest('[data-pd-pay-delivery-transfer]');
+    if (payDelTransferBtn){
+      var dOrderId = payDelTransferBtn.dataset.pdPayDeliveryTransfer;
+      var dMsg = document.getElementById('pd-pay-delivery-msg-' + dOrderId);
+      var fileInput = document.getElementById('pd-delivery-receipt-' + dOrderId);
+      var file = fileInput && fileInput.files[0];
+      if (!file){
+        if (dMsg) dMsg.innerHTML = '<div class="msg err">Subí el comprobante para continuar.</div>';
+        return;
+      }
+      payDelTransferBtn.disabled = true;
+      try {
+        var path = 'envio-' + dOrderId.slice(0, 8) + '/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        var upload = await sb.storage.from('order-receipts').upload(path, file);
+        if (upload.error) throw upload.error;
+        var receiptUrl = sb.storage.from('order-receipts').getPublicUrl(path).data.publicUrl;
+        var updRes2 = await sb.from('orders').update({
+          delivery_receipt_url: receiptUrl,
+          delivery_payment_method: 'transferencia',
+          delivery_payment_status: 'comprobante_subido'
+        }).eq('id', dOrderId);
+        if (updRes2.error) throw updRes2.error;
+        loadPedidos();
+      } catch (err) {
+        if (dMsg) dMsg.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo subir el comprobante.') + '</div>';
+      } finally {
+        payDelTransferBtn.disabled = false;
+      }
+      return;
+    }
+    var payDelMpBtn = e.target.closest('[data-pd-pay-delivery-mp]');
+    if (payDelMpBtn){
+      var mpOrderId = payDelMpBtn.dataset.pdPayDeliveryMp;
+      var mpMsg = document.getElementById('pd-pay-delivery-msg-' + mpOrderId);
+      payDelMpBtn.disabled = true;
+      try {
+        var prefRes = await fetch('/api/mp-create-preference', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order_id: mpOrderId, charge: 'delivery' })
+        });
+        var prefData = await prefRes.json();
+        if (!prefRes.ok || !prefData.init_point) throw new Error(prefData.error || 'No se pudo iniciar el pago con Mercado Pago.');
+        window.location.href = prefData.init_point;
+      } catch (err) {
+        if (mpMsg) mpMsg.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo iniciar el pago.') + '</div>';
+        payDelMpBtn.disabled = false;
+      }
       return;
     }
     var cancelBtn = e.target.closest('[data-cancel-order]');
@@ -2258,6 +2588,17 @@
       }).eq('id', shipBtn.dataset.markShipped);
       loadPedidos();
     }
+  });
+
+  document.getElementById('view-pedidos').addEventListener('change', function(e){
+    var radio = e.target.closest('input[type="radio"][name^="pd-delivery-"]');
+    if (!radio) return;
+    var orderId = radio.name.replace('pd-delivery-', '');
+    var delivery = radio.value;
+    var sucursalBox = document.getElementById('pd-sucursal-' + orderId);
+    var domicilioBox = document.getElementById('pd-domicilio-' + orderId);
+    if (sucursalBox) sucursalBox.hidden = (delivery !== 'retiro_sucursal');
+    if (domicilioBox) domicilioBox.hidden = (delivery !== 'domicilio');
   });
 
   // ---------- Tabs / menú lateral ----------
