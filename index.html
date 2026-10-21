@@ -524,58 +524,7 @@
           </div>
 
           <div id="checkout-delivery-domicilio-fields" hidden>
-            <div style="display:flex; gap:10px; margin-top:10px">
-              <div style="flex:3">
-                <label for="checkout-dom-calle">Calle</label>
-                <input id="checkout-dom-calle" type="text" placeholder="Ej: San Martín">
-              </div>
-              <div style="flex:1">
-                <label for="checkout-dom-numero">Número</label>
-                <input id="checkout-dom-numero" type="text" inputmode="numeric" placeholder="1234">
-              </div>
-            </div>
-            <label for="checkout-dom-piso">Piso / depto (opcional)</label>
-            <input id="checkout-dom-piso" type="text" placeholder="Ej: Piso 4, depto B">
-            <div style="display:flex; gap:10px">
-              <div style="flex:2">
-                <label for="checkout-dom-localidad">Localidad</label>
-                <input id="checkout-dom-localidad" type="text" placeholder="Ej: Rosario">
-              </div>
-              <div style="flex:2">
-                <label for="checkout-dom-provincia">Provincia</label>
-                <select id="checkout-dom-provincia">
-                  <option value="">Elegí tu provincia</option>
-                  <option>Buenos Aires</option>
-                  <option>Catamarca</option>
-                  <option>Chaco</option>
-                  <option>Chubut</option>
-                  <option>Ciudad Autónoma de Buenos Aires</option>
-                  <option>Córdoba</option>
-                  <option>Corrientes</option>
-                  <option>Entre Ríos</option>
-                  <option>Formosa</option>
-                  <option>Jujuy</option>
-                  <option>La Pampa</option>
-                  <option>La Rioja</option>
-                  <option>Mendoza</option>
-                  <option>Misiones</option>
-                  <option>Neuquén</option>
-                  <option>Río Negro</option>
-                  <option>Salta</option>
-                  <option>San Juan</option>
-                  <option>San Luis</option>
-                  <option>Santa Cruz</option>
-                  <option>Santa Fe</option>
-                  <option>Santiago del Estero</option>
-                  <option>Tierra del Fuego</option>
-                  <option>Tucumán</option>
-                </select>
-              </div>
-              <div style="flex:1">
-                <label for="checkout-dom-cp">Código postal</label>
-                <input id="checkout-dom-cp" type="text" inputmode="numeric" placeholder="2000">
-              </div>
-            </div>
+            <p class="hint" style="margin-top:10px">Te lo enviamos a la dirección que pusiste arriba, en "Tus datos".</p>
             <label for="checkout-dom-notas">Notas para la entrega (opcional)</label>
             <textarea id="checkout-dom-notas" placeholder="Ej: casa con portón negro, dejar en portería, mejor horario para recibirlo, etc."></textarea>
           </div>
@@ -1954,12 +1903,6 @@
       document.querySelector('input[name="checkout-carrier"][value="correo_argentino"]').checked = true;
       checkoutDeliveryMethodSelect.value = 'retiro_sucursal';
       checkoutDeliveryAddress.value = '';
-      document.getElementById('checkout-dom-calle').value = '';
-      document.getElementById('checkout-dom-numero').value = '';
-      document.getElementById('checkout-dom-piso').value = '';
-      document.getElementById('checkout-dom-localidad').value = '';
-      document.getElementById('checkout-dom-provincia').value = '';
-      document.getElementById('checkout-dom-cp').value = '';
       document.getElementById('checkout-dom-notas').value = '';
       updateCheckoutDeliveryFields();
 
@@ -2005,7 +1948,8 @@
       var dTxt = checkoutPendingQuote.delivery_method === 'domicilio'
         ? 'A domicilio — ' + checkoutPendingQuote.delivery_address
         : 'Retiro en sucursal — ' + checkoutPendingQuote.delivery_address;
-      checkoutShippingStatus.innerHTML = '<p class="msg ok">Envío calculado: <b class="tabular">' + money.format(checkoutPendingQuote.cost) + '</b> (' + dTxt + '). Ya está sumado al total.</p>';
+      var origenTxt = checkoutPendingQuote.origin_address ? ' Se despacha desde: ' + checkoutPendingQuote.origin_address + '.' : '';
+      checkoutShippingStatus.innerHTML = '<p class="msg ok">Envío calculado: <b class="tabular">' + money.format(checkoutPendingQuote.cost) + '</b> (' + dTxt + '). Ya está sumado al total.' + origenTxt + '</p>';
     } else if (checkoutUnansweredQuote){
       checkoutShippingStatus.hidden = false;
       var dTxt2 = checkoutUnansweredQuote.delivery_method === 'domicilio'
@@ -2117,15 +2061,15 @@
   function getCheckoutDeliveryInfo(){
     var method = checkoutDeliveryMethodSelect.value;
     if (method === 'domicilio'){
-      var calle = document.getElementById('checkout-dom-calle').value.trim();
-      var numero = document.getElementById('checkout-dom-numero').value.trim();
-      var piso = document.getElementById('checkout-dom-piso').value.trim();
-      var localidad = document.getElementById('checkout-dom-localidad').value.trim();
-      var provincia = document.getElementById('checkout-dom-provincia').value;
-      var cp = document.getElementById('checkout-dom-cp').value.trim();
+      var calle = checkoutBuyerCalle.value.trim();
+      var numero = checkoutBuyerNumero.value.trim();
+      var piso = checkoutBuyerPiso.value.trim();
+      var localidad = checkoutBuyerLocalidad.value.trim();
+      var provincia = checkoutBuyerProvincia.value;
+      var cp = checkoutBuyerCp.value.trim();
       var notas = document.getElementById('checkout-dom-notas').value.trim();
       if (!calle || !numero || !localidad || !provincia || !cp){
-        throw new Error('Completá calle, número, localidad, provincia y código postal.');
+        throw new Error('Completá tu dirección completa en "Tus datos" antes de pedir el envío a domicilio.');
       }
       var address = calle + ' ' + numero + (piso ? ', ' + piso : '') +
         ', ' + localidad + ', ' + provincia + ' (CP ' + cp + ')' +
@@ -2260,6 +2204,7 @@
         insertData.delivery_method = checkoutPendingQuote.delivery_method;
         insertData.delivery_address = checkoutPendingQuote.delivery_address;
         insertData.delivery_cost = checkoutPendingQuote.cost;
+        insertData.delivery_origin_address = checkoutPendingQuote.origin_address;
         insertData.delivery_included_in_payment = true;
       } else if (checkoutUnansweredQuote){
         // Camino A: el comprador ya pidió el costo de envío pero todavía no
@@ -2464,6 +2409,7 @@
             ? 'A domicilio — ' + escapeHtml(order.delivery_address || 'sin dirección cargada')
             : 'Retiro en sucursal — ' + escapeHtml(order.delivery_address || 'sin localidad cargada')) +
           (order.delivery_cost != null ? ' · Envío: ' + money.format(order.delivery_cost) + (order.delivery_included_in_payment ? ' (incluido en el pago)' : '') : '') +
+          (order.delivery_origin_address ? ' · Se despacha desde: ' + escapeHtml(order.delivery_origin_address) : '') +
           '</p>';
       }
 

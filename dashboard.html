@@ -63,8 +63,14 @@
   .panel-body{padding:4px 0}
   .empty-row{padding:22px 20px; color:var(--muted); font-size:.88rem}
 
-  .order-row{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap}
+  /* Franja de color a la izquierda de cada pedido: de un vistazo se ve
+     cuáles ya están completos (verde), cuáles siguen en curso (amarillo) y
+     cuáles se cancelaron o entraron en disputa (rojo). */
+  .order-row{padding:16px 20px 16px 16px; border-bottom:1px solid var(--border); border-left:4px solid transparent; display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap}
   .order-row:last-child{border-bottom:none}
+  .order-row.status-green{border-left-color:var(--good)}
+  .order-row.status-yellow{border-left-color:var(--warn)}
+  .order-row.status-red{border-left-color:var(--danger)}
   .order-info{flex:1; min-width:220px}
   .order-info .t{font-weight:700; font-size:.92rem}
   .order-info .d{color:var(--muted); font-size:.82rem; margin-top:5px; line-height:1.5}
@@ -74,10 +80,15 @@
   .btn-sm.confirm{background:var(--good-bg); color:var(--good)}
   .btn-sm.release{background:var(--accent-dim); color:var(--accent)}
   .btn-sm.link{background:var(--surface-2); color:var(--fg)}
+  .btn-sm.quote{background:var(--warn-bg); color:var(--warn)}
   .btn-sm:disabled{opacity:.55; cursor:default}
   .badge{display:inline-block; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:20px}
   .badge.warn{background:var(--warn-bg); color:var(--warn)}
   .badge.good{background:var(--good-bg); color:var(--good)}
+  .quote-form{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .quote-form input{width:130px; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-family:var(--font-body); font-size:.85rem}
+  .quote-form input.quote-origin{width:220px}
+  .quote-err{color:var(--danger); font-size:.78rem; margin-top:4px; width:100%}
 
   .denied{min-height:60vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:40px}
   .denied p{color:var(--muted); margin-top:8px}
@@ -137,10 +148,34 @@
 
     <section class="panel">
       <div class="panel-head">
+        <h2>Cotizar envío (consultas, todavía sin pagar nada)</h2>
+        <span class="count" id="count-presale-quote"></span>
+      </div>
+      <div class="panel-body" id="list-presale-quote"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Calcular envío (pedido ya pagado)</h2>
+        <span class="count" id="count-quote"></span>
+      </div>
+      <div class="panel-body" id="list-quote"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
         <h2>Pagos a confirmar</h2>
         <span class="count" id="count-confirm"></span>
       </div>
       <div class="panel-body" id="list-confirm"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Pagos de envío a confirmar</h2>
+        <span class="count" id="count-delivery-confirm"></span>
+      </div>
+      <div class="panel-body" id="list-delivery-confirm"></div>
     </section>
 
     <section class="panel">
@@ -173,6 +208,7 @@
   var COMMISSION_RATE = 0.08;
   var money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
   var dateFmt = function(d){ return d ? new Date(d).toLocaleString('es-AR', { dateStyle:'short', timeStyle:'short' }) : '—'; };
+  var escapeAttr = function(s){ return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
 
   var gate = document.getElementById('gate');
   var denied = document.getElementById('denied');
@@ -242,17 +278,24 @@
     statsGrid.innerHTML = '<div class="stat-card"><div class="n">…</div><div class="l">Cargando</div></div>';
 
     var productsRes = await sb.from('products').select('id,status');
-    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,products(title)');
+    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,delivery_origin_address,delivery_included_in_payment,delivery_payment_status,delivery_payment_method,delivery_receipt_url,products(title)');
+    var quotesRes = await sb.from('shipping_quotes').select('id,delivery_method,delivery_address,cost,origin_address,buyer_id,seller_id,product_id,order_id,created_at,products(title)').is('order_id', null);
 
     var products = (productsRes.data || []);
     var orders = (ordersRes.data || []);
+    var quotes = (quotesRes.data || []);
 
-    // orders no tiene una foreign key directa a profiles (apunta a auth.users),
-    // así que los nombres de comprador/vendedor se buscan aparte y se combinan a mano.
+    // orders/shipping_quotes no tienen una foreign key directa a profiles
+    // (apuntan a auth.users), así que los nombres de comprador/vendedor se
+    // buscan aparte y se combinan a mano.
     var userIds = [];
     orders.forEach(function(o){
       if (userIds.indexOf(o.buyer_id) === -1) userIds.push(o.buyer_id);
       if (userIds.indexOf(o.seller_id) === -1) userIds.push(o.seller_id);
+    });
+    quotes.forEach(function(q){
+      if (userIds.indexOf(q.buyer_id) === -1) userIds.push(q.buyer_id);
+      if (userIds.indexOf(q.seller_id) === -1) userIds.push(q.seller_id);
     });
     var profilesById = {};
     if (userIds.length){
@@ -263,14 +306,21 @@
       o.buyer = profilesById[o.buyer_id];
       o.seller = profilesById[o.seller_id];
     });
+    quotes.forEach(function(q){
+      q.buyer = profilesById[q.buyer_id];
+      q.seller = profilesById[q.seller_id];
+    });
 
-    renderStats(products, orders);
+    renderStats(products, orders, quotes);
+    renderQuoteQueue(quotes.filter(function(q){ return q.cost == null; }));
+    renderQueue('list-quote', 'count-quote', orders.filter(function(o){ return o.status !== 'cancelado' && o.delivery_method && o.delivery_cost == null; }), 'quote');
     renderQueue('list-confirm', 'count-confirm', orders.filter(function(o){ return o.status === 'pendiente_pago' && o.receipt_url; }), 'confirm');
+    renderQueue('list-delivery-confirm', 'count-delivery-confirm', orders.filter(function(o){ return o.delivery_payment_status === 'comprobante_subido'; }), 'delivery-confirm');
     renderQueue('list-release', 'count-release', orders.filter(function(o){ return o.status === 'confirmado_entrega'; }), 'release');
     renderQueue('list-all', 'count-all', orders.slice().sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); }), 'view');
   }
 
-  function renderStats(products, orders){
+  function renderStats(products, orders, quotes){
     var activos = products.filter(function(p){ return p.status === 'disponible'; }).length;
     var reservados = products.filter(function(p){ return p.status === 'reservado'; }).length;
     var vendidos = products.filter(function(p){ return p.status === 'vendido'; }).length;
@@ -281,14 +331,20 @@
       .reduce(function(sum,o){ return sum + Math.round(o.amount * COMMISSION_RATE); }, 0);
     var volumenTotal = orders.filter(function(o){ return o.status !== 'cancelado' && o.status !== 'pendiente_pago'; })
       .reduce(function(sum,o){ return sum + o.amount; }, 0);
+    var consultasACotizar = (quotes || []).filter(function(q){ return q.cost == null; }).length;
+    var aCotizar = orders.filter(function(o){ return o.status !== 'cancelado' && o.delivery_method && o.delivery_cost == null; }).length;
     var aConfirmar = orders.filter(function(o){ return o.status === 'pendiente_pago' && o.receipt_url; }).length;
+    var envioAConfirmar = orders.filter(function(o){ return o.delivery_payment_status === 'comprobante_subido'; }).length;
     var aLiberar = orders.filter(function(o){ return o.status === 'confirmado_entrega'; }).length;
 
     var cards = [
       { n: activos, l: 'Publicaciones activas' },
       { n: reservados, l: 'Reservados (en proceso)' },
       { n: vendidos, l: 'Vendidos' },
+      { n: consultasACotizar, l: 'Consultas de envío a cotizar' },
+      { n: aCotizar, l: 'Envíos a calcular (ya pagado)' },
       { n: aConfirmar, l: 'Pagos a confirmar' },
+      { n: envioAConfirmar, l: 'Pagos de envío a confirmar' },
       { n: aLiberar, l: 'Listos para liberar' },
       { n: money.format(retenido), l: 'Dinero retenido ahora' },
       { n: money.format(volumenTotal), l: 'Volumen transaccionado' },
@@ -297,6 +353,78 @@
     document.getElementById('stats-grid').innerHTML = cards.map(function(c){
       return '<div class="stat-card"><div class="n tabular">' + c.n + '</div><div class="l">' + c.l + '</div></div>';
     }).join('');
+  }
+
+  // ---------- Consultas de envío (shipping_quotes, ANTES de pagar) ----------
+  // Estas consultas no reservaron nada: cargar el costo acá solo le avisa al
+  // comprador cuánto sale, nunca crea ni toca un pedido.
+  function renderQuoteQueue(list){
+    var el = document.getElementById('list-presale-quote');
+    document.getElementById('count-presale-quote').textContent = list.length + (list.length === 1 ? ' consulta' : ' consultas');
+    if (!list.length){
+      el.innerHTML = '<div class="empty-row">No hay consultas de envío pendientes por ahora.</div>';
+      return;
+    }
+    el.innerHTML = list.map(function(q){ return quoteRowHtml(q); }).join('');
+    list.forEach(function(q){
+      var btn = document.getElementById('presale-quote-' + q.id);
+      if (btn) btn.addEventListener('click', function(){ setQuoteCost(q.id, btn); });
+    });
+  }
+
+  function quoteRowHtml(q){
+    var title = (q.products && q.products.title) || 'Producto';
+    var buyerLabel = (q.buyer && (q.buyer.nombre || q.buyer.email)) || q.buyer_id.slice(0,8);
+    var sellerLabel = (q.seller && (q.seller.nombre || q.seller.email)) || q.seller_id.slice(0,8);
+    var deliveryTxt = q.delivery_method === 'domicilio'
+      ? 'A domicilio — ' + (q.delivery_address || 'sin dirección cargada')
+      : 'Retiro en sucursal — ' + (q.delivery_address || 'sin localidad cargada');
+    var originValue = q.origin_address || (q.seller && q.seller.direccion) || '';
+
+    return '' +
+      '<div class="order-row status-yellow">' +
+        '<div class="order-info">' +
+          '<div class="t">' + title + ' — consulta de envío (no pagado)</div>' +
+          '<div class="d">Comprador: <b>' + buyerLabel + '</b> · Vendedor: <b>' + sellerLabel + '</b></div>' +
+          '<div class="d">Entrega: <b>' + deliveryTxt + '</b></div>' +
+          '<div class="d">Consultado: ' + dateFmt(q.created_at) + '</div>' +
+        '</div>' +
+        '<div class="order-actions">' +
+          '<div class="quote-form">' +
+            '<input type="text" class="quote-origin" id="presale-quote-origin-' + q.id + '" placeholder="Dirección de origen (desde dónde se envía)" value="' + escapeAttr(originValue) + '">' +
+            '<input type="number" min="1" step="1" class="tabular" inputmode="numeric" id="presale-quote-input-' + q.id + '" placeholder="Costo de envío">' +
+            '<button type="button" class="btn-sm quote" id="presale-quote-' + q.id + '">Cargar costo</button>' +
+          '</div>' +
+          '<div class="quote-err" id="presale-quote-err-' + q.id + '" hidden></div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  async function setQuoteCost(quoteId, btn){
+    var input = document.getElementById('presale-quote-input-' + quoteId);
+    var originInput = document.getElementById('presale-quote-origin-' + quoteId);
+    var errBox = document.getElementById('presale-quote-err-' + quoteId);
+    var val = input ? parseFloat(input.value) : NaN;
+    var originVal = originInput ? originInput.value.trim() : '';
+    if (!val || val <= 0){
+      if (errBox){ errBox.textContent = 'Ingresá un costo de envío válido.'; errBox.hidden = false; }
+      return;
+    }
+    if (!originVal){
+      if (errBox){ errBox.textContent = 'Ingresá desde dónde se despacha (dirección de origen).'; errBox.hidden = false; }
+      return;
+    }
+    if (errBox) errBox.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Cargando...';
+    var res = await sb.from('shipping_quotes').update({ cost: val, origin_address: originVal, answered_at: new Date().toISOString() }).eq('id', quoteId);
+    if (res.error){
+      if (errBox){ errBox.textContent = 'No se pudo cargar: ' + res.error.message; errBox.hidden = false; }
+      btn.disabled = false;
+      btn.textContent = 'Cargar costo';
+      return;
+    }
+    loadDashboard();
   }
 
   function renderQueue(listId, countId, list, mode){
@@ -317,6 +445,14 @@
         var btn2 = document.getElementById('release-' + o.id);
         if (btn2) btn2.addEventListener('click', function(){ releasePayment(o.id, btn2); });
       }
+      if (mode === 'quote'){
+        var btn3 = document.getElementById('quote-' + o.id);
+        if (btn3) btn3.addEventListener('click', function(){ setDeliveryCost(o.id, btn3); });
+      }
+      if (mode === 'delivery-confirm'){
+        var btn4 = document.getElementById('delivery-confirm-' + o.id);
+        if (btn4) btn4.addEventListener('click', function(){ confirmDeliveryPayment(o.id, btn4); });
+      }
     });
   }
 
@@ -333,6 +469,15 @@
     return '<div class="d">' + label + ': <b>' + parts.join('</b> · <b>') + '</b></div>';
   }
 
+  // Color de la franja izquierda de cada pedido: verde = ya completado
+  // (pago liberado), rojo = cancelado o en disputa, amarillo = cualquier
+  // otra cosa en curso.
+  function statusColorClass(status){
+    if (status === 'liberado') return 'status-green';
+    if (status === 'cancelado' || status === 'disputado') return 'status-red';
+    return 'status-yellow';
+  }
+
   function orderRowHtml(o, mode){
     var title = (o.products && o.products.title) || 'Producto';
     var buyerLabel = (o.buyer && (o.buyer.nombre || o.buyer.email)) || o.buyer_id.slice(0,8);
@@ -341,11 +486,22 @@
     var badgeClass = (o.status === 'liberado' || o.status === 'confirmado_entrega') ? 'good' : 'warn';
 
     var actions = '';
-    if (mode === 'confirm'){
+    if (mode === 'quote'){
+      var originValueO = o.delivery_origin_address || (o.seller && o.seller.direccion) || '';
+      actions += '<div class="quote-form">' +
+        '<input type="text" class="quote-origin" id="quote-origin-' + o.id + '" placeholder="Dirección de origen (desde dónde se envía)" value="' + escapeAttr(originValueO) + '">' +
+        '<input type="number" min="1" step="1" class="tabular" inputmode="numeric" id="quote-input-' + o.id + '" placeholder="Costo de envío">' +
+        '<button type="button" class="btn-sm quote" id="quote-' + o.id + '">Cargar costo</button>' +
+        '</div>' +
+        '<div class="quote-err" id="quote-err-' + o.id + '" hidden></div>';
+    } else if (mode === 'confirm'){
       actions += o.receipt_url ? '<a class="btn-sm link" href="' + o.receipt_url + '" target="_blank" rel="noopener">Ver comprobante</a>' : '';
       actions += '<button type="button" class="btn-sm confirm" id="confirm-' + o.id + '">Confirmar pago</button>';
     } else if (mode === 'release'){
       actions += '<button type="button" class="btn-sm release" id="release-' + o.id + '">Liberar pago</button>';
+    } else if (mode === 'delivery-confirm'){
+      actions += o.delivery_receipt_url ? '<a class="btn-sm link" href="' + o.delivery_receipt_url + '" target="_blank" rel="noopener">Ver comprobante</a>' : '';
+      actions += '<button type="button" class="btn-sm confirm" id="delivery-confirm-' + o.id + '">Confirmar pago de envío</button>';
     } else {
       actions += '<span class="badge ' + badgeClass + '">' + statusTxt + '</span>';
     }
@@ -357,11 +513,32 @@
       ? personLine('Comprador', o.buyer, o.buyer_id) + personLine('Vendedor', o.seller, o.seller_id)
       : '<div class="d">Comprador: <b>' + buyerLabel + '</b> · Vendedor: <b>' + sellerLabel + '</b></div>';
 
+    var deliveryStatusTxt = '';
+    if (o.delivery_cost != null){
+      if (o.delivery_included_in_payment){
+        deliveryStatusTxt = ' · Envío: ' + money.format(o.delivery_cost) + ' (incluido en el pago del producto)';
+      } else if (o.delivery_payment_status === 'confirmado'){
+        deliveryStatusTxt = ' · Envío: ' + money.format(o.delivery_cost) + ' (pagado aparte)';
+      } else if (o.delivery_payment_status === 'comprobante_subido'){
+        deliveryStatusTxt = ' · Envío: ' + money.format(o.delivery_cost) + ' (comprobante subido, falta confirmar)';
+      } else {
+        deliveryStatusTxt = ' · Envío: ' + money.format(o.delivery_cost) + ' (todavía no lo pagó, aparte del producto)';
+      }
+    } else {
+      deliveryStatusTxt = ' · Envío: a cotizar';
+    }
     var deliveryBlock = o.delivery_method
       ? '<div class="d">Entrega: <b>' + (o.delivery_method === 'domicilio'
           ? 'A domicilio — ' + (o.delivery_address || 'sin dirección cargada')
           : 'Retiro en sucursal — ' + (o.delivery_address || 'sin localidad cargada')) +
-          (o.delivery_cost != null ? ' · Envío: ' + money.format(o.delivery_cost) : ' · Envío: a cotizar') + '</b></div>'
+          deliveryStatusTxt + '</b></div>'
+      : '';
+
+    // La dirección de origen ahora se carga (y se puede editar) directo en
+    // el formulario de "Cargar costo" de abajo, así que acá no hace falta
+    // mostrarla aparte cuando mode === 'quote'.
+    var originBlock = (o.delivery_origin_address && mode !== 'quote')
+      ? '<div class="d">Se despacha desde: <b>' + o.delivery_origin_address + '</b></div>'
       : '';
 
     // Para liberar el pago hace falta saber a dónde transferirle al vendedor,
@@ -376,18 +553,60 @@
         '</b></div>';
     }
 
+    var includedCost = o.delivery_included_in_payment ? Number(o.delivery_cost || 0) : 0;
     return '' +
-      '<div class="order-row">' +
+      '<div class="order-row ' + statusColorClass(o.status) + '">' +
         '<div class="order-info">' +
-          '<div class="t">' + title + ' — ' + money.format(o.amount + Number(o.delivery_cost || 0)) + (o.delivery_cost != null ? ' (prod. + envío)' : '') + '</div>' +
+          '<div class="t">' + title + ' — ' + money.format(o.amount + includedCost) + (includedCost ? ' (prod. + envío)' : '') + '</div>' +
           detailBlock +
           deliveryBlock +
+          originBlock +
           payoutBlock +
           '<div class="d">Método: ' + (o.payment_method === 'transferencia' ? 'Transferencia' : 'Tarjeta') + ' · Creado: ' + dateFmt(o.created_at) +
           (mode !== 'view' ? ' · <span class="badge ' + badgeClass + '">' + statusTxt + '</span>' : '') + '</div>' +
         '</div>' +
         '<div class="order-actions">' + actions + '</div>' +
       '</div>';
+  }
+
+  async function setDeliveryCost(orderId, btn){
+    var input = document.getElementById('quote-input-' + orderId);
+    var originInput = document.getElementById('quote-origin-' + orderId);
+    var errBox = document.getElementById('quote-err-' + orderId);
+    var val = input ? parseFloat(input.value) : NaN;
+    var originVal = originInput ? originInput.value.trim() : '';
+    if (!val || val <= 0){
+      if (errBox){ errBox.textContent = 'Ingresá un costo de envío válido.'; errBox.hidden = false; }
+      return;
+    }
+    if (!originVal){
+      if (errBox){ errBox.textContent = 'Ingresá desde dónde se despacha (dirección de origen).'; errBox.hidden = false; }
+      return;
+    }
+    if (errBox) errBox.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Cargando...';
+    var res = await sb.from('orders').update({ delivery_cost: val, delivery_origin_address: originVal }).eq('id', orderId);
+    if (res.error){
+      if (errBox){ errBox.textContent = 'No se pudo cargar: ' + res.error.message; errBox.hidden = false; }
+      btn.disabled = false;
+      btn.textContent = 'Cargar costo';
+      return;
+    }
+    loadDashboard();
+  }
+
+  async function confirmDeliveryPayment(orderId, btn){
+    btn.disabled = true;
+    btn.textContent = 'Confirmando...';
+    var res = await sb.from('orders').update({ delivery_payment_status: 'confirmado' }).eq('id', orderId);
+    if (res.error){
+      alert('No se pudo confirmar el pago de envío: ' + res.error.message);
+      btn.disabled = false;
+      btn.textContent = 'Confirmar pago de envío';
+      return;
+    }
+    loadDashboard();
   }
 
   async function confirmPayment(orderId, btn){
