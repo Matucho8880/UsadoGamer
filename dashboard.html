@@ -81,6 +81,7 @@
   .btn-sm.release{background:var(--accent-dim); color:var(--accent)}
   .btn-sm.link{background:var(--surface-2); color:var(--fg)}
   .btn-sm.quote{background:var(--warn-bg); color:var(--warn)}
+  .btn-sm.cancel{background:var(--danger-bg); color:var(--danger)}
   .btn-sm:disabled{opacity:.55; cursor:default}
   .badge{display:inline-block; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:20px}
   .badge.warn{background:var(--warn-bg); color:var(--warn)}
@@ -145,6 +146,14 @@
   <div id="panel" hidden>
 
     <div class="stats-grid" id="stats-grid"></div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Mensajes (contacto)</h2>
+        <span class="count" id="count-messages"></span>
+      </div>
+      <div class="panel-body" id="list-messages"></div>
+    </section>
 
     <section class="panel">
       <div class="panel-head">
@@ -280,10 +289,12 @@
     var productsRes = await sb.from('products').select('id,status');
     var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,delivery_origin_address,delivery_included_in_payment,delivery_payment_status,delivery_payment_method,delivery_receipt_url,products(title)');
     var quotesRes = await sb.from('shipping_quotes').select('id,delivery_method,delivery_address,cost,origin_address,buyer_id,seller_id,product_id,order_id,created_at,products(title)').is('order_id', null);
+    var messagesRes = await sb.from('contact_messages').select('id,nombre,email,motivo,referencia,mensaje,estado,created_at').order('created_at', { ascending: false });
 
     var products = (productsRes.data || []);
     var orders = (ordersRes.data || []);
     var quotes = (quotesRes.data || []);
+    var messages = (messagesRes.data || []);
 
     // orders/shipping_quotes no tienen una foreign key directa a profiles
     // (apuntan a auth.users), así que los nombres de comprador/vendedor se
@@ -312,6 +323,7 @@
     });
 
     renderStats(products, orders, quotes);
+    renderMessages(messages);
     renderQuoteQueue(quotes.filter(function(q){ return q.cost == null; }));
     renderQueue('list-quote', 'count-quote', orders.filter(function(o){ return o.status !== 'cancelado' && o.delivery_method && o.delivery_cost == null; }), 'quote');
     renderQueue('list-confirm', 'count-confirm', orders.filter(function(o){ return o.status === 'pendiente_pago' && o.receipt_url; }), 'confirm');
@@ -353,6 +365,58 @@
     document.getElementById('stats-grid').innerHTML = cards.map(function(c){
       return '<div class="stat-card"><div class="n tabular">' + c.n + '</div><div class="l">' + c.l + '</div></div>';
     }).join('');
+  }
+
+  // ---------- Mensajes de contacto ----------
+  // Los mensajes resueltos se ocultan solos para no acumular la lista; si
+  // hace falta volver a verlos, están igual en la tabla de Supabase.
+  var MOTIVO_LABEL = { pedido: 'Problema con un pedido', publicacion: 'Problema con una publicación', pago: 'Problema con un pago o envío', otro: 'Otra consulta' };
+
+  function renderMessages(list){
+    var pending = list.filter(function(m){ return m.estado !== 'resuelto'; });
+    var el = document.getElementById('list-messages');
+    document.getElementById('count-messages').textContent = pending.length + (pending.length === 1 ? ' mensaje' : ' mensajes');
+    if (!pending.length){
+      el.innerHTML = '<div class="empty-row">No hay mensajes nuevos por ahora.</div>';
+      return;
+    }
+    el.innerHTML = pending.map(function(m){ return messageRowHtml(m); }).join('');
+    pending.forEach(function(m){
+      var btn = document.getElementById('resolve-msg-' + m.id);
+      if (btn) btn.addEventListener('click', function(){ resolveMessage(m.id, btn); });
+    });
+  }
+
+  function messageRowHtml(m){
+    var motivoTxt = MOTIVO_LABEL[m.motivo] || m.motivo;
+    var mailLink = 'mailto:' + encodeURIComponent(m.email) + '?subject=' + encodeURIComponent('Re: tu consulta en UsadoGamer');
+    return '' +
+      '<div class="order-row status-yellow">' +
+        '<div class="order-info">' +
+          '<div class="t">' + motivoTxt + '</div>' +
+          '<div class="d">De: <b>' + escapeAttr(m.nombre || '(sin nombre)') + '</b> · ' + escapeAttr(m.email) + '</div>' +
+          (m.referencia ? '<div class="d">Referencia: <b>' + escapeAttr(m.referencia) + '</b></div>' : '') +
+          '<div class="d">"' + escapeAttr(m.mensaje) + '"</div>' +
+          '<div class="d">Recibido: ' + dateFmt(m.created_at) + '</div>' +
+        '</div>' +
+        '<div class="order-actions">' +
+          '<a class="btn-sm link" href="' + mailLink + '">Responder por mail</a>' +
+          '<button type="button" class="btn-sm confirm" id="resolve-msg-' + m.id + '">Marcar como resuelto</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  async function resolveMessage(messageId, btn){
+    btn.disabled = true;
+    btn.textContent = 'Marcando...';
+    var res = await sb.from('contact_messages').update({ estado: 'resuelto' }).eq('id', messageId);
+    if (res.error){
+      alert('No se pudo marcar como resuelto: ' + res.error.message);
+      btn.disabled = false;
+      btn.textContent = 'Marcar como resuelto';
+      return;
+    }
+    loadDashboard();
   }
 
   // ---------- Consultas de envío (shipping_quotes, ANTES de pagar) ----------
@@ -440,6 +504,8 @@
       if (mode === 'confirm'){
         var btn = document.getElementById('confirm-' + o.id);
         if (btn) btn.addEventListener('click', function(){ confirmPayment(o.id, btn); });
+        var btnCancel = document.getElementById('cancel-' + o.id);
+        if (btnCancel) btnCancel.addEventListener('click', function(){ cancelOrderAdmin(o.id, btnCancel); });
       }
       if (mode === 'release'){
         var btn2 = document.getElementById('release-' + o.id);
@@ -497,6 +563,7 @@
     } else if (mode === 'confirm'){
       actions += o.receipt_url ? '<a class="btn-sm link" href="' + o.receipt_url + '" target="_blank" rel="noopener">Ver comprobante</a>' : '';
       actions += '<button type="button" class="btn-sm confirm" id="confirm-' + o.id + '">Confirmar pago</button>';
+      actions += '<button type="button" class="btn-sm cancel" id="cancel-' + o.id + '">Dar de baja (no llegó el pago)</button>';
     } else if (mode === 'release'){
       actions += '<button type="button" class="btn-sm release" id="release-' + o.id + '">Liberar pago</button>';
     } else if (mode === 'delivery-confirm'){
@@ -617,6 +684,28 @@
       alert('No se pudo confirmar: ' + res.error.message);
       btn.disabled = false;
       btn.textContent = 'Confirmar pago';
+      return;
+    }
+    loadDashboard();
+  }
+
+  // Si pasan los días y nunca llega la transferencia, Mateo da de baja el
+  // pedido desde acá: pasa a 'cancelado' y el trigger de la base de datos
+  // (sync_product_status) se encarga solo de volver a poner el producto
+  // como 'disponible' para que lo pueda comprar cualquier otra persona.
+  async function cancelOrderAdmin(orderId, btn){
+    var sure = window.confirm('¿Seguro que querés dar de baja este pedido? El producto va a volver a aparecer disponible para la venta.');
+    if (!sure) return;
+    btn.disabled = true;
+    btn.textContent = 'Dando de baja...';
+    var res = await sb.from('orders')
+      .update({ status: 'cancelado' })
+      .eq('id', orderId)
+      .eq('status', 'pendiente_pago');
+    if (res.error){
+      alert('No se pudo dar de baja: ' + res.error.message);
+      btn.disabled = false;
+      btn.textContent = 'Dar de baja (no llegó el pago)';
       return;
     }
     loadDashboard();

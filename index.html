@@ -241,7 +241,14 @@
   .step{background:var(--surface); border:1px solid var(--border); border-radius:0; padding:20px}
   .step .num{font-family:var(--font-display); font-size:1.5rem; color:var(--accent); margin-bottom:8px}
 
-  footer{border-top:1px solid var(--border); margin-inline:-24px; padding:24px; color:var(--muted); font-size:.82rem; text-align:center}
+  footer{border-top:1px solid var(--border); margin-inline:-24px; margin-top:48px; padding:32px 24px 24px; color:var(--muted); font-size:.82rem}
+  .footer-inner{max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:20px}
+  .footer-links{display:flex; flex-wrap:wrap; gap:10px 28px; justify-content:center}
+  .footer-links button{background:none; border:none; padding:0; color:var(--muted); font-size:.82rem; font-family:var(--font-body); cursor:pointer; text-decoration:underline; text-underline-offset:3px}
+  .footer-links button:hover{color:var(--fg)}
+  .footer-contact{text-align:center}
+  .footer-contact button{background:none; border:none; padding:0; color:var(--accent); font-weight:700; font-size:.85rem; font-family:var(--font-body); cursor:pointer; text-decoration:underline; text-underline-offset:3px}
+  .footer-bottom{text-align:center; border-top:1px solid var(--border); padding-top:16px; font-size:.78rem}
 
   /* checkout */
   .checkout-layout{display:grid; grid-template-columns:1fr 340px; gap:32px; align-items:start; margin-top:16px}
@@ -674,6 +681,161 @@
     </div>
   </section>
 
+  <section id="view-politicas-uso" hidden>
+    <h2 style="font-size:1.5rem; padding-top:40px">Políticas de uso</h2>
+    <p style="color:var(--muted); max-width:62ch; margin-top:8px">Reglas simples para que comprar y vender en UsadoGamer sea seguro para todos.</p>
+
+    <div class="acct-section" style="margin-top:24px">
+      <div class="acct-section-head"><h3>Quién puede usar la plataforma</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Tenés que ser mayor de 18 años y crear una cuenta con un mail verificado. Cada persona puede tener una sola cuenta.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Qué se puede publicar</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Periféricos y accesorios gaming usados — teclados, mouses, auriculares, controles, monitores y similares — en buen estado de funcionamiento, con fotos reales del producto que estás vendiendo y una descripción honesta de su estado, incluyendo cualquier defecto o detalle que un comprador debería saber antes de pagar.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Qué no se puede publicar</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Productos robados, falsificados o que no sean tuyos; productos nuevos para reventa masiva (UsadoGamer es para gaming usado, no es un canal mayorista); fotos o descripciones que no correspondan al producto real; o cualquier contenido engañoso, ofensivo o ilegal.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Todo tiene que pasar por la plataforma</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">No está permitido coordinar un pago por fuera de UsadoGamer (transferencia directa, efectivo, otra app) para "ahorrarse" la comisión. Si el pago no pasa por acá, no hay forma de que la plataforma intervenga si algo sale mal — perdés toda la protección descripta en la <button type="button" class="link-btn" data-goto="devoluciones" style="font:inherit; padding:0">política de devoluciones</button>.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Comisiones</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Pagar por transferencia no tiene comisión extra. Pagar con tarjeta (Mercado Pago) suma un 4,60% sobre el total, a cargo del comprador. Al liberar el pago, UsadoGamer retiene un 8% del precio del producto como comisión de la plataforma; el resto se deposita en la cuenta del vendedor.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Buena convivencia</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">No se permite el spam, el acoso a otros usuarios ni los intentos de fraude. Las cuentas que incumplan estas políticas pueden ser suspendidas sin aviso previo.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Cambios en estas políticas</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">UsadoGamer puede actualizar estas políticas en cualquier momento. Los cambios importantes se van a avisar en la plataforma.</p></div>
+    </div>
+  </section>
+
+  <section id="view-devoluciones" hidden>
+    <h2 style="font-size:1.5rem; padding-top:40px">Política de devoluciones y protección</h2>
+    <p style="color:var(--muted); max-width:62ch; margin-top:8px">El objetivo de UsadoGamer es que tanto comprador como vendedor puedan operar tranquilos. Por eso el dinero del producto se retiene hasta confirmar que todo salió bien.</p>
+
+    <div class="acct-section" style="margin-top:24px">
+      <div class="acct-section-head"><h3>Qué está protegido</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">El precio del producto queda retenido por UsadoGamer desde que el comprador paga hasta que confirma que lo recibió conforme a lo publicado. Recién en ese momento se libera al vendedor. Si el comprador reporta un problema antes de confirmar, el pago del producto no se libera hasta resolverlo.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Qué NO está protegido por esta misma retención</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">El costo de envío es aparte: lo cobra UsadoGamer para pagarle al correo, pero no queda retenido como garantía de la misma forma que el precio del producto. El transporte físico lo hace el correo que elige el vendedor (hoy, Correo Argentino), así que demoras, roturas o pérdidas durante el envío en tránsito se gestionan con el correo usando el número de seguimiento — escribinos y te ayudamos con ese reclamo, pero el costo de envío en sí no se devuelve por esta política.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Si el producto no llega como se describió</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">No confirmes la recepción todavía. Escribinos desde "¿Tenés un problema? Contactanos" dentro de las 48 horas de haberlo recibido, contanos qué pasó (con fotos si podés) y lo revisamos. Mientras el reclamo esté abierto, el pago del producto sigue retenido.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Si el vendedor no despacha</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">El vendedor tiene hasta 72 horas hábiles para despachar una vez confirmado el pago. Si no lo hace o no da noticias, escribinos: como el dinero nunca llegó a manos del vendedor, gestionamos que te lo devolvamos.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Arrepentimiento de compra</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Mientras el pedido todavía no esté pagado (figura como "pendiente de pago"), podés cancelarlo vos mismo desde "Mis pedidos" sin ningún costo. Una vez confirmado el pago, la cancelación por simple arrepentimiento queda sujeta a que el vendedor todavía no haya despachado — escribinos para coordinarlo.</p></div>
+    </div>
+  </section>
+
+  <section id="view-terminos" hidden>
+    <h2 style="font-size:1.5rem; padding-top:40px">Términos y condiciones</h2>
+    <p style="color:var(--muted); max-width:62ch; margin-top:8px">Al usar UsadoGamer, estás aceptando estos términos. Los escribimos en criollo para que se entiendan de verdad.</p>
+
+    <div class="acct-section" style="margin-top:24px">
+      <div class="acct-section-head"><h3>Qué es UsadoGamer</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">UsadoGamer es una plataforma que conecta a compradores y vendedores de periféricos y accesorios gaming usados, y actúa como intermediaria reteniendo el pago del producto hasta que la compra se completa correctamente. UsadoGamer no es dueña de los productos publicados ni es parte de la compraventa en sí — esa relación es entre comprador y vendedor.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Cuentas de usuario</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Sos responsable de la información que cargás en tu cuenta y de mantener tus credenciales seguras. La información de contacto (mail, teléfono, dirección) que ingresás al comprar o vender tiene que ser real: la usamos para que la operación se pueda completar.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Publicaciones y veracidad</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Al publicar un producto, declarás que es tuyo, que las fotos corresponden al producto real y que la descripción (incluyendo su estado y funcionamiento) es verdadera. Ver también las <button type="button" class="link-btn" data-goto="politicas-uso" style="font:inherit; padding:0">políticas de uso</button>.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Pago, custodia y liberación</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">El pago del producto se retiene hasta que el comprador confirma la recepción conforme, según se detalla en la <button type="button" class="link-btn" data-goto="devoluciones" style="font:inherit; padding:0">política de devoluciones</button>. UsadoGamer cobra una comisión del 8% sobre el precio del producto al liberar el pago al vendedor, y Mercado Pago cobra un 4,60% adicional cuando el comprador paga con tarjeta.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Envíos</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">El transporte físico lo realiza el correo que elige el vendedor entre las opciones disponibles en la plataforma (actualmente Correo Argentino). UsadoGamer calcula y cobra el costo de envío, pero no es quien transporta el producto.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Conductas prohibidas</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">No está permitido: coordinar pagos por fuera de la plataforma, publicar productos robados o falsificados, usar cuentas falsas o de terceros, ni intentar defraudar a otro usuario o a UsadoGamer. Estas conductas pueden derivar en la suspensión de la cuenta y, si corresponde, acciones legales.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Límite de responsabilidad</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">UsadoGamer hace de intermediario de buena fe entre comprador y vendedor, pero no controla físicamente los productos ni el transporte. Dentro de lo que permite la ley, UsadoGamer no se responsabiliza por daños indirectos derivados del uso de la plataforma, más allá de gestionar los reclamos según la política de devoluciones.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Modificaciones y legislación aplicable</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Estos términos pueden actualizarse; los cambios importantes se avisan en la plataforma. Se rigen por las leyes de la República Argentina.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Contacto</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Para consultas, reclamos o dudas, escribinos desde <button type="button" class="link-btn" data-goto="contacto" style="font:inherit; padding:0">¿Tenés un problema? Contactanos</button>.</p></div>
+    </div>
+  </section>
+
+  <section id="view-contacto" hidden>
+    <h2 style="font-size:1.5rem; padding-top:40px">¿Tenés un problema? Contactanos</h2>
+    <p style="color:var(--muted); max-width:62ch; margin-top:8px">Contanos qué pasó y te respondemos a la brevedad. Si es sobre un pedido, revisalo primero en "Mis pedidos" para tener los datos a mano.</p>
+
+    <form id="contact-form" style="max-width:520px; margin-top:24px; display:flex; flex-direction:column; gap:14px">
+      <div>
+        <label for="contact-nombre">Nombre</label>
+        <input id="contact-nombre" type="text" placeholder="Tu nombre">
+      </div>
+      <div>
+        <label for="contact-email">Mail</label>
+        <input id="contact-email" type="email" placeholder="tu@mail.com">
+      </div>
+      <div>
+        <label for="contact-motivo">Motivo</label>
+        <select id="contact-motivo">
+          <option value="pedido">Problema con un pedido</option>
+          <option value="publicacion">Problema con una publicación</option>
+          <option value="pago">Problema con un pago o envío</option>
+          <option value="otro">Otra consulta</option>
+        </select>
+      </div>
+      <div>
+        <label for="contact-referencia">Número de pedido o nombre del producto (opcional)</label>
+        <input id="contact-referencia" type="text" placeholder="Ej: Logitech G203, o el nombre del comprador/vendedor">
+      </div>
+      <div>
+        <label for="contact-mensaje">Contanos qué ocurrió</label>
+        <textarea id="contact-mensaje" rows="5" placeholder="Describí el problema con el mayor detalle posible"></textarea>
+      </div>
+      <div id="contact-msg"></div>
+      <button type="submit" class="btn-primary" id="contact-submit">Enviar</button>
+    </form>
+  </section>
+
   <section id="view-pedidos" hidden>
     <h2 style="font-size:1.5rem; margin-bottom:4px; padding-top:40px">Mis pedidos</h2>
     <p style="color:var(--muted); margin-top:8px">Acá ves el estado de lo que compraste y lo que vendiste.</p>
@@ -718,7 +880,20 @@
 
 </main>
 
-<footer>UsadoGamer — versión de prueba, conectada a una base de datos real.</footer>
+<footer>
+  <div class="footer-inner">
+    <div class="footer-links">
+      <button type="button" data-goto="como-funciona">Cómo funciona</button>
+      <button type="button" data-goto="politicas-uso">Políticas de uso</button>
+      <button type="button" data-goto="devoluciones">Política de devoluciones</button>
+      <button type="button" data-goto="terminos">Términos y condiciones</button>
+    </div>
+    <div class="footer-contact">
+      <p>¿Tenés algún problema? <button type="button" data-goto="contacto">Contactanos</button></p>
+    </div>
+    <div class="footer-bottom" id="footer-copyright"></div>
+  </div>
+</footer>
 
 <div class="overlay" id="sq-overlay" hidden>
   <div class="modal">
@@ -2635,6 +2810,10 @@
     explorar: document.getElementById('view-explorar'),
     publicar: document.getElementById('view-publicar'),
     'como-funciona': document.getElementById('view-como-funciona'),
+    'politicas-uso': document.getElementById('view-politicas-uso'),
+    devoluciones: document.getElementById('view-devoluciones'),
+    terminos: document.getElementById('view-terminos'),
+    contacto: document.getElementById('view-contacto'),
     pedidos: document.getElementById('view-pedidos'),
     cuenta: document.getElementById('view-cuenta'),
     producto: document.getElementById('view-producto'),
@@ -2648,6 +2827,7 @@
     if (view === 'explorar') loadProducts();
     if (view === 'pedidos') loadPedidos();
     if (view === 'cuenta'){ loadAccount(); loadWallet(); loadAcctStats(); }
+    if (view === 'contacto') prefillContactForm();
   }
 
   var drawerOverlay = document.getElementById('drawer-overlay');
@@ -2663,6 +2843,7 @@
   // ---------- Carga inicial ----------
   loadProducts();
   updateHint();
+  document.getElementById('footer-copyright').textContent = '© ' + new Date().getFullYear() + ' UsadoGamer. Todos los derechos reservados.';
 
   // Si entran desde un link de email (?producto=ID), abrir directo esa publicación
   var deepLinkId = new URLSearchParams(window.location.search).get('producto');
@@ -2707,6 +2888,64 @@
   productoGallery.addEventListener('click', function(e){
     var img = e.target.closest('#gallery-main-img');
     if (img) openLightbox(img.src);
+  });
+
+  // ---------- Contacto ----------
+  // Si está logueado, le prellenamos nombre y mail (el mail queda fijo,
+  // igual que en el checkout, para que el aviso le llegue a la cuenta
+  // real). Si no está logueado, puede escribir sin cuenta.
+  var contactForm = document.getElementById('contact-form');
+  var contactNombre = document.getElementById('contact-nombre');
+  var contactEmail = document.getElementById('contact-email');
+  var contactMotivo = document.getElementById('contact-motivo');
+  var contactReferencia = document.getElementById('contact-referencia');
+  var contactMensaje = document.getElementById('contact-mensaje');
+  var contactMsg = document.getElementById('contact-msg');
+  var contactSubmit = document.getElementById('contact-submit');
+
+  async function prefillContactForm(){
+    contactMsg.innerHTML = '';
+    if (currentUser){
+      contactEmail.value = currentUser.email;
+      contactEmail.disabled = true;
+      var profRes = await sb.from('profiles').select('nombre,apellido').eq('id', currentUser.id).single();
+      if (!profRes.error && profRes.data){
+        var full = [profRes.data.nombre, profRes.data.apellido].filter(Boolean).join(' ');
+        if (full) contactNombre.value = full;
+      }
+    } else {
+      contactEmail.disabled = false;
+    }
+  }
+
+  contactForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var nombre = contactNombre.value.trim();
+    var email = contactEmail.value.trim();
+    var mensaje = contactMensaje.value.trim();
+    if (!email || !mensaje){
+      contactMsg.innerHTML = '<div class="msg err">Completá al menos tu mail y contanos qué ocurrió.</div>';
+      return;
+    }
+    contactSubmit.disabled = true;
+    contactSubmit.textContent = 'Enviando...';
+    var res = await sb.from('contact_messages').insert({
+      user_id: currentUser ? currentUser.id : null,
+      nombre: nombre || null,
+      email: email,
+      motivo: contactMotivo.value,
+      referencia: contactReferencia.value.trim() || null,
+      mensaje: mensaje
+    });
+    contactSubmit.disabled = false;
+    contactSubmit.textContent = 'Enviar';
+    if (res.error){
+      contactMsg.innerHTML = '<div class="msg err">No se pudo enviar: ' + res.error.message + '</div>';
+      return;
+    }
+    contactForm.reset();
+    if (currentUser){ contactEmail.value = currentUser.email; contactEmail.disabled = true; }
+    contactMsg.innerHTML = '<div class="msg ok">¡Listo! Recibimos tu mensaje y te vamos a responder a la brevedad.</div>';
   });
 })();
 </script>
