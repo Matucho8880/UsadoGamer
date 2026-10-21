@@ -7,7 +7,7 @@
 <link rel="icon" href="favicon-joystick.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700&family=Playfair+Display:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#ffffff; --surface:#f7f7f8; --surface-2:#eff0f2; --fg:#0a0a0a; --muted:#64666c;
@@ -241,16 +241,21 @@
   .step{background:var(--surface); border:1px solid var(--border); border-radius:0; padding:20px}
   .step .num{font-family:var(--font-display); font-size:1.5rem; color:var(--accent); margin-bottom:8px}
 
-  footer{border-top:1px solid var(--border); margin-inline:-24px; margin-top:48px; padding:32px 24px 20px; color:var(--muted); font-size:.82rem}
+  footer{
+    position:relative; width:100vw; left:50%; margin-left:-50vw; margin-top:48px;
+    padding:40px 24px 24px;
+    background:radial-gradient(120% 140% at 85% 0%, #1a2550 0%, #0c1226 55%, #080b18 100%);
+    color:#b7bdd1; font-size:.82rem;
+  }
   .footer-inner{max-width:1100px; margin:0 auto}
   .footer-top{display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap}
-  .footer-brand .logo{pointer-events:none}
-  .footer-tagline{margin-top:10px; color:var(--muted); font-size:.85rem}
+  .footer-brand .logo{pointer-events:none; color:#fff}
+  .footer-tagline{margin-top:10px; color:#8fb0ff; font-family:'Playfair Display', 'Georgia', serif; font-style:italic; font-weight:500; font-size:1.15rem; letter-spacing:.01em}
   .footer-links{display:flex; flex-direction:column; gap:10px; align-items:flex-end; text-align:right}
-  .footer-links button{background:none; border:none; padding:0; color:var(--muted); font-size:.85rem; font-family:var(--font-body); cursor:pointer}
-  .footer-links button:hover{color:var(--fg)}
-  .footer-links .footer-contact-link{color:var(--accent); font-weight:700}
-  .footer-bottom{text-align:center; border-top:1px solid var(--border); margin-top:28px; padding-top:16px; font-size:.78rem}
+  .footer-links button{background:none; border:none; padding:0; color:#b7bdd1; font-size:.85rem; font-family:var(--font-body); cursor:pointer}
+  .footer-links button:hover{color:#fff}
+  .footer-links .footer-contact-link{color:#7c9cff; font-weight:700}
+  .footer-bottom{text-align:center; border-top:1px solid rgba(255,255,255,.12); margin-top:28px; padding-top:16px; font-size:.78rem; color:#8589a0}
   @media (max-width:640px){ .footer-top{flex-direction:column} .footer-links{align-items:flex-start; text-align:left} }
 
   /* checkout */
