@@ -1501,7 +1501,7 @@
   sb.auth.onAuthStateChange(function(event, session){
     currentUser = session ? session.user : null;
     renderAuthArea();
-    if (currentProduct && !views.producto.hidden) openProductDetail(currentProduct);
+    if (currentProduct && !views.producto.hidden) openProductDetail(currentProduct, 'skip');
     if (event === 'PASSWORD_RECOVERY') openAuth('reset');
   });
 
@@ -1818,7 +1818,7 @@
   var ofertaBox = document.getElementById('oferta-box');
   var currentProduct = null;
 
-  async function openProductDetail(product){
+  async function openProductDetail(product, navMode){
     if (!product) return;
     currentProduct = product;
     try { await sb.rpc('cleanup_expired_offer_orders'); } catch (e) {}
@@ -1847,7 +1847,7 @@
     loadQuestions(product.id);
     loadOfertas(product);
     loadProductShippingSummary(product);
-    go('producto');
+    go('producto', navMode);
   }
 
   // Si este comprador ya tiene una cotización de envío contestada para este
@@ -1965,7 +1965,7 @@
       acceptBtn.disabled = true;
       await sb.from('offers').update({ status: 'aceptada' }).eq('id', acceptBtn.dataset.offerAccept);
       var refreshed = await sb.from('products').select('*').eq('id', currentProduct.id).single();
-      if (refreshed.data) openProductDetail(refreshed.data); else loadOfertas(currentProduct);
+      if (refreshed.data) openProductDetail(refreshed.data, 'skip'); else loadOfertas(currentProduct);
     }
     if (rejectBtn){
       rejectBtn.disabled = true;
@@ -2887,7 +2887,44 @@
     producto: document.getElementById('view-producto'),
     checkout: document.getElementById('view-checkout')
   };
-  function go(view){
+  // ---------- URLs propias por sección (antes todo vivía en una sola URL) ----------
+  // Cada sección "de verdad" (no transitoria) tiene su propia dirección, para que
+  // se puedan compartir links y usar el botón atrás/adelante del navegador. El
+  // checkout queda afuera a propósito: depende de un producto/pedido puntual en
+  // memoria, no tiene sentido como URL para compartir ni para entrar de cero.
+  var VIEW_PATHS = {
+    explorar: '/',
+    publicar: '/publicar',
+    'como-funciona': '/como-funciona',
+    'politicas-uso': '/politicas-de-uso',
+    devoluciones: '/politica-de-devoluciones',
+    terminos: '/terminos-y-condiciones',
+    contacto: '/contacto',
+    pedidos: '/mis-pedidos',
+    cuenta: '/mi-cuenta'
+  };
+
+  // navMode: undefined/'push' (agrega una entrada nueva al historial, lo normal
+  // al navegar haciendo clic), 'replace' (reemplaza la actual, para la carga
+  // inicial de la página) o 'skip' (no toca la URL, la llamada vino de
+  // popstate — el usuario ya apretó atrás/adelante y la URL ya está bien).
+  function updateUrlForView(view, navMode){
+    if (navMode === 'skip') return;
+    var method = (navMode === 'replace') ? 'replaceState' : 'pushState';
+    var path;
+    if (view === 'producto'){
+      if (!currentProduct) return;
+      path = '/producto/' + encodeURIComponent(currentProduct.id);
+    } else if (view === 'checkout'){
+      return;
+    } else {
+      path = VIEW_PATHS[view];
+    }
+    if (!path || window.location.pathname === path) return;
+    history[method]({ view: view }, '', path);
+  }
+
+  function go(view, navMode){
     if (view === 'cuenta' && !currentUser){ openAuth('login'); return; }
     tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.view === view)); });
     Object.keys(views).forEach(function(k){ views[k].hidden = (k !== view); });
@@ -2896,7 +2933,38 @@
     if (view === 'pedidos') loadPedidos();
     if (view === 'cuenta'){ loadAccount(); loadWallet(); loadAcctStats(); }
     if (view === 'contacto') prefillContactForm();
+    updateUrlForView(view, navMode);
   }
+
+  // A partir de la URL actual (lo que puso el navegador en la barra de
+  // direcciones, p.ej. al entrar directo o al compartir un link), averigua qué
+  // sección mostrar. Devuelve null si no coincide con nada conocido.
+  function routeFromLocation(){
+    var p = window.location.pathname.replace(/\/+$/, '') || '/';
+    if (p === '/') return { view: 'explorar' };
+    var m = p.match(/^\/producto\/([^\/]+)$/);
+    if (m) return { view: 'producto', productId: decodeURIComponent(m[1]) };
+    for (var k in VIEW_PATHS){ if (VIEW_PATHS[k] === p) return { view: k }; }
+    return null;
+  }
+
+  // Lleva a la sección que indica la URL actual. Se usa tanto al cargar la
+  // página (para que un link directo a /producto/ID o /terminos-y-condiciones
+  // muestre esa sección de entrada) como al apretar atrás/adelante.
+  async function openRoute(route, navMode){
+    if (!route){ return; }
+    if (route.view === 'producto'){
+      var res = await sb.from('products').select('*').eq('id', route.productId).single();
+      if (res.data) openProductDetail(res.data, navMode);
+      else go('explorar', navMode);
+      return;
+    }
+    go(route.view, navMode);
+  }
+
+  window.addEventListener('popstate', function(){
+    openRoute(routeFromLocation() || { view: 'explorar' }, 'skip');
+  });
 
   var drawerOverlay = document.getElementById('drawer-overlay');
   function openDrawer(){ drawerOverlay.classList.add('open'); }
@@ -2913,12 +2981,20 @@
   updateHint();
   document.getElementById('footer-copyright').textContent = '© ' + new Date().getFullYear() + ' UsadoGamer. Todos los derechos reservados.';
 
-  // Si entran desde un link de email (?producto=ID), abrir directo esa publicación
-  var deepLinkId = new URLSearchParams(window.location.search).get('producto');
-  if (deepLinkId){
-    sb.from('products').select('*').eq('id', deepLinkId).single().then(function(res){
-      if (res.data) openProductDetail(res.data);
-    });
+  // Si entran directo a una URL propia (p.ej. /producto/ID, compartida por
+  // WhatsApp, o /terminos-y-condiciones desde un buscador), mostrar esa
+  // sección de entrada en vez de siempre el inicio. 'replace' porque es la
+  // carga inicial: no tiene sentido agregar una entrada nueva al historial.
+  var initialRoute = routeFromLocation();
+  // Compatibilidad con links de email ya mandados antes (formato viejo
+  // ?producto=ID): si la URL no matchea ninguna ruta nueva pero trae ese
+  // parámetro, lo tratamos igual que un link a /producto/ID.
+  if (!initialRoute){
+    var legacyProductId = new URLSearchParams(window.location.search).get('producto');
+    if (legacyProductId) initialRoute = { view: 'producto', productId: legacyProductId };
+  }
+  if (initialRoute && initialRoute.view !== 'explorar'){
+    openRoute(initialRoute, 'replace');
   }
 
   // Si vuelven de Mercado Pago (?mp_return=1|0&order=ID), llevarlos a "Mis
