@@ -241,14 +241,17 @@
   .step{background:var(--surface); border:1px solid var(--border); border-radius:0; padding:20px}
   .step .num{font-family:var(--font-display); font-size:1.5rem; color:var(--accent); margin-bottom:8px}
 
-  footer{border-top:1px solid var(--border); margin-inline:-24px; margin-top:48px; padding:32px 24px 24px; color:var(--muted); font-size:.82rem}
-  .footer-inner{max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:20px}
-  .footer-links{display:flex; flex-wrap:wrap; gap:10px 28px; justify-content:center}
-  .footer-links button{background:none; border:none; padding:0; color:var(--muted); font-size:.82rem; font-family:var(--font-body); cursor:pointer; text-decoration:underline; text-underline-offset:3px}
+  footer{border-top:1px solid var(--border); margin-inline:-24px; margin-top:48px; padding:32px 24px 20px; color:var(--muted); font-size:.82rem}
+  .footer-inner{max-width:1100px; margin:0 auto}
+  .footer-top{display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap}
+  .footer-brand .logo{pointer-events:none}
+  .footer-tagline{margin-top:10px; color:var(--muted); font-size:.85rem}
+  .footer-links{display:flex; flex-direction:column; gap:10px; align-items:flex-end; text-align:right}
+  .footer-links button{background:none; border:none; padding:0; color:var(--muted); font-size:.85rem; font-family:var(--font-body); cursor:pointer}
   .footer-links button:hover{color:var(--fg)}
-  .footer-contact{text-align:center}
-  .footer-contact button{background:none; border:none; padding:0; color:var(--accent); font-weight:700; font-size:.85rem; font-family:var(--font-body); cursor:pointer; text-decoration:underline; text-underline-offset:3px}
-  .footer-bottom{text-align:center; border-top:1px solid var(--border); padding-top:16px; font-size:.78rem}
+  .footer-links .footer-contact-link{color:var(--accent); font-weight:700}
+  .footer-bottom{text-align:center; border-top:1px solid var(--border); margin-top:28px; padding-top:16px; font-size:.78rem}
+  @media (max-width:640px){ .footer-top{flex-direction:column} .footer-links{align-items:flex-start; text-align:left} }
 
   /* checkout */
   .checkout-layout{display:grid; grid-template-columns:1fr 340px; gap:32px; align-items:start; margin-top:16px}
@@ -412,6 +415,7 @@
         <fieldset>
           <legend>Resumen</legend>
           <p class="price tabular" id="producto-price" style="font-size:1.7rem; margin-top:4px"></p>
+          <p class="hint" id="producto-shipping-row" style="margin-top:4px" hidden></p>
           <p class="badge protected" style="display:inline-block; margin-top:10px">Pago protegido</p>
           <button type="button" class="btn-primary" style="width:100%; margin-top:18px" id="producto-buy-btn">Comprar</button>
           <div id="oferta-box" style="margin-top:14px"></div>
@@ -882,14 +886,18 @@
 
 <footer>
   <div class="footer-inner">
-    <div class="footer-links">
-      <button type="button" data-goto="como-funciona">Cómo funciona</button>
-      <button type="button" data-goto="politicas-uso">Políticas de uso</button>
-      <button type="button" data-goto="devoluciones">Política de devoluciones</button>
-      <button type="button" data-goto="terminos">Términos y condiciones</button>
-    </div>
-    <div class="footer-contact">
-      <p>¿Tenés algún problema? <button type="button" data-goto="contacto">Contactanos</button></p>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo" style="cursor:default"><img class="logo-mark" src="logo-gaming-intercambio.png" alt="UsadoGamer"><span>UsadoGamer</span></div>
+        <p class="footer-tagline">Compra con confianza</p>
+      </div>
+      <div class="footer-links">
+        <button type="button" data-goto="terminos">Términos y condiciones</button>
+        <button type="button" data-goto="politicas-uso">Políticas de uso</button>
+        <button type="button" data-goto="devoluciones">Política de devoluciones</button>
+        <button type="button" data-goto="como-funciona">Cómo funciona</button>
+        <button type="button" class="footer-contact-link" data-goto="contacto">¿Tenés un problema? Contactanos</button>
+      </div>
     </div>
     <div class="footer-bottom" id="footer-copyright"></div>
   </div>
@@ -1803,7 +1811,32 @@
     productoOwnNote.hidden = !isMine;
     loadQuestions(product.id);
     loadOfertas(product);
+    loadProductShippingSummary(product);
     go('producto');
+  }
+
+  // Si este comprador ya tiene una cotización de envío contestada para este
+  // producto (todavía sin usar en ningún pedido), se lo mostramos acá
+  // arriba, en el resumen, para que lo vea ANTES de entrar a comprar —
+  // antes solo aparecía recién dentro del checkout.
+  async function loadProductShippingSummary(product){
+    var row = document.getElementById('producto-shipping-row');
+    if (!row) return;
+    row.hidden = true;
+    if (!currentUser || product.user_id === currentUser.id) return;
+    var res = await sb.from('shipping_quotes')
+      .select('cost')
+      .eq('product_id', product.id)
+      .eq('buyer_id', currentUser.id)
+      .is('order_id', null)
+      .not('cost', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (res.error || !res.data || !res.data.length) return;
+    var cost = res.data[0].cost;
+    var total = Number(product.price) + Number(cost);
+    row.innerHTML = 'Envío calculado: <b class="tabular">' + money.format(cost) + '</b> · Total con envío: <b class="tabular">' + money.format(total) + '</b>';
+    row.hidden = false;
   }
 
   // ---------- Contraofertas ----------
