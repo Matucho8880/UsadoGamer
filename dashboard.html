@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Panel de administración — UsadoGamer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="favicon-joystick.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-joystick.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
@@ -86,9 +86,11 @@
   .badge{display:inline-block; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:20px}
   .badge.warn{background:var(--warn-bg); color:var(--warn)}
   .badge.good{background:var(--good-bg); color:var(--good)}
-  .quote-form{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-  .quote-form input{width:130px; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-family:var(--font-body); font-size:.85rem}
-  .quote-form input.quote-origin{width:220px}
+  .quote-form{display:flex; flex-direction:column; gap:2px; max-width:280px}
+  .quote-form label{font-size:.68rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-top:6px}
+  .quote-form label:first-child{margin-top:0}
+  .quote-form input{width:100%; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-family:var(--font-body); font-size:.85rem}
+  .quote-form button{margin-top:8px}
   .quote-err{color:var(--danger); font-size:.78rem; margin-top:4px; width:100%}
 
   .denied{min-height:60vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:40px}
@@ -105,7 +107,7 @@
 
 <header class="bar">
   <div class="barrow">
-    <div class="logo"><img class="logo-mark" src="logo-gaming-intercambio.png" alt="UsadoGamer"><span>UsadoGamer</span></div>
+    <div class="logo"><img class="logo-mark" src="/logo-gaming-intercambio.png" alt="UsadoGamer"><span>UsadoGamer</span></div>
     <span class="logo-tag">Panel de administración</span>
     <div class="spacer"></div>
     <button type="button" class="logout-btn" id="logout-btn" hidden>Cerrar sesión</button>
@@ -287,7 +289,7 @@
     statsGrid.innerHTML = '<div class="stat-card"><div class="n">…</div><div class="l">Cargando</div></div>';
 
     var productsRes = await sb.from('products').select('id,status');
-    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,delivery_origin_address,delivery_included_in_payment,delivery_payment_status,delivery_payment_method,delivery_receipt_url,products(title)');
+    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,delivery_origin_address,delivery_included_in_payment,delivery_payment_status,delivery_payment_method,delivery_receipt_url,seller_package_photo_url,buyer_received_photo_url,products(title)');
     var quotesRes = await sb.from('shipping_quotes').select('id,delivery_method,delivery_address,cost,origin_address,buyer_id,seller_id,product_id,order_id,created_at,products(title)').is('order_id', null);
     var messagesRes = await sb.from('contact_messages').select('id,nombre,email,motivo,referencia,mensaje,estado,created_at').order('created_at', { ascending: false });
 
@@ -450,13 +452,15 @@
         '<div class="order-info">' +
           '<div class="t">' + title + ' — consulta de envío (no pagado)</div>' +
           '<div class="d">Comprador: <b>' + buyerLabel + '</b> · Vendedor: <b>' + sellerLabel + '</b></div>' +
-          '<div class="d">Entrega: <b>' + deliveryTxt + '</b></div>' +
+          '<div class="d">📍 Destino (a dónde se manda): <b>' + deliveryTxt + '</b></div>' +
           '<div class="d">Consultado: ' + dateFmt(q.created_at) + '</div>' +
         '</div>' +
         '<div class="order-actions">' +
           '<div class="quote-form">' +
-            '<input type="text" class="quote-origin" id="presale-quote-origin-' + q.id + '" placeholder="Dirección de origen (desde dónde se envía)" value="' + escapeAttr(originValue) + '">' +
-            '<input type="number" min="1" step="1" class="tabular" inputmode="numeric" id="presale-quote-input-' + q.id + '" placeholder="Costo de envío">' +
+            '<label for="presale-quote-origin-' + q.id + '">Origen (desde dónde sale, ej: localidad del vendedor)</label>' +
+            '<input type="text" class="quote-origin" id="presale-quote-origin-' + q.id + '" placeholder="Ej: Córdoba Capital" value="' + escapeAttr(originValue) + '">' +
+            '<label for="presale-quote-input-' + q.id + '">Costo de envío ($)</label>' +
+            '<input type="number" min="1" step="1" class="tabular" inputmode="numeric" id="presale-quote-input-' + q.id + '" placeholder="Ej: 4500">' +
             '<button type="button" class="btn-sm quote" id="presale-quote-' + q.id + '">Cargar costo</button>' +
           '</div>' +
           '<div class="quote-err" id="presale-quote-err-' + q.id + '" hidden></div>' +
@@ -555,8 +559,10 @@
     if (mode === 'quote'){
       var originValueO = o.delivery_origin_address || (o.seller && o.seller.direccion) || '';
       actions += '<div class="quote-form">' +
-        '<input type="text" class="quote-origin" id="quote-origin-' + o.id + '" placeholder="Dirección de origen (desde dónde se envía)" value="' + escapeAttr(originValueO) + '">' +
-        '<input type="number" min="1" step="1" class="tabular" inputmode="numeric" id="quote-input-' + o.id + '" placeholder="Costo de envío">' +
+        '<label for="quote-origin-' + o.id + '">Origen (desde dónde sale, ej: localidad del vendedor)</label>' +
+        '<input type="text" class="quote-origin" id="quote-origin-' + o.id + '" placeholder="Ej: Córdoba Capital" value="' + escapeAttr(originValueO) + '">' +
+        '<label for="quote-input-' + o.id + '">Costo de envío ($)</label>' +
+        '<input type="number" min="1" step="1" class="tabular" inputmode="numeric" id="quote-input-' + o.id + '" placeholder="Ej: 4500">' +
         '<button type="button" class="btn-sm quote" id="quote-' + o.id + '">Cargar costo</button>' +
         '</div>' +
         '<div class="quote-err" id="quote-err-' + o.id + '" hidden></div>';
@@ -595,7 +601,7 @@
       deliveryStatusTxt = ' · Envío: a cotizar';
     }
     var deliveryBlock = o.delivery_method
-      ? '<div class="d">Entrega: <b>' + (o.delivery_method === 'domicilio'
+      ? '<div class="d">📍 Destino (a dónde se manda): <b>' + (o.delivery_method === 'domicilio'
           ? 'A domicilio — ' + (o.delivery_address || 'sin dirección cargada')
           : 'Retiro en sucursal — ' + (o.delivery_address || 'sin localidad cargada')) +
           deliveryStatusTxt + '</b></div>'
@@ -607,6 +613,18 @@
     var originBlock = (o.delivery_origin_address && mode !== 'quote')
       ? '<div class="d">Se despacha desde: <b>' + o.delivery_origin_address + '</b></div>'
       : '';
+
+    // Fotos de respaldo para resolver reclamos: la del vendedor (paquete
+    // cerrado, obligatoria al despachar) y la del comprador (lo que recibió,
+    // solo si hizo un reclamo). Se muestran siempre que existan, en
+    // cualquier cola, para tenerlas a mano sin tener que buscarlas.
+    var photosBlock = '';
+    if (o.seller_package_photo_url || o.buyer_received_photo_url){
+      var photoLinks = [];
+      if (o.seller_package_photo_url) photoLinks.push('<a class="btn-sm link" href="' + o.seller_package_photo_url + '" target="_blank" rel="noopener">📦 Foto del paquete (vendedor)</a>');
+      if (o.buyer_received_photo_url) photoLinks.push('<a class="btn-sm link" href="' + o.buyer_received_photo_url + '" target="_blank" rel="noopener">📷 Foto de lo recibido (comprador)</a>');
+      photosBlock = '<div class="d" style="margin-top:6px">' + photoLinks.join(' ') + '</div>';
+    }
 
     // Para liberar el pago hace falta saber a dónde transferirle al vendedor,
     // así que mostramos sus datos de cobro justo en esa acción.
@@ -628,6 +646,7 @@
           detailBlock +
           deliveryBlock +
           originBlock +
+          photosBlock +
           payoutBlock +
           '<div class="d">Método: ' + (o.payment_method === 'transferencia' ? 'Transferencia' : 'Tarjeta') + ' · Creado: ' + dateFmt(o.created_at) +
           (mode !== 'view' ? ' · <span class="badge ' + badgeClass + '">' + statusTxt + '</span>' : '') + '</div>' +

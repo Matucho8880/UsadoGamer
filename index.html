@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>UsadoGamer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="favicon-joystick.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-joystick.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700&family=Playfair+Display:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
@@ -325,7 +325,7 @@
 
 <header class="bar">
   <div class="barrow">
-    <div class="logo" data-goto="explorar" style="cursor:pointer"><img class="logo-mark" src="logo-gaming-intercambio.png" alt="UsadoGamer"><span>UsadoGamer</span></div>
+    <div class="logo" data-goto="explorar" style="cursor:pointer"><img class="logo-mark" src="/logo-gaming-intercambio.png" alt="UsadoGamer"><span>UsadoGamer</span></div>
     <div id="auth-area" style="margin-left:auto"></div>
     <button type="button" class="hamburger-btn" id="menu-open-btn" aria-label="Abrir menú"><span></span><span></span><span></span></button>
   </div>
@@ -347,9 +347,10 @@
     <button type="button" class="drawer-link" role="tab" aria-selected="true" data-view="explorar">Explorar</button>
     <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="publicar">Publicar</button>
     <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="como-funciona">Cómo funciona</button>
+    <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="publicaciones" id="tab-publicaciones" hidden>Mis publicaciones</button>
     <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="pedidos" id="tab-pedidos" hidden>Mis pedidos</button>
     <button type="button" class="drawer-link" role="tab" aria-selected="false" data-view="cuenta" id="tab-cuenta" hidden>Mi cuenta</button>
-    <div class="drawer-logo"><img src="logo-gaming-intercambio.png" alt=""><span>UsadoGamer</span></div>
+    <div class="drawer-logo"><img src="/logo-gaming-intercambio.png" alt=""><span>UsadoGamer</span></div>
   </nav>
 </div>
 
@@ -745,6 +746,10 @@
       <div class="step"><div class="num">03</div><h3>Confirmás la recepción</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Cuando te llega, revisás que esté en el estado que esperabas y lo confirmás desde la web.</p></div>
       <div class="step"><div class="num">04</div><h3>Se libera el pago</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Recién ahí, con tu confirmación, el dinero se libera y pasa al vendedor. Si algo no está bien, no se libera: nos encargamos de resolverlo.</p></div>
     </div>
+    <div class="step" style="margin-top:20px">
+      <h3>Fotos como respaldo, para que un reclamo se resuelva rápido</h3>
+      <p style="color:var(--muted); font-size:.9rem; margin-top:8px">Para despachar un producto vendido, el vendedor tiene que subir una foto del paquete ya cerrado — es obligatorio, y queda como prueba de qué se mandó. El comprador, si le llega algo distinto a lo publicado, puede subir una foto de lo que recibió desde "Mis pedidos" antes de confirmar la recepción; si todo llegó bien, no hace falta subir nada, alcanza con confirmar. Con esas dos fotos, cualquier reclamo se resuelve mucho más rápido y de forma justa para los dos.</p>
+    </div>
   </section>
 
   <section id="view-politicas-uso" hidden>
@@ -902,6 +907,12 @@
     </form>
   </section>
 
+  <section id="view-publicaciones" hidden>
+    <h2 style="font-size:1.5rem; margin-bottom:4px; padding-top:40px">Mis publicaciones</h2>
+    <p style="color:var(--muted); margin-top:8px">Todo lo que publicaste, con la opción de editarlo. Lo que ya se vendió necesita que subas una foto del paquete antes de despachar.</p>
+    <div id="publicaciones-list" style="display:flex; flex-direction:column; gap:12px; margin-top:20px"><p class="empty-note">Cargando...</p></div>
+  </section>
+
   <section id="view-pedidos" hidden>
     <h2 style="font-size:1.5rem; margin-bottom:4px; padding-top:40px">Mis pedidos</h2>
     <p style="color:var(--muted); margin-top:8px">Acá ves el estado de lo que compraste y lo que vendiste.</p>
@@ -950,7 +961,7 @@
   <div class="footer-inner">
     <div class="footer-top">
       <div class="footer-brand">
-        <div class="logo" style="cursor:default"><img class="logo-mark" src="logo-gaming-intercambio.png" alt="UsadoGamer"><span>UsadoGamer</span></div>
+        <div class="logo" style="cursor:default"><img class="logo-mark" src="/logo-gaming-intercambio.png" alt="UsadoGamer"><span>UsadoGamer</span></div>
         <p class="footer-tagline">Compra con confianza</p>
         <p class="footer-desc">Conectamos compradores y vendedores de periféricos y accesorios gaming usados de todo el país. El pago del producto queda retenido por la plataforma hasta que confirmás que todo llegó como se describió.</p>
         <div class="footer-badges">
@@ -1096,6 +1107,7 @@
       login.addEventListener('click', function(){ openAuth('login'); });
       authArea.appendChild(login);
     }
+    document.getElementById('tab-publicaciones').hidden = !currentUser;
     document.getElementById('tab-pedidos').hidden = !currentUser;
     document.getElementById('tab-cuenta').hidden = !currentUser;
     updatePublishAccess();
@@ -1546,6 +1558,9 @@
 
   var chosenCategory = null;
   var catNames = {teclados:'Teclados', mouse:'Mouse', auriculares:'Auriculares', monitores:'Monitores'};
+  // Cuando no es null, el formulario de "Publicar" está en modo edición:
+  // el submit actualiza esta publicación en vez de crear una nueva.
+  var editingProduct = null;
 
   function updatePublishAccess(){
     var locked = document.getElementById('publicar-locked');
@@ -1756,18 +1771,23 @@
     btnPublish.disabled = true;
     publishMsg.innerHTML = '';
 
-    var photoUrls = [];
+    // Si no eligen fotos nuevas y estamos editando, se mantienen las que ya
+    // tenía la publicación (el input de archivo no se puede "prellenar").
+    var photoUrls = editingProduct ? (editingProduct.photo_urls || (editingProduct.photo_url ? [editingProduct.photo_url] : [])) : [];
     var filesToUpload = Array.prototype.slice.call(fPhoto.files).slice(0, MAX_PHOTOS);
-    for (var i = 0; i < filesToUpload.length; i++){
-      var file = filesToUpload[i];
-      var path = currentUser.id + '/' + Date.now() + '-' + i + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-      var upload = await sb.storage.from('product-photos').upload(path, file);
-      if (upload.error){
-        publishMsg.innerHTML = '<div class="msg err">No se pudo subir una de las fotos: ' + upload.error.message + '</div>';
-        btnPublish.disabled = false;
-        return;
+    if (filesToUpload.length){
+      photoUrls = [];
+      for (var i = 0; i < filesToUpload.length; i++){
+        var file = filesToUpload[i];
+        var path = currentUser.id + '/' + Date.now() + '-' + i + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        var upload = await sb.storage.from('product-photos').upload(path, file);
+        if (upload.error){
+          publishMsg.innerHTML = '<div class="msg err">No se pudo subir una de las fotos: ' + upload.error.message + '</div>';
+          btnPublish.disabled = false;
+          return;
+        }
+        photoUrls.push(sb.storage.from('product-photos').getPublicUrl(path).data.publicUrl);
       }
-      photoUrls.push(sb.storage.from('product-photos').getPublicUrl(path).data.publicUrl);
     }
 
     var fAlias = document.getElementById('f-alias').value.trim();
@@ -1788,7 +1808,6 @@
     }
 
     var payload = {
-      user_id: currentUser.id,
       category: catSelect.value,
       title: document.getElementById('f-title').value.trim(),
       description: document.getElementById('f-desc').value.trim(),
@@ -1803,33 +1822,102 @@
       photo_urls: photoUrls,
       shipping_carriers: shippingCarriers
     };
-    var { data: inserted, error } = await sb.from('products').insert(payload).select().single();
-    if (error){
-      btnPublish.disabled = false;
-      publishMsg.innerHTML = '<div class="msg err">' + error.message + '</div>';
-      return;
+
+    var productId;
+    if (editingProduct){
+      var updateRes = await sb.from('products').update(payload).eq('id', editingProduct.id).select().single();
+      if (updateRes.error){
+        btnPublish.disabled = false;
+        publishMsg.innerHTML = '<div class="msg err">' + updateRes.error.message + '</div>';
+        return;
+      }
+      productId = editingProduct.id;
+    } else {
+      payload.user_id = currentUser.id;
+      var insertRes = await sb.from('products').insert(payload).select().single();
+      if (insertRes.error){
+        btnPublish.disabled = false;
+        publishMsg.innerHTML = '<div class="msg err">' + insertRes.error.message + '</div>';
+        return;
+      }
+      productId = insertRes.data.id;
     }
 
-    var payoutRes = await sb.from('product_payout_info').insert({
-      product_id: inserted.id,
+    // upsert (no insert) porque sirve tanto para publicar nuevo como para
+    // editar uno que ya tenía sus datos de cobro cargados.
+    var payoutRes = await sb.from('product_payout_info').upsert({
+      product_id: productId,
       seller_id: currentUser.id,
       alias: fAlias || null,
       cbu: fCbu || null
-    });
+    }, { onConflict: 'product_id' });
     btnPublish.disabled = false;
     if (payoutRes.error){
-      publishMsg.innerHTML = '<div class="msg err">El producto se publicó, pero no se pudieron guardar tus datos de cobro: ' + payoutRes.error.message + '. Escribinos para solucionarlo.</div>';
+      publishMsg.innerHTML = '<div class="msg err">Se guardó el producto, pero no se pudieron guardar tus datos de cobro: ' + payoutRes.error.message + '. Escribinos para solucionarlo.</div>';
       return;
     }
-    publishMsg.innerHTML = '<div class="msg ok">¡Publicado! Ya aparece en Explorar.</div>';
+
+    var wasEditing = !!editingProduct;
+    publishMsg.innerHTML = wasEditing ? '<div class="msg ok">¡Cambios guardados!</div>' : '<div class="msg ok">¡Publicado! Ya aparece en Explorar.</div>';
     publishForm.reset();
     photoPreviewGrid.innerHTML = '';
     photoLabel.textContent = 'Tocá para elegir hasta 6 fotos';
     repairDetailWrap.hidden = true;
     updateHint();
     chosenCategory = null;
+    editingProduct = null;
+    btnPublish.textContent = 'Publicar producto';
     updatePublishAccess();
+    if (wasEditing) go('publicaciones');
   });
+
+  // Prepara el formulario de "Publicar" para editar una publicación ya
+  // existente en vez de crear una nueva (la llama "Mis publicaciones").
+  async function openEditProduct(product){
+    editingProduct = product;
+    chosenCategory = product.category;
+    document.getElementById('f-cat').value = product.category;
+    document.getElementById('categoria-elegida-label').textContent = catNames[product.category] || product.category;
+    document.getElementById('f-title').value = product.title || '';
+    document.getElementById('f-desc').value = product.description || '';
+    document.getElementById('f-price').value = product.price || '';
+    document.getElementById('f-cond').value = product.condition || 'Como nuevo';
+    document.getElementById('f-works').checked = !!product.works_ok;
+    document.getElementById('f-box').checked = !!product.has_box;
+    document.getElementById('f-warranty').checked = !!product.has_warranty;
+    document.getElementById('f-repaired').checked = !!product.was_repaired;
+    repairDetailWrap.hidden = !product.was_repaired;
+    fRepairDetail.value = product.repair_detail || '';
+    var carriers = product.shipping_carriers || [];
+    document.getElementById('f-ship-correo').checked = carriers.indexOf('correo_argentino') !== -1;
+    document.getElementById('f-ship-andreani').checked = carriers.indexOf('andreani') !== -1;
+
+    var payoutRes = await sb.from('product_payout_info').select('*').eq('product_id', product.id).maybeSingle();
+    document.getElementById('f-alias').value = (payoutRes.data && payoutRes.data.alias) || '';
+    document.getElementById('f-cbu').value = (payoutRes.data && payoutRes.data.cbu) || '';
+
+    fPhoto.value = '';
+    photoPreviewGrid.innerHTML = '';
+    var existingPhotos = (product.photo_urls && product.photo_urls.length) ? product.photo_urls : (product.photo_url ? [product.photo_url] : []);
+    if (existingPhotos.length){
+      photoLabel.textContent = 'Fotos actuales — elegí fotos nuevas para reemplazarlas';
+      existingPhotos.forEach(function(url){
+        var img = document.createElement('img');
+        img.src = url;
+        img.alt = '';
+        img.style.cssText = 'width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:0';
+        photoPreviewGrid.appendChild(img);
+      });
+    } else {
+      photoLabel.textContent = 'Tocá para elegir hasta 6 fotos';
+    }
+
+    updateHint();
+    btnPublish.textContent = 'Guardar cambios';
+    updatePublishAccess();
+    go('publicar');
+    window.scrollTo(0,0);
+  }
 
   // ---------- Página de producto ----------
   var COPY_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="7" width="10" height="10" rx="2"></rect><path d="M4.5 13.5h-1a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v1"></path></svg>';
@@ -2597,6 +2685,80 @@
     }
   }
 
+  // ---------- Mis publicaciones ----------
+  var publicacionesList = document.getElementById('publicaciones-list');
+  var PROD_STATUS_LABEL = { disponible: 'Activa', reservado: 'Reservada', vendido: 'Vendida' };
+
+  async function loadMisPublicaciones(){
+    if (!currentUser) return;
+    publicacionesList.innerHTML = '<p class="empty-note">Cargando...</p>';
+    var res = await sb.from('products').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+    if (res.error){
+      publicacionesList.innerHTML = '<p class="empty-note">No se pudieron cargar tus publicaciones (' + res.error.message + ').</p>';
+      return;
+    }
+    var rows = res.data || [];
+    if (!rows.length){
+      publicacionesList.innerHTML = '<p class="empty-note">Todavía no publicaste nada.</p>';
+      return;
+    }
+    // Para las vendidas, buscamos el pedido asociado (el más reciente no
+    // cancelado) para poder mostrar ahí mismo "confirmar envío + foto".
+    var soldIds = rows.filter(function(p){ return p.status === 'vendido'; }).map(function(p){ return p.id; });
+    var ordersByProduct = {};
+    if (soldIds.length){
+      var ordersRes = await sb.from('orders').select('*').in('product_id', soldIds).neq('status', 'cancelado').order('created_at', { ascending: false });
+      (ordersRes.data || []).forEach(function(o){
+        if (!ordersByProduct[o.product_id]) ordersByProduct[o.product_id] = o;
+      });
+    }
+    publicacionesList.innerHTML = rows.map(function(p){ return publicacionRowHtml(p, ordersByProduct[p.id]); }).join('');
+  }
+
+  function publicacionRowHtml(p, order){
+    var thumb = p.photo_url
+      ? '<img src="' + p.photo_url + '" alt="" style="width:100%; height:100%; object-fit:cover">'
+      : (icons[p.category] || '🎮');
+    var statusLabel = PROD_STATUS_LABEL[p.status] || p.status;
+    var statusColor = p.status === 'disponible' ? 'var(--good)' : (p.status === 'vendido' ? 'var(--muted)' : 'var(--warn)');
+    var html = '<div style="border:1px solid var(--border); border-left:4px solid ' + statusColor + '; border-radius:0; padding:14px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start">' +
+      '<div style="width:64px; height:64px; flex:none; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:1.6rem; overflow:hidden">' + thumb + '</div>' +
+      '<div style="flex:1; min-width:200px">' +
+        '<div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap">' +
+          '<b>' + escapeHtml(p.title) + '</b><span class="tabular">' + money.format(p.price) + '</span>' +
+        '</div>' +
+        '<p class="hint" style="margin-top:6px">Estado: <b>' + statusLabel + '</b></p>' +
+        '<button type="button" class="ghost-btn" style="margin-top:8px" data-edit-product="' + p.id + '">Editar</button>';
+
+    if (p.status === 'vendido'){
+      if (order && order.status === 'pago_confirmado'){
+        html += sellerShipBlockHtml(order);
+      } else if (order && order.status === 'pendiente_pago'){
+        html += '<p class="hint" style="margin-top:8px">Esperando que se confirme el pago del comprador.</p>';
+      } else if (order && (order.status === 'despachado' || order.status === 'confirmado_entrega' || order.status === 'liberado')){
+        html += '<p class="hint" style="margin-top:8px">Ya despachado' +
+          (order.seller_package_photo_url ? ' — <a href="' + order.seller_package_photo_url + '" target="_blank" rel="noopener">ver foto del paquete</a>' : '') +
+          '.</p>';
+      }
+    }
+
+    html += '</div></div>';
+    return html;
+  }
+
+  document.getElementById('view-publicaciones').addEventListener('click', async function(e){
+    var editBtn = e.target.closest('[data-edit-product]');
+    if (editBtn){
+      var prodRes = await sb.from('products').select('*').eq('id', editBtn.dataset.editProduct).single();
+      if (prodRes.data) openEditProduct(prodRes.data);
+      return;
+    }
+    var shipBtn = e.target.closest('[data-mark-shipped]');
+    if (shipBtn){
+      await markOrderShipped(shipBtn.dataset.markShipped, shipBtn);
+    }
+  });
+
   // Color a la izquierda de cada pedido según su estado, para poder
   // distinguirlos de un vistazo: verde = compra/venta ya completada (pago
   // liberado), rojo = cancelada o en disputa, amarillo = cualquier otra
@@ -2666,6 +2828,83 @@
     '</div>';
   }
 
+  // ---------- Fotos de respaldo para reclamos ----------
+  // Usan el mismo bucket de Storage que los comprobantes de transferencia
+  // (order-receipts), solo que en otra carpeta adentro, para no tener que
+  // crear ni configurar un bucket nuevo.
+  async function uploadOrderPhoto(orderId, file, folder){
+    var path = folder + '/' + orderId + '-' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    var upload = await sb.storage.from('order-receipts').upload(path, file);
+    if (upload.error) throw upload.error;
+    return sb.storage.from('order-receipts').getPublicUrl(path).data.publicUrl;
+  }
+
+  // Bloque del vendedor para marcar como despachado: la foto del paquete
+  // cerrado es obligatoria (queda como prueba de qué se mandó, para
+  // resolver reclamos rápido). Se usa tanto en "Mis pedidos" como en "Mis
+  // publicaciones", por eso es una función aparte.
+  // El mismo pedido puede aparecer renderizado a la vez en "Mis pedidos" y
+  // en "Mis publicaciones" (uno de los dos queda oculto con [hidden], pero
+  // sigue existiendo en el DOM) — por eso este bloque NO usa ids ni
+  // atributos únicos por pedido: markOrderShipped busca siempre adentro del
+  // contenedor del botón que apretaron, nunca por todo el documento, así
+  // nunca lee por error la foto del otro lugar.
+  function sellerShipBlockHtml(order){
+    return '<div class="ship-block" style="margin-top:10px">' +
+      '<label style="margin-top:0">Foto del paquete ya cerrado (obligatoria)</label>' +
+      '<input type="file" accept="image/*" data-ship-photo>' +
+      '<label style="margin-top:10px">Número de seguimiento (opcional)</label>' +
+      '<input type="text" data-tracking-input placeholder="Ej: Correo Argentino 123456789">' +
+      '<button type="button" class="ghost-btn" style="margin-top:8px" data-mark-shipped="' + order.id + '">Marcar como despachado</button>' +
+      '<div class="ship-msg"></div>' +
+    '</div>';
+  }
+
+  // Marca un pedido como despachado: sube la foto (obligatoria), guarda el
+  // seguimiento si cargaron uno, y cambia el estado.
+  async function markOrderShipped(orderId, btn){
+    var container = btn.closest('.ship-block');
+    var photoInput = container ? container.querySelector('[data-ship-photo]') : null;
+    var trackingInput = container ? container.querySelector('[data-tracking-input]') : null;
+    var msgEl = container ? container.querySelector('.ship-msg') : null;
+    var file = photoInput && photoInput.files[0];
+    if (!file){
+      if (msgEl) msgEl.innerHTML = '<div class="msg err">Subí una foto del paquete ya cerrado antes de despachar.</div>';
+      return;
+    }
+    btn.disabled = true;
+    if (msgEl) msgEl.innerHTML = '';
+    try {
+      var photoUrl = await uploadOrderPhoto(orderId, file, 'package-photos');
+      var res = await sb.from('orders').update({
+        status: 'despachado',
+        shipped_at: new Date().toISOString(),
+        tracking_info: trackingInput ? trackingInput.value.trim() : null,
+        seller_package_photo_url: photoUrl
+      }).eq('id', orderId);
+      if (res.error) throw res.error;
+      if (!views.pedidos.hidden) loadPedidos();
+      if (!views.publicaciones.hidden) loadMisPublicaciones();
+    } catch (err) {
+      if (msgEl) msgEl.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo marcar como despachado.') + '</div>';
+      btn.disabled = false;
+    }
+  }
+
+  // Bloque del comprador cuando el pedido ya está despachado: confirmar la
+  // recepción (lo de siempre) + una foto opcional, solo para el caso de
+  // reclamo — si llegó todo bien, no hace falta subir nada.
+  function buyerReceivedBlockHtml(order){
+    return '<div class="received-block" style="margin-top:10px">' +
+      '<button type="button" class="ghost-btn" data-confirm-receipt="' + order.id + '">Confirmar recepción</button>' +
+      '<p class="hint" style="margin-top:10px">¿Llegó algo distinto a lo publicado? Subí una foto antes de confirmar, para respaldar el reclamo (si llegó todo bien, no hace falta).</p>' +
+      '<input type="file" accept="image/*" data-received-photo="' + order.id + '">' +
+      '<button type="button" class="ghost-btn" style="margin-top:8px" data-upload-received-photo="' + order.id + '">Subir foto</button>' +
+      (order.buyer_received_photo_url ? '<p class="hint" style="margin-top:6px">Ya subiste una foto. <a href="' + order.buyer_received_photo_url + '" target="_blank" rel="noopener">Verla</a></p>' : '') +
+      '<div id="received-msg-' + order.id + '"></div>' +
+    '</div>';
+  }
+
   function renderPedidosList(container, rows, tipo){
     if (!rows || !rows.length){
       container.innerHTML = '<p class="empty-note">' + (tipo === 'compra' ? 'Todavía no compraste nada.' : 'Todavía no vendiste nada.') + '</p>';
@@ -2706,7 +2945,7 @@
         }
       }
       if (tipo === 'compra' && order.status === 'despachado'){
-        html += '<button type="button" class="ghost-btn" style="margin-top:8px" data-confirm-receipt="' + order.id + '">Confirmar recepción</button>';
+        html += buyerReceivedBlockHtml(order);
       }
 
       // Envío: independiente del estado del pago del producto (menos si se
@@ -2731,9 +2970,7 @@
         html += '<p class="hint" style="margin-top:6px">El comprador pidió el costo de envío. Mateo lo calcula desde el panel de administración, no tenés que hacer nada.</p>';
       }
       if (tipo === 'venta' && order.status === 'pago_confirmado'){
-        html += '<label style="margin-top:10px">Número de seguimiento (opcional)</label>' +
-          '<input type="text" data-tracking-input="' + order.id + '" placeholder="Ej: Correo Argentino 123456789">' +
-          '<button type="button" class="ghost-btn" style="margin-top:8px" data-mark-shipped="' + order.id + '">Marcar como despachado</button>';
+        html += sellerShipBlockHtml(order);
       }
       box.innerHTML = html;
       container.appendChild(box);
@@ -2884,14 +3121,29 @@
     }
     var shipBtn = e.target.closest('[data-mark-shipped]');
     if (shipBtn){
-      shipBtn.disabled = true;
-      var trackingInput = document.querySelector('[data-tracking-input="' + shipBtn.dataset.markShipped + '"]');
-      await sb.from('orders').update({
-        status: 'despachado',
-        shipped_at: new Date().toISOString(),
-        tracking_info: trackingInput ? trackingInput.value.trim() : null
-      }).eq('id', shipBtn.dataset.markShipped);
-      loadPedidos();
+      await markOrderShipped(shipBtn.dataset.markShipped, shipBtn);
+      return;
+    }
+    var uploadReceivedBtn = e.target.closest('[data-upload-received-photo]');
+    if (uploadReceivedBtn){
+      var orderId = uploadReceivedBtn.dataset.uploadReceivedPhoto;
+      var photoInput = document.querySelector('[data-received-photo="' + orderId + '"]');
+      var msgEl = document.getElementById('received-msg-' + orderId);
+      var file = photoInput && photoInput.files[0];
+      if (!file){
+        if (msgEl) msgEl.innerHTML = '<div class="msg err">Elegí una foto primero.</div>';
+        return;
+      }
+      uploadReceivedBtn.disabled = true;
+      try {
+        var photoUrl = await uploadOrderPhoto(orderId, file, 'delivery-photos');
+        var res = await sb.from('orders').update({ buyer_received_photo_url: photoUrl }).eq('id', orderId);
+        if (res.error) throw res.error;
+        loadPedidos();
+      } catch (err) {
+        if (msgEl) msgEl.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo subir la foto.') + '</div>';
+        uploadReceivedBtn.disabled = false;
+      }
     }
   });
 
@@ -2916,6 +3168,7 @@
     devoluciones: document.getElementById('view-devoluciones'),
     terminos: document.getElementById('view-terminos'),
     contacto: document.getElementById('view-contacto'),
+    publicaciones: document.getElementById('view-publicaciones'),
     pedidos: document.getElementById('view-pedidos'),
     cuenta: document.getElementById('view-cuenta'),
     producto: document.getElementById('view-producto'),
@@ -2934,6 +3187,7 @@
     devoluciones: '/politica-de-devoluciones',
     terminos: '/terminos-y-condiciones',
     contacto: '/contacto',
+    publicaciones: '/mis-publicaciones',
     pedidos: '/mis-pedidos',
     cuenta: '/mi-cuenta'
   };
@@ -2959,12 +3213,13 @@
   }
 
   function go(view, navMode){
-    if (view === 'cuenta' && !currentUser){ openAuth('login'); return; }
+    if ((view === 'cuenta' || view === 'publicaciones') && !currentUser){ openAuth('login'); return; }
     tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.view === view)); });
     Object.keys(views).forEach(function(k){ views[k].hidden = (k !== view); });
     window.scrollTo(0,0);
     if (view === 'explorar') loadProducts();
     if (view === 'pedidos') loadPedidos();
+    if (view === 'publicaciones') loadMisPublicaciones();
     if (view === 'cuenta'){ loadAccount(); loadWallet(); loadAcctStats(); }
     if (view === 'contacto') prefillContactForm();
     updateUrlForView(view, navMode);
@@ -3007,8 +3262,24 @@
   document.getElementById('menu-close-btn').addEventListener('click', closeDrawer);
   drawerOverlay.addEventListener('click', function(e){ if (e.target === drawerOverlay) closeDrawer(); });
 
-  tabs.forEach(function(t){ t.addEventListener('click', function(){ closeDrawer(); go(t.dataset.view); }); });
-  document.querySelectorAll('[data-goto]').forEach(function(b){ b.addEventListener('click', function(){ closeDrawer(); go(b.dataset.goto); }); });
+  // Si entran a "Publicar" por un link normal (no por "Editar" en Mis
+  // publicaciones), hay que limpiar cualquier edición que haya quedado a
+  // medias, para no mostrarles sin querer datos de otra publicación.
+  function resetPublishFormIfEditing(){
+    if (!editingProduct) return;
+    editingProduct = null;
+    chosenCategory = null;
+    publishForm.reset();
+    photoPreviewGrid.innerHTML = '';
+    photoLabel.textContent = 'Tocá para elegir hasta 6 fotos';
+    repairDetailWrap.hidden = true;
+    btnPublish.textContent = 'Publicar producto';
+    publishMsg.innerHTML = '';
+    updateHint();
+  }
+
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ closeDrawer(); if (t.dataset.view === 'publicar') resetPublishFormIfEditing(); go(t.dataset.view); }); });
+  document.querySelectorAll('[data-goto]').forEach(function(b){ b.addEventListener('click', function(){ closeDrawer(); if (b.dataset.goto === 'publicar') resetPublishFormIfEditing(); go(b.dataset.goto); }); });
 
   // ---------- Carga inicial ----------
   loadProducts();
