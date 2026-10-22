@@ -118,13 +118,25 @@
   main{padding-block:0 60px; flex:1 0 auto; width:100%}
   section[hidden]{display:none!important}
 
+  /* .hero vive adentro de <main class="wrap"> (max-width:1120px, centrado),
+     a diferencia de header.bar/footer que son hijos directos de <body> — por
+     eso acá SÍ hace falta el truco de "escapar" del contenedor centrado con
+     100vw, y no alcanza con cancelar el padding del body como en esos otros
+     dos. En pantallas angostas (hasta donde <main> deja de estar topeado en
+     1120px: 1120 + 24px de padding de cada lado = 1168px) no hace falta ese
+     truco, y conviene evitarlo porque 100vw puede generar un hueco a la
+     derecha cuando hay scrollbar (bug que se reportó en tablet) — ahí se usa
+     el mismo método de margin-inline negativo que header.bar/footer. */
   .hero{
-    position:relative; margin-inline:-24px;
+    position:relative; width:100vw; left:50%; margin-left:-50vw;
     padding-block:56px 64px; padding-inline:24px;
     background:var(--bg);
     color:#f3f4fa;
   }
-  @media (max-width:480px){ .hero{margin-inline:-16px} }
+  @media (max-width:1168px){
+    .hero{ width:auto; left:auto; margin-left:-24px; margin-right:-24px; }
+  }
+  @media (max-width:480px){ .hero{padding-inline:16px; margin-left:-16px; margin-right:-16px} }
   /* Fondo diagonal: la mancha oscura cubre un 60-65% del ancho a la izquierda
      (más angosta abajo que arriba) y el resto queda blanco, el fondo normal
      de la página. Es un div aparte en vez de ser el fondo de .hero para poder
@@ -139,7 +151,6 @@
      fondo se ve como una franja azul pareja en vez de una cuña que no
      coincidía con el alto real del hero en todos los celulares. */
   @media (max-width:760px){ .hero-bg{ clip-path:none; } }
-  @media (max-width:480px){ .hero{padding-inline:16px} }
   .hero-inner{position:relative; z-index:1; display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; max-width:1120px; margin-inline:auto}
   @media (max-width:760px){ .hero-inner{grid-template-columns:1fr} .hero{padding-block:36px 48px} }
   .eyebrow{display:inline-flex; align-items:center; gap:7px; color:#8fb0ff; font-weight:700; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; margin-bottom:18px}
@@ -3355,13 +3366,15 @@
     fPhoto.value = '';
     photoPreviewGrid.innerHTML = '';
     photoLabel.textContent = 'Tocá para elegir hasta 6 fotos';
+    // El mensaje de "¡Publicado!" / "¡Cambios guardados!" también se limpia
+    // siempre, para que no quede pegado si se entra a publicar de nuevo.
+    publishMsg.innerHTML = '';
     if (!editingProduct) return;
     editingProduct = null;
     chosenCategory = null;
     publishForm.reset();
     repairDetailWrap.hidden = true;
     btnPublish.textContent = 'Publicar producto';
-    publishMsg.innerHTML = '';
     updateHint();
   }
 
