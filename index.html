@@ -119,11 +119,12 @@
   section[hidden]{display:none!important}
 
   .hero{
-    position:relative; width:100vw; left:50%; margin-left:-50vw;
+    position:relative; margin-inline:-24px;
     padding-block:56px 64px; padding-inline:24px;
     background:var(--bg);
     color:#f3f4fa;
   }
+  @media (max-width:480px){ .hero{margin-inline:-16px} }
   /* Fondo diagonal: la mancha oscura cubre un 60-65% del ancho a la izquierda
      (más angosta abajo que arriba) y el resto queda blanco, el fondo normal
      de la página. Es un div aparte en vez de ser el fondo de .hero para poder
@@ -133,7 +134,11 @@
     background:radial-gradient(120% 140% at 85% 0%, #1a2550 0%, #0c1226 55%, #080b18 100%);
     clip-path:polygon(0 0, 66% 0, 50% 100%, 0 100%);
   }
-  @media (max-width:760px){ .hero-bg{ clip-path:polygon(0 0, 100% 0, 100% 72%, 0 100%); } }
+  /* En celular se oculta la ilustración de la mano (ver .hero-visual más
+     abajo) y el recorte diagonal deja de tener sentido: sin diagonal, el
+     fondo se ve como una franja azul pareja en vez de una cuña que no
+     coincidía con el alto real del hero en todos los celulares. */
+  @media (max-width:760px){ .hero-bg{ clip-path:none; } }
   @media (max-width:480px){ .hero{padding-inline:16px} }
   .hero-inner{position:relative; z-index:1; display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; max-width:1120px; margin-inline:auto}
   @media (max-width:760px){ .hero-inner{grid-template-columns:1fr} .hero{padding-block:36px 48px} }
@@ -256,11 +261,12 @@
   .step .num{font-family:var(--font-display); font-size:1.5rem; color:var(--accent); margin-bottom:8px}
 
   footer{
-    position:relative; width:100vw; left:50%; margin-left:-50vw; margin-top:48px; flex:none;
+    position:relative; margin-inline:-24px; margin-top:48px; flex:none;
     padding:40px 24px 24px;
     background:radial-gradient(120% 140% at 85% 0%, #1a2550 0%, #0c1226 55%, #080b18 100%);
     color:#b7bdd1; font-size:.82rem;
   }
+  @media (max-width:480px){ footer{margin-inline:-16px} }
   .footer-inner{max-width:1100px; margin:0 auto}
   .footer-top{display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap}
   .footer-brand{max-width:360px}
@@ -316,6 +322,9 @@
   .lightbox[hidden]{display:none}
   .lightbox img{max-width:100%; max-height:100%; object-fit:contain}
   .lightbox-close{position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:0; border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.4); color:#fff; font-size:1.3rem; line-height:1; cursor:pointer}
+  .lightbox-nav{position:absolute; top:50%; transform:translateY(-50%); width:48px; height:48px; border-radius:0; border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.4); color:#fff; font-size:1.8rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center}
+  .lightbox-prev{left:16px}
+  .lightbox-next{right:16px}
   .qa-item{border:1px solid var(--border); border-radius:0; padding:12px}
   .qa-item .q{font-weight:600; font-size:.88rem}
   .qa-item .a{color:var(--muted); font-size:.86rem; margin-top:6px; padding-top:6px; border-top:1px solid var(--border)}
@@ -338,7 +347,9 @@
 
 <div class="lightbox" id="lightbox" hidden>
   <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Cerrar">&times;</button>
+  <button type="button" class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Foto anterior">&#8249;</button>
   <img id="lightbox-img" src="" alt="">
+  <button type="button" class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Foto siguiente">&#8250;</button>
 </div>
 
 <div class="drawer-overlay" id="drawer-overlay">
@@ -516,7 +527,7 @@
           <label for="checkout-buyer-mail">Mail</label>
           <input id="checkout-buyer-mail" type="email" disabled>
           <label for="checkout-buyer-telefono">Teléfono</label>
-          <input id="checkout-buyer-telefono" type="tel" placeholder="Ej: 341 555 1234">
+          <input id="checkout-buyer-telefono" type="tel" inputmode="numeric" maxlength="20" placeholder="Ej: 3415551234">
 
           <label style="margin-top:10px">Dirección</label>
           <div style="display:flex; gap:10px; margin-top:4px">
@@ -668,13 +679,13 @@
           <input type="hidden" id="f-cat">
 
           <label for="f-title">Título</label>
-          <input id="f-title" type="text" placeholder="Ej: Teclado mecánico Redragon Kumara switch rojo" required>
+          <input id="f-title" type="text" maxlength="80" placeholder="Ej: Teclado mecánico Redragon Kumara switch rojo" required>
 
           <label for="f-desc">Descripción</label>
-          <textarea id="f-desc" placeholder="Contá el uso que le diste, si tiene la caja, accesorios incluidos, etc."></textarea>
+          <textarea id="f-desc" maxlength="1000" placeholder="Contá el uso que le diste, si tiene la caja, accesorios incluidos, etc."></textarea>
 
           <label for="f-price">Precio (ARS)</label>
-          <input id="f-price" class="tabular" type="number" min="1" placeholder="0" inputmode="numeric" required>
+          <input id="f-price" class="tabular" type="number" min="1" max="999999999" placeholder="0" inputmode="numeric" required>
           <div class="price-hint" id="price-hint" style="display:block"></div>
         </fieldset>
 
@@ -695,7 +706,7 @@
           </div>
           <div id="repair-detail-wrap" hidden>
             <label for="f-repair-detail">Contanos qué le pasó y cómo se reparó</label>
-            <textarea id="f-repair-detail" placeholder="Ej: se cambió el cable USB porque hacía falso contacto, quedó andando perfecto."></textarea>
+            <textarea id="f-repair-detail" maxlength="300" placeholder="Ej: se cambió el cable USB porque hacía falso contacto, quedó andando perfecto."></textarea>
           </div>
           <p class="hint">Estas respuestas se muestran en la publicación para que el comprador sepa exactamente qué está comprando.</p>
         </fieldset>
@@ -705,7 +716,11 @@
           <p class="hint" style="margin-top:0">¿Con qué empresa podés mandar el producto? Marcá todas las que te sirvan.</p>
           <div class="checklist">
             <label><input type="checkbox" id="f-ship-correo" checked> Correo Argentino <span style="color:var(--good); font-weight:700">(recomendado)</span></label>
-            <label><input type="checkbox" id="f-ship-andreani"> Andreani</label>
+            <label class="carrier-soon">
+              <input type="checkbox" id="f-ship-andreani" disabled>
+              <span>Andreani <span class="badge-soon">Próximamente</span></span>
+              <span class="carrier-tooltip">Estamos trabajando en ello. Andreani va a estar disponible como método de envío muy pronto.</span>
+            </label>
           </div>
           <p class="hint">Correo Argentino suele llegar a localidades donde Andreani no tiene sucursal.</p>
         </fieldset>
@@ -716,7 +731,7 @@
           <label for="f-alias">Alias de tu cuenta</label>
           <input id="f-alias" type="text" placeholder="Tu alias">
           <label for="f-cbu">CBU (opcional si pusiste alias)</label>
-          <input id="f-cbu" type="text" inputmode="numeric" placeholder="22 dígitos">
+          <input id="f-cbu" type="text" inputmode="numeric" maxlength="22" placeholder="22 dígitos">
           <p class="hint">Necesitamos al menos uno de los dos para poder pagarte.</p>
         </fieldset>
 
@@ -730,6 +745,7 @@
             <span id="photo-label">Tocá para elegir hasta 6 fotos</span><br><span class="hint">El cambio de fondo automático lo sumamos en un paso aparte</span>
           </label>
           <input id="f-photo" type="file" accept="image/*" multiple style="margin-top:10px; width:100%">
+          <button type="button" class="ghost-btn" id="btn-clear-photos" style="margin-top:8px; width:100%">Limpiar fotos</button>
           <div id="photo-preview-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px"></div>
         </fieldset>
         <button class="btn-primary" type="submit" form="publish-form" style="width:100%" id="btn-publish">Publicar producto</button>
@@ -1712,6 +1728,15 @@
   var priceHint = document.getElementById('price-hint');
   var fPrice = document.getElementById('f-price');
 
+  // El CBU solo admite dígitos (nada de letras ni espacios): se limpia en
+  // cada tecla en vez de solo avisar en el submit, así el usuario ve al
+  // toque que lo que escribió no entra.
+  var fCbu = document.getElementById('f-cbu');
+  fCbu.addEventListener('input', function(){
+    var digits = fCbu.value.replace(/\D/g, '').slice(0, 22);
+    if (digits !== fCbu.value) fCbu.value = digits;
+  });
+
   // Comisión de UsadoGamer. Por ahora solo hay pago por transferencia (sin
   // comisión de Mercado Pago), así que el neto es simplemente precio - comisión.
   var COMMISSION_RATE = 0.08;
@@ -1765,9 +1790,41 @@
     });
   });
 
+  // Botón "Limpiar fotos": vacía el input de archivos y la previsualización
+  // sin tocar el resto del formulario.
+  document.getElementById('btn-clear-photos').addEventListener('click', function(){
+    fPhoto.value = '';
+    photoPreviewGrid.innerHTML = '';
+    photoLabel.textContent = 'Tocá para elegir hasta 6 fotos';
+  });
+
   publishForm.addEventListener('submit', async function(e){
     e.preventDefault();
     if (!currentUser){ publishMsg.innerHTML = '<div class="msg err">Iniciá sesión primero.</div>'; return; }
+
+    // Límites de caracteres/precio, para que no se repita el problema de una
+    // publicación con un título o precio absurdamente largos que rompen el
+    // diseño de la página.
+    var titleVal = document.getElementById('f-title').value.trim();
+    var descVal = document.getElementById('f-desc').value.trim();
+    var priceVal = Number(document.getElementById('f-price').value);
+    if (titleVal.length > 80){
+      publishMsg.innerHTML = '<div class="msg err">El título no puede tener más de 80 caracteres.</div>';
+      return;
+    }
+    if (descVal.length > 1000){
+      publishMsg.innerHTML = '<div class="msg err">La descripción no puede tener más de 1000 caracteres.</div>';
+      return;
+    }
+    if (fRepaired.checked && fRepairDetail.value.trim().length > 300){
+      publishMsg.innerHTML = '<div class="msg err">El detalle de la reparación no puede tener más de 300 caracteres.</div>';
+      return;
+    }
+    if (!priceVal || priceVal <= 0 || priceVal > 999999999){
+      publishMsg.innerHTML = '<div class="msg err">Ingresá un precio válido (hasta $999.999.999).</div>';
+      return;
+    }
+
     btnPublish.disabled = true;
     publishMsg.innerHTML = '';
 
@@ -1788,6 +1845,14 @@
         }
         photoUrls.push(sb.storage.from('product-photos').getPublicUrl(path).data.publicUrl);
       }
+    }
+
+    // Tiene que haber al menos una foto (nueva o, si se está editando, una
+    // ya existente) para poder publicar.
+    if (!photoUrls.length){
+      publishMsg.innerHTML = '<div class="msg err">Subí al menos una foto del producto para poder publicarlo.</div>';
+      btnPublish.disabled = false;
+      return;
     }
 
     var fAlias = document.getElementById('f-alias').value.trim();
@@ -1860,6 +1925,7 @@
     var wasEditing = !!editingProduct;
     publishMsg.innerHTML = wasEditing ? '<div class="msg ok">¡Cambios guardados!</div>' : '<div class="msg ok">¡Publicado! Ya aparece en Explorar.</div>';
     publishForm.reset();
+    fPhoto.value = '';
     photoPreviewGrid.innerHTML = '';
     photoLabel.textContent = 'Tocá para elegir hasta 6 fotos';
     repairDetailWrap.hidden = true;
@@ -2096,7 +2162,15 @@
     }
   });
 
+  // Se guardan acá afuera (no solo como parámetros de la función) para que
+  // el lightbox pueda saber qué foto se está mirando y pasar a la
+  // anterior/siguiente sin tener que volver a buscar nada.
+  var currentGalleryPhotos = [];
+  var currentGalleryIndex = 0;
+
   function renderGallery(photos, category){
+    currentGalleryPhotos = photos || [];
+    currentGalleryIndex = 0;
     if (!photos.length){
       productoGallery.innerHTML = '<div class="gallery-main">' + (icons[category] || '🎮') + '</div>';
       return;
@@ -2109,7 +2183,8 @@
     if (photos.length > 1){
       productoGallery.querySelectorAll('[data-thumb]').forEach(function(thumb){
         thumb.addEventListener('click', function(){
-          document.getElementById('gallery-main-img').src = photos[thumb.dataset.thumb];
+          currentGalleryIndex = Number(thumb.dataset.thumb);
+          document.getElementById('gallery-main-img').src = photos[currentGalleryIndex];
           productoGallery.querySelectorAll('[data-thumb]').forEach(function(t){ t.setAttribute('aria-current', 'false'); });
           thumb.setAttribute('aria-current', 'true');
         });
@@ -2213,6 +2288,12 @@
   var checkoutBuyerApellido = document.getElementById('checkout-buyer-apellido');
   var checkoutBuyerMail = document.getElementById('checkout-buyer-mail');
   var checkoutBuyerTelefono = document.getElementById('checkout-buyer-telefono');
+  // Mismo criterio que con el CBU: el teléfono no admite letras, se limpia
+  // en cada tecla.
+  checkoutBuyerTelefono.addEventListener('input', function(){
+    var digits = checkoutBuyerTelefono.value.replace(/\D/g, '').slice(0, 20);
+    if (digits !== checkoutBuyerTelefono.value) checkoutBuyerTelefono.value = digits;
+  });
   var checkoutBuyerCalle = document.getElementById('checkout-buyer-calle');
   var checkoutBuyerNumero = document.getElementById('checkout-buyer-numero');
   var checkoutBuyerPiso = document.getElementById('checkout-buyer-piso');
@@ -3266,12 +3347,18 @@
   // publicaciones), hay que limpiar cualquier edición que haya quedado a
   // medias, para no mostrarles sin querer datos de otra publicación.
   function resetPublishFormIfEditing(){
+    // El input de fotos vive FUERA de <form id="publish-form"> (el botón de
+    // publicar lo asocia con el atributo form="..."), así que
+    // publishForm.reset() nunca lo limpia solo. Por eso esto se limpia
+    // siempre acá, incluso si no se estaba editando nada, para que no
+    // vuelvan a aparecer fotos de una publicación anterior.
+    fPhoto.value = '';
+    photoPreviewGrid.innerHTML = '';
+    photoLabel.textContent = 'Tocá para elegir hasta 6 fotos';
     if (!editingProduct) return;
     editingProduct = null;
     chosenCategory = null;
     publishForm.reset();
-    photoPreviewGrid.innerHTML = '';
-    photoLabel.textContent = 'Tocá para elegir hasta 6 fotos';
     repairDetailWrap.hidden = true;
     btnPublish.textContent = 'Publicar producto';
     publishMsg.innerHTML = '';
@@ -3322,21 +3409,50 @@
   }
 
   // ---------- Lightbox: ver la foto del producto completa, sin recortar ----------
+  // Tiene flechitas para pasar a la foto anterior/siguiente cuando el
+  // producto tiene más de una, usando currentGalleryPhotos/currentGalleryIndex
+  // (ver renderGallery más arriba).
   var lightbox = document.getElementById('lightbox');
   var lightboxImg = document.getElementById('lightbox-img');
-  function openLightbox(src){
-    lightboxImg.src = src;
+  var lightboxPrev = document.getElementById('lightbox-prev');
+  var lightboxNext = document.getElementById('lightbox-next');
+
+  function updateLightboxImg(){
+    lightboxImg.src = currentGalleryPhotos[currentGalleryIndex] || '';
+    var multi = currentGalleryPhotos.length > 1;
+    lightboxPrev.hidden = !multi;
+    lightboxNext.hidden = !multi;
+    // También se sincroniza la foto principal y la miniatura resaltada,
+    // para que al cerrar el lightbox quede coherente con lo que se veía.
+    var mainImg = document.getElementById('gallery-main-img');
+    if (mainImg) mainImg.src = currentGalleryPhotos[currentGalleryIndex];
+    productoGallery.querySelectorAll('[data-thumb]').forEach(function(t){
+      t.setAttribute('aria-current', String(Number(t.dataset.thumb) === currentGalleryIndex));
+    });
+  }
+  function openLightbox(){
+    updateLightboxImg();
     lightbox.hidden = false;
   }
   function closeLightbox(){
     lightbox.hidden = true;
     lightboxImg.src = '';
   }
+  lightboxPrev.addEventListener('click', function(e){
+    e.stopPropagation();
+    currentGalleryIndex = (currentGalleryIndex - 1 + currentGalleryPhotos.length) % currentGalleryPhotos.length;
+    updateLightboxImg();
+  });
+  lightboxNext.addEventListener('click', function(e){
+    e.stopPropagation();
+    currentGalleryIndex = (currentGalleryIndex + 1) % currentGalleryPhotos.length;
+    updateLightboxImg();
+  });
   lightbox.addEventListener('click', closeLightbox);
   document.getElementById('lightbox-close').addEventListener('click', function(e){ e.stopPropagation(); closeLightbox(); });
   productoGallery.addEventListener('click', function(e){
     var img = e.target.closest('#gallery-main-img');
-    if (img) openLightbox(img.src);
+    if (img) openLightbox();
   });
 
   // ---------- Contacto ----------

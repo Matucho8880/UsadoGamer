@@ -93,6 +93,10 @@
   .quote-form button{margin-top:8px}
   .quote-err{color:var(--danger); font-size:.78rem; margin-top:4px; width:100%}
 
+  .product-row{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap}
+  .product-row:last-child{border-bottom:none}
+  .product-thumb{width:56px; height:56px; flex:none; border-radius:8px; background:var(--surface-2); object-fit:cover; display:block}
+
   .denied{min-height:60vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:40px}
   .denied p{color:var(--muted); margin-top:8px}
 
@@ -205,6 +209,14 @@
       <div class="panel-body" id="list-all"></div>
     </section>
 
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Publicaciones (todas)</h2>
+        <span class="count" id="count-products"></span>
+      </div>
+      <div class="panel-body" id="list-products"></div>
+    </section>
+
   </div>
 
 </main>
@@ -288,7 +300,7 @@
     var statsGrid = document.getElementById('stats-grid');
     statsGrid.innerHTML = '<div class="stat-card"><div class="n">…</div><div class="l">Cargando</div></div>';
 
-    var productsRes = await sb.from('products').select('id,status');
+    var productsRes = await sb.from('products').select('id,status,title,price,category,condition,photo_url,photo_urls,user_id,created_at').order('created_at', { ascending: false });
     var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,delivery_origin_address,delivery_included_in_payment,delivery_payment_status,delivery_payment_method,delivery_receipt_url,seller_package_photo_url,buyer_received_photo_url,products(title)');
     var quotesRes = await sb.from('shipping_quotes').select('id,delivery_method,delivery_address,cost,origin_address,buyer_id,seller_id,product_id,order_id,created_at,products(title)').is('order_id', null);
     var messagesRes = await sb.from('contact_messages').select('id,nombre,email,motivo,referencia,mensaje,estado,created_at').order('created_at', { ascending: false });
@@ -310,6 +322,9 @@
       if (userIds.indexOf(q.buyer_id) === -1) userIds.push(q.buyer_id);
       if (userIds.indexOf(q.seller_id) === -1) userIds.push(q.seller_id);
     });
+    products.forEach(function(p){
+      if (userIds.indexOf(p.user_id) === -1) userIds.push(p.user_id);
+    });
     var profilesById = {};
     if (userIds.length){
       var profRows = await sb.from('profiles').select('id,username,nombre,apellido,email,telefono,direccion,payout_alias,payout_cbu,payout_titular').in('id', userIds);
@@ -323,6 +338,9 @@
       q.buyer = profilesById[q.buyer_id];
       q.seller = profilesById[q.seller_id];
     });
+    products.forEach(function(p){
+      p.seller = profilesById[p.user_id];
+    });
 
     renderStats(products, orders, quotes);
     renderMessages(messages);
@@ -332,6 +350,7 @@
     renderQueue('list-delivery-confirm', 'count-delivery-confirm', orders.filter(function(o){ return o.delivery_payment_status === 'comprobante_subido'; }), 'delivery-confirm');
     renderQueue('list-release', 'count-release', orders.filter(function(o){ return o.status === 'confirmado_entrega'; }), 'release');
     renderQueue('list-all', 'count-all', orders.slice().sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); }), 'view');
+    renderProductsPanel(products);
   }
 
   function renderStats(products, orders, quotes){
@@ -367,6 +386,60 @@
     document.getElementById('stats-grid').innerHTML = cards.map(function(c){
       return '<div class="stat-card"><div class="n tabular">' + c.n + '</div><div class="l">' + c.l + '</div></div>';
     }).join('');
+  }
+
+  // ---------- Publicaciones (todas, con opción de borrar) ----------
+  // Pide revisar y, si hace falta, eliminar la publicación de cualquier
+  // vendedor (por ejemplo si viola las políticas de uso). El borrado usa la
+  // policy RLS de admin que se agrega en schema.sql (panel-admin-borra-productos.sql).
+  var PRODUCT_STATUS_LABEL = { disponible: 'Activa', reservado: 'Reservada', vendido: 'Vendida' };
+
+  function renderProductsPanel(list){
+    var el = document.getElementById('list-products');
+    document.getElementById('count-products').textContent = list.length + (list.length === 1 ? ' publicación' : ' publicaciones');
+    if (!list.length){
+      el.innerHTML = '<div class="empty-row">No hay publicaciones todavía.</div>';
+      return;
+    }
+    el.innerHTML = list.map(function(p){ return productRowHtml(p); }).join('');
+    list.forEach(function(p){
+      var btn = document.getElementById('delete-product-' + p.id);
+      if (btn) btn.addEventListener('click', function(){ deleteProductAdmin(p.id, btn); });
+    });
+  }
+
+  function productRowHtml(p){
+    var photo = p.photo_url || (p.photo_urls && p.photo_urls[0]) || '';
+    var sellerLabel = (p.seller && (p.seller.nombre || p.seller.email)) || p.user_id.slice(0,8);
+    var statusTxt = PRODUCT_STATUS_LABEL[p.status] || p.status;
+    var badgeClass = p.status === 'vendido' ? 'good' : (p.status === 'reservado' ? 'warn' : 'good');
+    return '' +
+      '<div class="product-row">' +
+        (photo ? '<img class="product-thumb" src="' + photo + '" alt="">' : '<div class="product-thumb"></div>') +
+        '<div class="order-info">' +
+          '<div class="t">' + escapeAttr(p.title) + ' — ' + money.format(p.price) + '</div>' +
+          '<div class="d">Vendedor: <b>' + escapeAttr(sellerLabel) + '</b> · Categoría: ' + escapeAttr(p.category) + ' · Estado del producto: ' + escapeAttr(p.condition) + '</div>' +
+          '<div class="d">Publicado: ' + dateFmt(p.created_at) + ' · <span class="badge ' + badgeClass + '">' + statusTxt + '</span></div>' +
+        '</div>' +
+        '<div class="order-actions">' +
+          '<button type="button" class="btn-sm cancel" id="delete-product-' + p.id + '">Eliminar publicación</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  async function deleteProductAdmin(productId, btn){
+    var sure = window.confirm('¿Seguro que querés eliminar esta publicación? No se puede deshacer.');
+    if (!sure) return;
+    btn.disabled = true;
+    btn.textContent = 'Eliminando...';
+    var res = await sb.from('products').delete().eq('id', productId);
+    if (res.error){
+      alert('No se pudo eliminar: ' + res.error.message);
+      btn.disabled = false;
+      btn.textContent = 'Eliminar publicación';
+      return;
+    }
+    loadDashboard();
   }
 
   // ---------- Mensajes de contacto ----------
