@@ -347,6 +347,28 @@
   .qa-item{border:1px solid var(--border); border-radius:0; padding:12px}
   .qa-item .q{font-weight:600; font-size:.88rem}
   .qa-item .a{color:var(--muted); font-size:.86rem; margin-top:6px; padding-top:6px; border-top:1px solid var(--border)}
+
+  /* Asistente (chatbot de preguntas frecuentes): un botón redondo fijo abajo
+     a la derecha que abre un panel con categorías -> preguntas -> respuesta.
+     No tiene campo de texto a propósito: todo son botones con contenido ya
+     escrito, para no tener que armar un bot de verdad. */
+  .chatbot-toggle{position:fixed; right:20px; bottom:20px; width:56px; height:56px; border-radius:50%; background:var(--accent); color:#fff; border:none; font-size:1.6rem; line-height:1; cursor:pointer; box-shadow:0 14px 32px -10px rgba(10,10,10,.45); z-index:40; display:flex; align-items:center; justify-content:center}
+  .chatbot-toggle:hover{filter:brightness(1.08)}
+  .chatbot-panel{position:fixed; right:20px; bottom:88px; width:340px; max-width:calc(100vw - 32px); max-height:min(520px, calc(100vh - 120px)); background:var(--bg); border:1px solid var(--border); border-radius:0; box-shadow:0 24px 60px -20px rgba(10,10,10,.4); z-index:40; display:flex; flex-direction:column; overflow:hidden}
+  .chatbot-head{background:var(--fg); color:#fff; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; font-family:var(--font-display); font-weight:700; font-size:.95rem; flex:none}
+  .chatbot-head-close{background:none; border:none; color:#fff; font-size:1.3rem; line-height:1; cursor:pointer; padding:2px 4px}
+  .chatbot-body{padding:16px; overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1}
+  .chatbot-greet{color:var(--muted); font-size:.85rem; margin-bottom:14px}
+  .chatbot-option{display:block; width:100%; text-align:left; background:var(--surface); border:1px solid var(--border); border-radius:0; padding:12px 14px; margin-bottom:8px; cursor:pointer; font-family:var(--font-body); font-size:.86rem; color:var(--fg)}
+  .chatbot-option:hover{border-color:var(--accent); background:var(--accent-dim)}
+  .chatbot-contact-option{border-color:var(--accent); color:var(--accent); font-weight:700}
+  .chatbot-back{background:none; border:none; color:var(--accent); font-weight:700; font-size:.8rem; cursor:pointer; padding:0; margin-bottom:14px; display:inline-flex; align-items:center; gap:4px}
+  .chatbot-question{font-weight:700; font-size:.92rem; margin-bottom:10px; line-height:1.3}
+  .chatbot-answer{color:var(--muted); font-size:.87rem; line-height:1.55; margin-bottom:16px}
+  @media (max-width:480px){
+    .chatbot-panel{right:10px; left:10px; width:auto; bottom:82px; max-height:min(480px, calc(100vh - 110px))}
+    .chatbot-toggle{right:14px; bottom:14px; width:50px; height:50px; font-size:1.4rem}
+  }
 </style>
 </head>
 <body>
@@ -1074,6 +1096,16 @@
       <button class="link-btn" id="auth-close">Cerrar</button>
     </div>
   </div>
+</div>
+
+<!-- Asistente de preguntas frecuentes: solo botones, sin campo de texto. -->
+<button type="button" class="chatbot-toggle" id="chatbot-toggle" aria-label="Abrir el asistente de ayuda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"></path></svg></button>
+<div class="chatbot-panel" id="chatbot-panel" hidden>
+  <div class="chatbot-head">
+    <span>Asistente UsadoGamer</span>
+    <button type="button" class="chatbot-head-close" id="chatbot-head-close" aria-label="Cerrar asistente">&times;</button>
+  </div>
+  <div class="chatbot-body" id="chatbot-body"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -3392,6 +3424,129 @@
 
   tabs.forEach(function(t){ t.addEventListener('click', function(){ closeDrawer(); if (t.dataset.view === 'publicar') resetPublishFormIfEditing(); go(t.dataset.view); }); });
   document.querySelectorAll('[data-goto]').forEach(function(b){ b.addEventListener('click', function(){ closeDrawer(); if (b.dataset.goto === 'publicar') resetPublishFormIfEditing(); go(b.dataset.goto); }); });
+
+  // ---------- Asistente de preguntas frecuentes (chatbot sin texto libre) ----------
+  // Todo son botones con preguntas y respuestas ya escritas: primero se
+  // eligen categorías, después una pregunta dentro de esa categoría, y se
+  // muestra la respuesta. Si no está lo que busca, un botón lo manda directo
+  // al formulario de contacto.
+  var CHATBOT_DATA = [
+    {
+      id: 'proteccion',
+      label: 'Cómo funciona la protección',
+      questions: [
+        { q: '¿Qué es la "compra protegida"?', a: 'Cuando comprás, tu pago no va directo al vendedor: queda retenido por UsadoGamer hasta que vos confirmás que el producto te llegó en el estado que se prometió. Recién ahí se libera el dinero al vendedor.' },
+        { q: '¿Cuándo se libera el pago al vendedor?', a: 'Se libera recién cuando vos, como comprador, confirmás la recepción desde "Mis pedidos". Si en cambio reportás un problema, el pago queda retenido hasta que lo resolvamos.' },
+        { q: '¿Qué pasa si el producto no llega como se describió?', a: 'No confirmes la recepción. Desde "Mis pedidos" podés tocar "Reportar un problema" y subir una foto de lo que recibiste — el pedido pasa a revisión y el pago sigue retenido hasta que lo resolvamos.' },
+        { q: '¿Las fotos del paquete son obligatorias?', a: 'Para el vendedor sí: antes de despachar tiene que subir una foto del paquete ya cerrado, como prueba de qué mandó. Para el comprador no — solo hace falta si va a reportar un problema con lo que recibió.' }
+      ]
+    },
+    {
+      id: 'publicacion',
+      label: 'Problemas con una publicación',
+      questions: [
+        { q: '¿Cómo edito una publicación que ya hice?', a: 'Desde el menú entrá a "Mis publicaciones" y tocá "Editar" en el producto que quieras modificar.' },
+        { q: '¿Cuántas fotos puedo subir y son obligatorias?', a: 'Podés subir hasta 6 fotos por publicación, y es obligatorio subir al menos una para poder publicar.' },
+        { q: '¿Por qué no puedo elegir Andreani como método de envío?', a: 'Todavía no está disponible — lo vas a ver marcado como "Próximamente". Por ahora el envío se hace con Correo Argentino.' },
+        { q: 'Quiero dar de baja una publicación, ¿cómo hago?', a: 'Por ahora esa opción no está disponible desde la web. Escribinos desde el formulario de contacto contándonos cuál es la publicación y la eliminamos nosotros.' }
+      ]
+    },
+    {
+      id: 'compra',
+      label: 'Problemas con una compra',
+      questions: [
+        { q: 'No recibí mi producto, ¿qué hago?', a: 'Entrá a "Mis pedidos" y revisá el estado del pedido. Si ya figura como despachado y no te llegó, usá el botón "Reportar un problema" subiendo una foto de lo que tengas.' },
+        { q: 'El producto llegó distinto a lo publicado', a: 'No confirmes la recepción. Sacale una foto a lo que recibiste y usá "Reportar un problema" desde "Mis pedidos" — el pago queda retenido mientras lo revisamos.' },
+        { q: '¿Puedo cancelar una compra?', a: 'Si todavía figura "pendiente de pago", podés cancelarla vos mismo desde "Mis pedidos" sin costo. Si ya pagaste, escribinos desde el formulario de contacto para coordinarlo.' },
+        { q: 'El vendedor no despachó el producto', a: 'El vendedor tiene hasta 72 horas hábiles desde que se confirma el pago para despacharlo. Si pasó ese plazo y no hay noticias, escribinos: como el dinero nunca llegó a manos del vendedor, gestionamos la devolución.' }
+      ]
+    },
+    {
+      id: 'pagos',
+      label: 'Pagos y envíos',
+      questions: [
+        { q: '¿Qué métodos de pago puedo usar?', a: 'Transferencia bancaria (sin comisión extra) o tarjeta a través de Mercado Pago, que suma un 4,60% sobre el total a cargo del comprador.' },
+        { q: '¿Cuánto cuesta el envío?', a: 'Depende del destino: lo calculamos nosotros y te avisamos el costo antes de que termines de pagar (también podés pedirlo antes, desde la publicación).' },
+        { q: '¿Cómo cobro si vendo algo?', a: 'Cargás tu alias o CBU al publicar el producto. Cuando se confirma el pago del comprador y éste confirma la recepción, te depositamos el precio menos la comisión de UsadoGamer (8%).' },
+        { q: '¿Con qué correo se hace el envío?', a: 'Hoy, con Correo Argentino. Andreani va a estar disponible pronto.' }
+      ]
+    },
+    {
+      id: 'cuenta',
+      label: 'Mi cuenta',
+      questions: [
+        { q: 'Olvidé mi contraseña', a: 'En la pantalla de inicio de sesión tocá "¿Olvidaste tu contraseña?" y te mandamos un link a tu email para elegir una nueva.' },
+        { q: '¿Cómo cambio mis datos de cuenta?', a: 'Desde el menú entrá a "Mi cuenta" — ahí podés editar tu nombre, teléfono, dirección y tus datos de cobro.' },
+        { q: '¿Tengo que confirmar mi email?', a: 'Sí, te mandamos un mail de confirmación al crear la cuenta. Hasta que no lo confirmes, no vas a poder iniciar sesión.' }
+      ]
+    }
+  ];
+
+  var chatbotToggle = document.getElementById('chatbot-toggle');
+  var chatbotPanel = document.getElementById('chatbot-panel');
+  var chatbotBody = document.getElementById('chatbot-body');
+
+  function chatbotRenderCategories(){
+    var html = '<p class="chatbot-greet">¡Hola! ¿Qué necesitás?</p>';
+    CHATBOT_DATA.forEach(function(cat){
+      html += '<button type="button" class="chatbot-option" data-cat="' + cat.id + '">' + cat.label + '</button>';
+    });
+    html += '<button type="button" class="chatbot-option chatbot-contact-option" data-chatbot-contact>No encontré lo que buscaba</button>';
+    chatbotBody.innerHTML = html;
+  }
+
+  function chatbotRenderQuestions(catId){
+    var cat = CHATBOT_DATA.filter(function(c){ return c.id === catId; })[0];
+    if (!cat) return chatbotRenderCategories();
+    var html = '<button type="button" class="chatbot-back" data-chatbot-back-cats>‹ Menú principal</button>' +
+      '<p class="chatbot-greet" style="margin-top:0">' + cat.label + '</p>';
+    cat.questions.forEach(function(item, i){
+      html += '<button type="button" class="chatbot-option" data-cat="' + cat.id + '" data-q="' + i + '">' + item.q + '</button>';
+    });
+    chatbotBody.innerHTML = html;
+  }
+
+  function chatbotRenderAnswer(catId, qIndex){
+    var cat = CHATBOT_DATA.filter(function(c){ return c.id === catId; })[0];
+    var item = cat && cat.questions[qIndex];
+    if (!item) return chatbotRenderCategories();
+    chatbotBody.innerHTML =
+      '<button type="button" class="chatbot-back" data-cat-back="' + catId + '">‹ ' + cat.label + '</button>' +
+      '<div class="chatbot-question">' + item.q + '</div>' +
+      '<div class="chatbot-answer">' + item.a + '</div>' +
+      '<button type="button" class="chatbot-option chatbot-contact-option" data-chatbot-contact>Esto no resolvió mi duda</button>';
+  }
+
+  chatbotToggle.addEventListener('click', function(){
+    var opening = chatbotPanel.hidden;
+    chatbotPanel.hidden = !opening;
+    if (opening) chatbotRenderCategories();
+  });
+  document.getElementById('chatbot-head-close').addEventListener('click', function(){ chatbotPanel.hidden = true; });
+
+  chatbotBody.addEventListener('click', function(e){
+    var contactBtn = e.target.closest('[data-chatbot-contact]');
+    if (contactBtn){
+      chatbotPanel.hidden = true;
+      closeDrawer();
+      go('contacto');
+      return;
+    }
+    var backCatsBtn = e.target.closest('[data-chatbot-back-cats]');
+    if (backCatsBtn){ chatbotRenderCategories(); return; }
+    var catBackBtn = e.target.closest('[data-cat-back]');
+    if (catBackBtn){ chatbotRenderQuestions(catBackBtn.dataset.catBack); return; }
+    var qBtn = e.target.closest('[data-q]');
+    if (qBtn){ chatbotRenderAnswer(qBtn.dataset.cat, Number(qBtn.dataset.q)); return; }
+    var catBtn = e.target.closest('[data-cat]');
+    if (catBtn){ chatbotRenderQuestions(catBtn.dataset.cat); return; }
+  });
+
+  document.addEventListener('click', function(e){
+    if (!chatbotPanel.hidden && !chatbotPanel.contains(e.target) && !e.target.closest('#chatbot-toggle')){
+      chatbotPanel.hidden = true;
+    }
+  });
 
   // ---------- Carga inicial ----------
   loadProducts();
