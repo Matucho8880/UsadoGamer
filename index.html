@@ -310,9 +310,17 @@
   .order-summary-row{display:flex; justify-content:space-between; font-size:.86rem; padding:6px 0; color:var(--muted)}
   .order-summary-row.total{color:var(--fg); font-weight:700; font-size:1rem; border-top:1px solid var(--border); margin-top:6px; padding-top:14px}
 
-  /* auth modal */
-  .overlay{position:fixed; inset:0; background:rgba(8,9,14,.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; z-index:20}
-  .modal{background:var(--bg); border-radius:0; max-width:380px; width:100%; padding:26px; border:1px solid var(--border); box-shadow:0 24px 60px -20px rgba(10,10,10,.4)}
+  /* auth modal (y cualquier otro .overlay/.modal, como el de cotización de
+     envío): antes, con align-items:center y sin overflow propio, un modal
+     más alto que la pantalla (como "Crear cuenta", con muchos campos) quedaba
+     cortado arriba y abajo sin forma de llegar al resto — y al intentar
+     scrollear adentro, el gesto se le pasaba de largo a la página de atrás
+     en vez de mover el modal. Con overflow-y:auto en el overlay y
+     margin-block:auto en el modal (en vez de centrarlo por align-items), el
+     modal se sigue viendo centrado cuando entra entero, y cuando no entra,
+     arranca arriba y se puede scrollear completo sin mover el fondo. */
+  .overlay{position:fixed; inset:0; background:rgba(8,9,14,.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:flex-start; justify-content:center; padding:20px; z-index:20; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
+  .modal{background:var(--bg); border-radius:0; max-width:380px; width:100%; padding:26px; border:1px solid var(--border); box-shadow:0 24px 60px -20px rgba(10,10,10,.4); margin-block:auto}
   .modal h2{font-size:1.25rem; margin-bottom:4px}
   .modal p.sub{color:var(--muted); font-size:.88rem; margin-top:6px; margin-bottom:18px}
   .modal-foot{display:flex; justify-content:space-between; align-items:center; margin-top:16px}
@@ -775,7 +783,7 @@
     </div>
     <div class="step" style="margin-top:20px">
       <h3>Fotos como respaldo, para que un reclamo se resuelva rápido</h3>
-      <p style="color:var(--muted); font-size:.9rem; margin-top:8px">Para despachar un producto vendido, el vendedor tiene que subir una foto del paquete ya cerrado — es obligatorio, y queda como prueba de qué se mandó. El comprador, si le llega algo distinto a lo publicado, puede subir una foto de lo que recibió desde "Mis pedidos" antes de confirmar la recepción; si todo llegó bien, no hace falta subir nada, alcanza con confirmar. Con esas dos fotos, cualquier reclamo se resuelve mucho más rápido y de forma justa para los dos.</p>
+      <p style="color:var(--muted); font-size:.9rem; margin-top:8px">Para despachar un producto vendido, el vendedor tiene que subir una foto del paquete ya cerrado — es obligatorio, y queda como prueba de qué se mandó. Te recomendamos revisar esa foto (la vas a ver en "Mis pedidos") antes de abrir el paquete cuando te llegue: si el paquete que recibiste no es el mismo que el de la foto, sacale una foto vos también antes de abrirlo. No es obligatorio, pero ayuda muchísimo a resolver cualquier problema más rápido. Si todo llegó bien, simplemente confirmás la recepción desde "Mis pedidos" y no hace falta subir nada. Si no te llegó, o te llegó algo distinto a lo publicado, desde ahí mismo podés reportarlo subiendo una foto de lo que recibiste — vamos a revisar tu caso.</p>
     </div>
   </section>
 
@@ -2983,16 +2991,19 @@
     }
   }
 
-  // Bloque del comprador cuando el pedido ya está despachado: confirmar la
-  // recepción (lo de siempre) + una foto opcional, solo para el caso de
-  // reclamo — si llegó todo bien, no hace falta subir nada.
+  // Bloque del comprador cuando el pedido ya está despachado: dos caminos
+  // bien separados, para que quede claro cuál usar.
+  // 1) "Confirmar recepción": llegó todo bien, no hace falta ninguna foto.
+  // 2) "Reportar un problema": no llegó, o llegó distinto a lo publicado —
+  //    acá SÍ hace falta una foto (si se puede, antes de abrir el paquete) y
+  //    pasa el pedido a "En disputa" para que Mateo lo revise desde el panel.
   function buyerReceivedBlockHtml(order){
     return '<div class="received-block" style="margin-top:10px">' +
-      '<button type="button" class="ghost-btn" data-confirm-receipt="' + order.id + '">Confirmar recepción</button>' +
-      '<p class="hint" style="margin-top:10px">¿Llegó algo distinto a lo publicado? Subí una foto antes de confirmar, para respaldar el reclamo (si llegó todo bien, no hace falta).</p>' +
+      '<button type="button" class="ghost-btn" data-confirm-receipt="' + order.id + '">Confirmar recepción (llegó todo bien)</button>' +
+      '<p class="hint" style="margin-top:12px">¿No llegó, o llegó algo distinto a lo publicado? Sacale una foto a lo que recibiste — si podés, antes de abrir el paquete — y reportalo para que lo revisemos.</p>' +
       '<input type="file" accept="image/*" data-received-photo="' + order.id + '">' +
-      '<button type="button" class="ghost-btn" style="margin-top:8px" data-upload-received-photo="' + order.id + '">Subir foto</button>' +
-      (order.buyer_received_photo_url ? '<p class="hint" style="margin-top:6px">Ya subiste una foto. <a href="' + order.buyer_received_photo_url + '" target="_blank" rel="noopener">Verla</a></p>' : '') +
+      '<button type="button" class="ghost-btn" style="margin-top:8px" data-report-problem="' + order.id + '">Reportar un problema</button>' +
+      (order.buyer_received_photo_url ? '<p class="hint" style="margin-top:6px">Ya reportaste un problema con una foto. <a href="' + order.buyer_received_photo_url + '" target="_blank" rel="noopener">Verla</a></p>' : '') +
       '<div id="received-msg-' + order.id + '"></div>' +
     '</div>';
   }
@@ -3216,25 +3227,26 @@
       await markOrderShipped(shipBtn.dataset.markShipped, shipBtn);
       return;
     }
-    var uploadReceivedBtn = e.target.closest('[data-upload-received-photo]');
-    if (uploadReceivedBtn){
-      var orderId = uploadReceivedBtn.dataset.uploadReceivedPhoto;
+    var reportBtn = e.target.closest('[data-report-problem]');
+    if (reportBtn){
+      var orderId = reportBtn.dataset.reportProblem;
       var photoInput = document.querySelector('[data-received-photo="' + orderId + '"]');
       var msgEl = document.getElementById('received-msg-' + orderId);
       var file = photoInput && photoInput.files[0];
       if (!file){
-        if (msgEl) msgEl.innerHTML = '<div class="msg err">Elegí una foto primero.</div>';
+        if (msgEl) msgEl.innerHTML = '<div class="msg err">Subí una foto de lo que recibiste para poder reportar el problema.</div>';
         return;
       }
-      uploadReceivedBtn.disabled = true;
+      reportBtn.disabled = true;
       try {
         var photoUrl = await uploadOrderPhoto(orderId, file, 'delivery-photos');
-        var res = await sb.from('orders').update({ buyer_received_photo_url: photoUrl }).eq('id', orderId);
+        var res = await sb.from('orders').update({ buyer_received_photo_url: photoUrl, status: 'disputado' }).eq('id', orderId);
         if (res.error) throw res.error;
+        if (msgEl) msgEl.innerHTML = '<div class="msg ok">Listo, reportamos el problema. Vamos a revisar tu caso y contactarte.</div>';
         loadPedidos();
       } catch (err) {
-        if (msgEl) msgEl.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo subir la foto.') + '</div>';
-        uploadReceivedBtn.disabled = false;
+        if (msgEl) msgEl.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo reportar el problema.') + '</div>';
+        reportBtn.disabled = false;
       }
     }
   });

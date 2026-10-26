@@ -179,6 +179,14 @@
 
     <section class="panel">
       <div class="panel-head">
+        <h2>Reclamos (pedidos en disputa)</h2>
+        <span class="count" id="count-disputes"></span>
+      </div>
+      <div class="panel-body" id="list-disputes"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
         <h2>Pagos a confirmar</h2>
         <span class="count" id="count-confirm"></span>
       </div>
@@ -345,6 +353,7 @@
     renderStats(products, orders, quotes);
     renderMessages(messages);
     renderQuoteQueue(quotes.filter(function(q){ return q.cost == null; }));
+    renderQueue('list-disputes', 'count-disputes', orders.filter(function(o){ return o.status === 'disputado'; }), 'view');
     renderQueue('list-quote', 'count-quote', orders.filter(function(o){ return o.status !== 'cancelado' && o.delivery_method && o.delivery_cost == null; }), 'quote');
     renderQueue('list-confirm', 'count-confirm', orders.filter(function(o){ return o.status === 'pendiente_pago' && o.receipt_url; }), 'confirm');
     renderQueue('list-delivery-confirm', 'count-delivery-confirm', orders.filter(function(o){ return o.delivery_payment_status === 'comprobante_subido'; }), 'delivery-confirm');
@@ -369,11 +378,13 @@
     var aConfirmar = orders.filter(function(o){ return o.status === 'pendiente_pago' && o.receipt_url; }).length;
     var envioAConfirmar = orders.filter(function(o){ return o.delivery_payment_status === 'comprobante_subido'; }).length;
     var aLiberar = orders.filter(function(o){ return o.status === 'confirmado_entrega'; }).length;
+    var enDisputa = orders.filter(function(o){ return o.status === 'disputado'; }).length;
 
     var cards = [
       { n: activos, l: 'Publicaciones activas' },
       { n: reservados, l: 'Reservados (en proceso)' },
       { n: vendidos, l: 'Vendidos' },
+      { n: enDisputa, l: 'Reclamos abiertos' },
       { n: consultasACotizar, l: 'Consultas de envío a cotizar' },
       { n: aCotizar, l: 'Envíos a calcular (ya pagado)' },
       { n: aConfirmar, l: 'Pagos a confirmar' },
