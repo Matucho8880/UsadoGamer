@@ -2866,7 +2866,13 @@
           '<b>' + escapeHtml(p.title) + '</b><span class="tabular">' + money.format(p.price) + '</span>' +
         '</div>' +
         '<p class="hint" style="margin-top:6px">Estado: <b>' + statusLabel + '</b></p>' +
-        '<button type="button" class="ghost-btn" style="margin-top:8px" data-edit-product="' + p.id + '">Editar</button>';
+        '<button type="button" class="ghost-btn" style="margin-top:8px" data-edit-product="' + p.id + '">Editar</button>' +
+        // No se puede eliminar una publicación ya vendida (queda como
+        // historial, y además la base no lo permitiría: el pedido sigue
+        // apuntando a este producto).
+        (p.status !== 'vendido'
+          ? ' <button type="button" class="ghost-btn" style="margin-top:8px; color:var(--danger); border-color:var(--danger-bg)" data-delete-product="' + p.id + '">Eliminar</button>'
+          : '');
 
     if (p.status === 'vendido'){
       if (order && order.status === 'pago_confirmado'){
@@ -2894,6 +2900,24 @@
     var shipBtn = e.target.closest('[data-mark-shipped]');
     if (shipBtn){
       await markOrderShipped(shipBtn.dataset.markShipped, shipBtn);
+      return;
+    }
+    var deleteBtn = e.target.closest('[data-delete-product]');
+    if (deleteBtn){
+      var sure = window.confirm('¿Seguro que querés eliminar esta publicación? No se puede deshacer.');
+      if (!sure) return;
+      deleteBtn.disabled = true;
+      var delRes = await sb.from('products').delete().eq('id', deleteBtn.dataset.deleteProduct);
+      if (delRes.error){
+        // Si hay una compra en curso (reservado), la base no deja borrar el
+        // producto porque el pedido todavía lo referencia.
+        alert('No se pudo eliminar: ' + (delRes.error.message.indexOf('violates foreign key') !== -1
+          ? 'esta publicación tiene una compra en curso. Esperá a que se resuelva o escribinos para darla de baja.'
+          : delRes.error.message));
+        deleteBtn.disabled = false;
+        return;
+      }
+      loadMisPublicaciones();
     }
   });
 
