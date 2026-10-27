@@ -348,26 +348,32 @@
   .qa-item .q{font-weight:600; font-size:.88rem}
   .qa-item .a{color:var(--muted); font-size:.86rem; margin-top:6px; padding-top:6px; border-top:1px solid var(--border)}
 
-  /* Asistente (chatbot de preguntas frecuentes): un botón redondo fijo abajo
-     a la derecha que abre un panel con categorías -> preguntas -> respuesta.
-     No tiene campo de texto a propósito: todo son botones con contenido ya
-     escrito, para no tener que armar un bot de verdad. */
-  .chatbot-toggle{position:fixed; right:20px; bottom:20px; width:56px; height:56px; border-radius:50%; background:var(--accent); color:#fff; border:none; font-size:1.6rem; line-height:1; cursor:pointer; box-shadow:0 14px 32px -10px rgba(10,10,10,.45); z-index:40; display:flex; align-items:center; justify-content:center}
+  /* Asistente: un botón redondo fijo abajo a la derecha que abre un panel
+     chico con pinta de chat real — el bot "escribe" (puntitos) y después
+     tipea la respuesta letra por letra, y las opciones son botones (nunca
+     hay un campo de texto libre). El panel es intencionalmente chico, para
+     que no tape el resto de la página. */
+  .chatbot-toggle{position:fixed; right:20px; bottom:20px; width:52px; height:52px; border-radius:50%; background:var(--accent); color:#fff; border:none; font-size:1.6rem; line-height:1; cursor:pointer; box-shadow:0 14px 32px -10px rgba(10,10,10,.45); z-index:40; display:flex; align-items:center; justify-content:center}
   .chatbot-toggle:hover{filter:brightness(1.08)}
-  .chatbot-panel{position:fixed; right:20px; bottom:88px; width:340px; max-width:calc(100vw - 32px); max-height:min(520px, calc(100vh - 120px)); background:var(--bg); border:1px solid var(--border); border-radius:0; box-shadow:0 24px 60px -20px rgba(10,10,10,.4); z-index:40; display:flex; flex-direction:column; overflow:hidden}
-  .chatbot-head{background:var(--fg); color:#fff; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; font-family:var(--font-display); font-weight:700; font-size:.95rem; flex:none}
-  .chatbot-head-close{background:none; border:none; color:#fff; font-size:1.3rem; line-height:1; cursor:pointer; padding:2px 4px}
-  .chatbot-body{padding:16px; overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1}
-  .chatbot-greet{color:var(--muted); font-size:.85rem; margin-bottom:14px}
-  .chatbot-option{display:block; width:100%; text-align:left; background:var(--surface); border:1px solid var(--border); border-radius:0; padding:12px 14px; margin-bottom:8px; cursor:pointer; font-family:var(--font-body); font-size:.86rem; color:var(--fg)}
-  .chatbot-option:hover{border-color:var(--accent); background:var(--accent-dim)}
-  .chatbot-contact-option{border-color:var(--accent); color:var(--accent); font-weight:700}
-  .chatbot-back{background:none; border:none; color:var(--accent); font-weight:700; font-size:.8rem; cursor:pointer; padding:0; margin-bottom:14px; display:inline-flex; align-items:center; gap:4px}
-  .chatbot-question{font-weight:700; font-size:.92rem; margin-bottom:10px; line-height:1.3}
-  .chatbot-answer{color:var(--muted); font-size:.87rem; line-height:1.55; margin-bottom:16px}
+  .chatbot-panel{position:fixed; right:20px; bottom:82px; width:300px; max-width:calc(100vw - 32px); height:min(420px, calc(100vh - 120px)); background:var(--bg); border:1px solid var(--border); border-radius:0; box-shadow:0 24px 60px -20px rgba(10,10,10,.4); z-index:40; display:flex; flex-direction:column; overflow:hidden}
+  .chatbot-head{background:var(--fg); color:#fff; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; font-family:var(--font-display); font-weight:700; font-size:.88rem; flex:none}
+  .chatbot-head-close{background:none; border:none; color:#fff; font-size:1.2rem; line-height:1; cursor:pointer; padding:2px 4px}
+  .chatbot-body{padding:12px; overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1; display:flex; flex-direction:column; gap:8px}
+  .chatbot-msg{max-width:88%; padding:8px 11px; font-size:.8rem; line-height:1.45; border-radius:0; white-space:pre-line}
+  .chatbot-msg-bot{align-self:flex-start; background:var(--surface); border:1px solid var(--border)}
+  .chatbot-msg-user{align-self:flex-end; background:var(--accent); color:#fff}
+  .chatbot-typing{align-self:flex-start; background:var(--surface); border:1px solid var(--border); padding:9px 13px; display:inline-flex; gap:4px}
+  .chatbot-typing span{width:5px; height:5px; border-radius:50%; background:var(--muted); display:inline-block; animation:chatbotBlink 1.2s infinite}
+  .chatbot-typing span:nth-child(2){animation-delay:.2s}
+  .chatbot-typing span:nth-child(3){animation-delay:.4s}
+  @keyframes chatbotBlink{0%,80%,100%{opacity:.25} 40%{opacity:1}}
+  .chatbot-options{display:flex; flex-direction:column; gap:5px; align-self:flex-start; max-width:92%}
+  .chatbot-options button{text-align:left; background:var(--bg); border:1px solid var(--border); border-radius:0; padding:7px 10px; font-size:.78rem; cursor:pointer; color:var(--fg); font-family:var(--font-body)}
+  .chatbot-options button:hover{border-color:var(--accent); background:var(--accent-dim)}
+  .chatbot-options button.chatbot-contact-option{border-color:var(--accent); color:var(--accent); font-weight:700}
   @media (max-width:480px){
-    .chatbot-panel{right:10px; left:10px; width:auto; bottom:82px; max-height:min(480px, calc(100vh - 110px))}
-    .chatbot-toggle{right:14px; bottom:14px; width:50px; height:50px; font-size:1.4rem}
+    .chatbot-panel{right:10px; left:10px; width:auto; bottom:78px; height:min(400px, calc(100vh - 110px))}
+    .chatbot-toggle{right:14px; bottom:14px; width:48px; height:48px; font-size:1.4rem}
   }
 </style>
 </head>
@@ -3425,121 +3431,187 @@
   tabs.forEach(function(t){ t.addEventListener('click', function(){ closeDrawer(); if (t.dataset.view === 'publicar') resetPublishFormIfEditing(); go(t.dataset.view); }); });
   document.querySelectorAll('[data-goto]').forEach(function(b){ b.addEventListener('click', function(){ closeDrawer(); if (b.dataset.goto === 'publicar') resetPublishFormIfEditing(); go(b.dataset.goto); }); });
 
-  // ---------- Asistente de preguntas frecuentes (chatbot sin texto libre) ----------
-  // Todo son botones con preguntas y respuestas ya escritas: primero se
-  // eligen categorías, después una pregunta dentro de esa categoría, y se
-  // muestra la respuesta. Si no está lo que busca, un botón lo manda directo
-  // al formulario de contacto.
+  // ---------- Asistente (chatbot con pinta de chat real, sin texto libre) ----------
+  // Todo son botones con contenido ya escrito; nunca hay un campo para
+  // escribir. La primera vez que se abre en la sesión, el bot "escribe" un
+  // saludo letra por letra antes de mostrar las categorías; las veces
+  // siguientes retoma la conversación donde quedó. Cada categoría tiene una
+  // explicación más conversacional (intro) y, abajo, botones con los temas
+  // puntuales de esa categoría.
   var CHATBOT_DATA = [
     {
       id: 'proteccion',
       label: 'Cómo funciona la protección',
-      questions: [
-        { q: '¿Qué es la "compra protegida"?', a: 'Cuando comprás, tu pago no va directo al vendedor: queda retenido por UsadoGamer hasta que vos confirmás que el producto te llegó en el estado que se prometió. Recién ahí se libera el dinero al vendedor.' },
-        { q: '¿Cuándo se libera el pago al vendedor?', a: 'Se libera recién cuando vos, como comprador, confirmás la recepción desde "Mis pedidos". Si en cambio reportás un problema, el pago queda retenido hasta que lo resolvamos.' },
-        { q: '¿Qué pasa si el producto no llega como se describió?', a: 'No confirmes la recepción. Desde "Mis pedidos" podés tocar "Reportar un problema" y subir una foto de lo que recibiste — el pedido pasa a revisión y el pago sigue retenido hasta que lo resolvamos.' },
-        { q: '¿Las fotos del paquete son obligatorias?', a: 'Para el vendedor sí: antes de despachar tiene que subir una foto del paquete ya cerrado, como prueba de qué mandó. Para el comprador no — solo hace falta si va a reportar un problema con lo que recibió.' }
+      intro: 'Te cuento así quedás tranquilo: cuando comprás algo acá, tu plata no va directo al vendedor. La retenemos nosotros hasta que vos confirmes que todo llegó bien. El vendedor tiene que subir una foto del paquete ya cerrado antes de despacharlo, así queda registro de qué mandó. Cuando te llega, vos elegís: si está todo en orden, confirmás la recepción y ahí recién se le libera la plata al vendedor. Si algo no cuadra, reportás el problema con una foto en vez de confirmar, y la plata queda retenida hasta que lo resolvamos nosotros.',
+      topics: [
+        { q: '¿Qué pasa si no recibo el producto?', a: 'Primero revisá el estado del pedido en "Mis pedidos". Si ya está despachado, dale un poco de margen porque depende del correo — pero si ves que se pasó de tiempo o algo no cierra, usá el botón "Reportar un problema" ahí mismo. No hace falta esperar a tenerlo en la mano, y mientras tanto tu plata sigue retenida.' },
+        { q: '¿Cuándo se libera el pago al vendedor?', a: 'Recién cuando vos, como comprador, confirmás que lo recibiste bien desde "Mis pedidos". Hasta ese momento, el dinero queda guardado de nuestro lado.' },
+        { q: '¿Las fotos del paquete son obligatorias?', a: 'Para el vendedor sí, siempre: antes de despachar tiene que subir la foto del paquete cerrado. Para vos como comprador, solo hace falta si vas a reportar un problema — si llegó todo bien, con confirmar alcanza.' }
       ]
     },
     {
       id: 'publicacion',
       label: 'Problemas con una publicación',
-      questions: [
-        { q: '¿Cómo edito una publicación que ya hice?', a: 'Desde el menú entrá a "Mis publicaciones" y tocá "Editar" en el producto que quieras modificar.' },
-        { q: '¿Cuántas fotos puedo subir y son obligatorias?', a: 'Podés subir hasta 6 fotos por publicación, y es obligatorio subir al menos una para poder publicar.' },
-        { q: '¿Por qué no puedo elegir Andreani como método de envío?', a: 'Todavía no está disponible — lo vas a ver marcado como "Próximamente". Por ahora el envío se hace con Correo Argentino.' },
-        { q: 'Quiero dar de baja una publicación, ¿cómo hago?', a: 'Por ahora esa opción no está disponible desde la web. Escribinos desde el formulario de contacto contándonos cuál es la publicación y la eliminamos nosotros.' }
+      intro: 'Contame un poco más — capaz tu problema está relacionado con alguno de estos:',
+      topics: [
+        { q: 'Una publicación que me interesaba ya no aparece', a: 'Puede ser por varias razones: que alguien ya la haya comprado (pasa a "Vendida"), que esté reservada mientras otro comprador la está pagando, o que el vendedor la haya dado de baja. Si ya no está, no se puede recuperar — pero siempre podés contactarnos si te parece raro, o buscar algo parecido en Explorar.' },
+        { q: 'No puedo editar mi publicación', a: 'Desde el menú entrá a "Mis publicaciones" y tocá "Editar" en esa publicación. Si no te aparece el botón, puede ser que no hayas iniciado sesión con la cuenta que la publicó.' },
+        { q: 'Subí mal una foto y quiero cambiarla', a: 'Sin drama: entrá a "Mis publicaciones", tocá "Editar" y elegí fotos nuevas — al guardar, reemplazan a las anteriores. También tenés un botón "Limpiar fotos" por si te equivocaste al elegirlas.' },
+        { q: 'Quiero dar de baja una publicación', a: 'Por ahora esa opción no está en la web. Escribinos desde el formulario de contacto contándonos cuál es la publicación y la eliminamos nosotros.' }
       ]
     },
     {
       id: 'compra',
       label: 'Problemas con una compra',
-      questions: [
-        { q: 'No recibí mi producto, ¿qué hago?', a: 'Entrá a "Mis pedidos" y revisá el estado del pedido. Si ya figura como despachado y no te llegó, usá el botón "Reportar un problema" subiendo una foto de lo que tengas.' },
-        { q: 'El producto llegó distinto a lo publicado', a: 'No confirmes la recepción. Sacale una foto a lo que recibiste y usá "Reportar un problema" desde "Mis pedidos" — el pago queda retenido mientras lo revisamos.' },
-        { q: '¿Puedo cancelar una compra?', a: 'Si todavía figura "pendiente de pago", podés cancelarla vos mismo desde "Mis pedidos" sin costo. Si ya pagaste, escribinos desde el formulario de contacto para coordinarlo.' },
-        { q: 'El vendedor no despachó el producto', a: 'El vendedor tiene hasta 72 horas hábiles desde que se confirma el pago para despacharlo. Si pasó ese plazo y no hay noticias, escribinos: como el dinero nunca llegó a manos del vendedor, gestionamos la devolución.' }
+      intro: 'Tranquilo, esto se resuelve. ¿Cuál de estas es la que te pasa?',
+      topics: [
+        { q: '¿Cuánto tarda el vendedor en despachar?', a: 'El vendedor tiene 72 horas hábiles desde que confirmamos tu pago para despachar el producto. Si se pasa de ese plazo sin despachar ni avisar, se cancela la compra y te devolvemos la plata — como esa plata nunca llegó a manos del vendedor, no hay drama en devolverla.' },
+        { q: 'Recibí el paquete, ¿qué hago?', a: 'Antes de abrirlo, dale un vistazo a la foto que subió el vendedor del paquete cerrado (la ves en "Mis pedidos") y fijate que sea el mismo que te llegó. Si es igual, lo abrís tranquilo y después confirmás la recepción. Si te da la sensación de que no es el mismo paquete, sacale una foto vos también antes de abrirlo, por las dudas.' },
+        { q: 'No llegó lo que esperaba, ¿cómo reclamo?', a: 'Andá a "Mis pedidos", buscá ese pedido y NO confirmes la recepción. Usá el botón "Reportar un problema", subí una foto de lo que recibiste, y listo: el pedido queda marcado para que lo revisemos y el pago sigue retenido mientras tanto.' },
+        { q: '¿Puedo cancelar mi compra?', a: 'Si todavía dice "pendiente de pago", la cancelás vos mismo desde "Mis pedidos" sin ningún costo. Si ya pagaste, escribinos desde el formulario de contacto y lo vemos juntos.' }
       ]
     },
     {
       id: 'pagos',
       label: 'Pagos y envíos',
-      questions: [
-        { q: '¿Qué métodos de pago puedo usar?', a: 'Transferencia bancaria (sin comisión extra) o tarjeta a través de Mercado Pago, que suma un 4,60% sobre el total a cargo del comprador.' },
-        { q: '¿Cuánto cuesta el envío?', a: 'Depende del destino: lo calculamos nosotros y te avisamos el costo antes de que termines de pagar (también podés pedirlo antes, desde la publicación).' },
-        { q: '¿Cómo cobro si vendo algo?', a: 'Cargás tu alias o CBU al publicar el producto. Cuando se confirma el pago del comprador y éste confirma la recepción, te depositamos el precio menos la comisión de UsadoGamer (8%).' },
-        { q: '¿Con qué correo se hace el envío?', a: 'Hoy, con Correo Argentino. Andreani va a estar disponible pronto.' }
+      intro: 'Te explico cómo es la plata y el envío acá adentro:',
+      topics: [
+        { q: '¿Cómo puedo pagar?', a: 'Podés pagar por transferencia bancaria, sin ninguna comisión extra, o con tarjeta a través de Mercado Pago — ahí se suma un 4,60% sobre el total, que lo paga el comprador.' },
+        { q: '¿Cuánto cuesta el envío?', a: 'Depende de a dónde lo mandemos: lo calculamos nosotros según el destino y te avisamos el costo antes de que termines de pagar. También podés pedirlo antes, desde la misma publicación, si querés saberlo de antemano.' },
+        { q: '¿Con qué correo envían?', a: 'Por ahora, con Correo Argentino (Andreani va a estar disponible pronto). El vendedor tiene 72 horas hábiles desde que se confirma el pago para despachar el paquete.' },
+        { q: '¿Cómo cobro si vendo algo?', a: 'Cargás tu alias o CBU al publicar. Cuando confirmamos tu pago y el comprador confirma que lo recibió bien, te depositamos el precio del producto, descontando la comisión de UsadoGamer (8%).' }
       ]
     },
-    {
-      id: 'cuenta',
-      label: 'Mi cuenta',
-      questions: [
-        { q: 'Olvidé mi contraseña', a: 'En la pantalla de inicio de sesión tocá "¿Olvidaste tu contraseña?" y te mandamos un link a tu email para elegir una nueva.' },
-        { q: '¿Cómo cambio mis datos de cuenta?', a: 'Desde el menú entrá a "Mi cuenta" — ahí podés editar tu nombre, teléfono, dirección y tus datos de cobro.' },
-        { q: '¿Tengo que confirmar mi email?', a: 'Sí, te mandamos un mail de confirmación al crear la cuenta. Hasta que no lo confirmes, no vas a poder iniciar sesión.' }
-      ]
-    }
+    { id: 'cuenta', label: 'Mi cuenta', action: 'cuenta' }
   ];
 
   var chatbotToggle = document.getElementById('chatbot-toggle');
   var chatbotPanel = document.getElementById('chatbot-panel');
-  var chatbotBody = document.getElementById('chatbot-body');
+  var chatbotLog = document.getElementById('chatbot-body');
+  var chatbotStarted = false;
 
-  function chatbotRenderCategories(){
-    var html = '<p class="chatbot-greet">¡Hola! ¿Qué necesitás?</p>';
-    CHATBOT_DATA.forEach(function(cat){
-      html += '<button type="button" class="chatbot-option" data-cat="' + cat.id + '">' + cat.label + '</button>';
-    });
-    html += '<button type="button" class="chatbot-option chatbot-contact-option" data-chatbot-contact>No encontré lo que buscaba</button>';
-    chatbotBody.innerHTML = html;
+  function chatbotScrollBottom(){ chatbotLog.scrollTop = chatbotLog.scrollHeight; }
+
+  function chatbotAppendUser(text){
+    var div = document.createElement('div');
+    div.className = 'chatbot-msg chatbot-msg-user';
+    div.textContent = text;
+    chatbotLog.appendChild(div);
+    chatbotScrollBottom();
   }
 
-  function chatbotRenderQuestions(catId){
-    var cat = CHATBOT_DATA.filter(function(c){ return c.id === catId; })[0];
-    if (!cat) return chatbotRenderCategories();
-    var html = '<button type="button" class="chatbot-back" data-chatbot-back-cats>‹ Menú principal</button>' +
-      '<p class="chatbot-greet" style="margin-top:0">' + cat.label + '</p>';
-    cat.questions.forEach(function(item, i){
-      html += '<button type="button" class="chatbot-option" data-cat="' + cat.id + '" data-q="' + i + '">' + item.q + '</button>';
-    });
-    chatbotBody.innerHTML = html;
+  function chatbotTypewriter(el, text, done){
+    var i = 0;
+    var speed = Math.max(8, Math.min(26, 900 / Math.max(text.length, 1)));
+    (function step(){
+      i++;
+      el.textContent = text.slice(0, i);
+      chatbotScrollBottom();
+      if (i < text.length){ setTimeout(step, speed); }
+      else if (done){ done(); }
+    })();
   }
 
-  function chatbotRenderAnswer(catId, qIndex){
+  // Simula que el bot "está escribiendo" (puntitos) y después tipea el
+  // mensaje letra por letra; al terminar, agrega los botones de opciones.
+  function chatbotAppendBot(text, optionsHtml){
+    var typing = document.createElement('div');
+    typing.className = 'chatbot-typing';
+    typing.innerHTML = '<span></span><span></span><span></span>';
+    chatbotLog.appendChild(typing);
+    chatbotScrollBottom();
+    setTimeout(function(){
+      typing.remove();
+      var msg = document.createElement('div');
+      msg.className = 'chatbot-msg chatbot-msg-bot';
+      chatbotLog.appendChild(msg);
+      chatbotTypewriter(msg, text, function(){
+        if (optionsHtml){
+          var opt = document.createElement('div');
+          opt.className = 'chatbot-options';
+          opt.innerHTML = optionsHtml;
+          chatbotLog.appendChild(opt);
+          chatbotScrollBottom();
+        }
+      });
+    }, 600);
+  }
+
+  function chatbotOptionsHtml(items){
+    return items.map(function(it){
+      return '<button type="button" ' + it.attrs + (it.contact ? ' class="chatbot-contact-option"' : '') + '>' + it.label + '</button>';
+    }).join('');
+  }
+
+  function chatbotMenuOptions(){
+    var items = CHATBOT_DATA.map(function(c){ return { label: c.label, attrs: 'data-cat="' + c.id + '"' }; });
+    items.push({ label: 'No encontré lo que buscaba', attrs: 'data-chatbot-contact', contact: true });
+    return items;
+  }
+
+  function chatbotShowMenu(withGreeting){
+    chatbotAppendBot(
+      withGreeting ? 'Hola, soy tu asistente personal de UsadoGamer. ¿En qué puedo ayudarte?' : '¿En qué más te puedo ayudar?',
+      chatbotOptionsHtml(chatbotMenuOptions())
+    );
+  }
+
+  function chatbotShowCategory(catId){
     var cat = CHATBOT_DATA.filter(function(c){ return c.id === catId; })[0];
-    var item = cat && cat.questions[qIndex];
-    if (!item) return chatbotRenderCategories();
-    chatbotBody.innerHTML =
-      '<button type="button" class="chatbot-back" data-cat-back="' + catId + '">‹ ' + cat.label + '</button>' +
-      '<div class="chatbot-question">' + item.q + '</div>' +
-      '<div class="chatbot-answer">' + item.a + '</div>' +
-      '<button type="button" class="chatbot-option chatbot-contact-option" data-chatbot-contact>Esto no resolvió mi duda</button>';
+    if (!cat) return;
+    chatbotAppendUser(cat.label);
+    if (cat.action === 'cuenta'){
+      chatbotAppendBot('Dale, te llevo a "Mi cuenta".', null);
+      setTimeout(function(){
+        chatbotPanel.hidden = true;
+        closeDrawer();
+        go('cuenta');
+      }, 1000);
+      return;
+    }
+    var items = cat.topics.map(function(t, i){ return { label: t.q, attrs: 'data-cat="' + cat.id + '" data-topic="' + i + '"' }; });
+    items.push({ label: '‹ Volver al menú', attrs: 'data-chatbot-menu' });
+    chatbotAppendBot(cat.intro, chatbotOptionsHtml(items));
+  }
+
+  function chatbotShowTopic(catId, topicIndex){
+    var cat = CHATBOT_DATA.filter(function(c){ return c.id === catId; })[0];
+    var topic = cat && cat.topics[topicIndex];
+    if (!topic) return;
+    chatbotAppendUser(topic.q);
+    var items = cat.topics
+      .map(function(t, i){ return i === topicIndex ? null : { label: t.q, attrs: 'data-cat="' + cat.id + '" data-topic="' + i + '"' }; })
+      .filter(Boolean);
+    items.push({ label: '‹ Volver al menú', attrs: 'data-chatbot-menu' });
+    items.push({ label: 'No encontré lo que buscaba', attrs: 'data-chatbot-contact', contact: true });
+    chatbotAppendBot(topic.a, chatbotOptionsHtml(items));
   }
 
   chatbotToggle.addEventListener('click', function(){
     var opening = chatbotPanel.hidden;
     chatbotPanel.hidden = !opening;
-    if (opening) chatbotRenderCategories();
+    if (opening && !chatbotStarted){
+      chatbotStarted = true;
+      chatbotShowMenu(true);
+    }
   });
   document.getElementById('chatbot-head-close').addEventListener('click', function(){ chatbotPanel.hidden = true; });
 
-  chatbotBody.addEventListener('click', function(e){
+  chatbotLog.addEventListener('click', function(e){
     var contactBtn = e.target.closest('[data-chatbot-contact]');
     if (contactBtn){
+      chatbotAppendUser('No encontré lo que buscaba');
       chatbotPanel.hidden = true;
       closeDrawer();
       go('contacto');
       return;
     }
-    var backCatsBtn = e.target.closest('[data-chatbot-back-cats]');
-    if (backCatsBtn){ chatbotRenderCategories(); return; }
-    var catBackBtn = e.target.closest('[data-cat-back]');
-    if (catBackBtn){ chatbotRenderQuestions(catBackBtn.dataset.catBack); return; }
-    var qBtn = e.target.closest('[data-q]');
-    if (qBtn){ chatbotRenderAnswer(qBtn.dataset.cat, Number(qBtn.dataset.q)); return; }
+    var menuBtn = e.target.closest('[data-chatbot-menu]');
+    if (menuBtn){ chatbotShowMenu(false); return; }
+    var topicBtn = e.target.closest('[data-topic]');
+    if (topicBtn){ chatbotShowTopic(topicBtn.dataset.cat, Number(topicBtn.dataset.topic)); return; }
     var catBtn = e.target.closest('[data-cat]');
-    if (catBtn){ chatbotRenderQuestions(catBtn.dataset.cat); return; }
+    if (catBtn){ chatbotShowCategory(catBtn.dataset.cat); return; }
   });
 
   document.addEventListener('click', function(e){
