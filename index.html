@@ -2200,6 +2200,10 @@
           go('pedidos');
         }
       });
+    } else if (offer.status === 'expirada'){
+      // La oferta fue aceptada pero no se pagó a tiempo: el pedido se
+      // canceló solo y el producto ya está disponible para cualquiera.
+      ofertaBox.innerHTML = '<p class="hint">Tu oferta de <b class="tabular">' + money.format(offer.offered_price) + '</b> fue aceptada, pero venció el plazo de 24hs sin que se completara el pago. El producto volvió a estar disponible — podés comprarlo al precio de lista desde arriba.</p>';
     }
   }
 
@@ -2866,7 +2870,11 @@
           '<b>' + escapeHtml(p.title) + '</b><span class="tabular">' + money.format(p.price) + '</span>' +
         '</div>' +
         '<p class="hint" style="margin-top:6px">Estado: <b>' + statusLabel + '</b></p>' +
-        '<button type="button" class="ghost-btn" style="margin-top:8px" data-edit-product="' + p.id + '">Editar</button>' +
+        // Mientras está reservada o ya vendida, no se puede editar: hay una
+        // compra en curso (o ya resuelta) mirando esos mismos datos.
+        (p.status === 'disponible'
+          ? '<button type="button" class="ghost-btn" style="margin-top:8px" data-edit-product="' + p.id + '">Editar</button>'
+          : '') +
         // No se puede eliminar una publicación ya vendida (queda como
         // historial, y además la base no lo permitiría: el pedido sigue
         // apuntando a este producto).
@@ -2894,7 +2902,13 @@
     var editBtn = e.target.closest('[data-edit-product]');
     if (editBtn){
       var prodRes = await sb.from('products').select('*').eq('id', editBtn.dataset.editProduct).single();
-      if (prodRes.data) openEditProduct(prodRes.data);
+      if (!prodRes.data) return;
+      if (prodRes.data.status !== 'disponible'){
+        alert('Esta publicación ya está ' + (prodRes.data.status === 'vendido' ? 'vendida' : 'reservada por una compra en curso') + ', así que no se puede editar. Esperá a que se resuelva o escribinos si necesitás cambiar algo.');
+        loadMisPublicaciones();
+        return;
+      }
+      openEditProduct(prodRes.data);
       return;
     }
     var shipBtn = e.target.closest('[data-mark-shipped]');
