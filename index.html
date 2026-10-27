@@ -1263,7 +1263,7 @@
   async function loadAccount(){
     if (!currentUser) return;
     accountBody.innerHTML = '<p class="empty-note" style="padding:20px">Cargando...</p>';
-    var res = await sb.from('profiles').select('username,email,nombre,apellido,telefono,direccion,rol,payout_alias,payout_cbu,payout_titular').eq('id', currentUser.id).single();
+    var res = await sb.from('profiles').select('username,email,nombre,apellido,telefono,direccion,direccion_envio,rol,payout_alias,payout_cbu,payout_titular').eq('id', currentUser.id).single();
     profileCache = res.data || {};
     renderAccountView();
     renderPayoutSection();
@@ -1279,6 +1279,7 @@
         acctRow('Email', p.email || '—') +
         acctRow('Teléfono', p.telefono || 'No cargado') +
         acctRow('Dirección', p.direccion || 'No cargada') +
+        acctRow('Despacho de envíos', p.direccion_envio || 'No cargada') +
       '</div>' +
       '<div class="acct-foot"><button type="button" class="link-btn" id="acct-edit-btn">Editar datos</button></div>';
     document.getElementById('acct-edit-btn').addEventListener('click', renderAccountEdit);
@@ -1296,6 +1297,9 @@
         '<input id="acct-telefono" type="tel" value="' + escapeAttr(p.telefono) + '">' +
         '<label for="acct-direccion">Dirección</label>' +
         '<input id="acct-direccion" type="text" value="' + escapeAttr(p.direccion) + '" placeholder="Calle, número, ciudad">' +
+        '<label for="acct-direccion-envio">Si vendés: ¿desde dónde despachás? (localidad y sucursal de Correo Argentino)</label>' +
+        '<input id="acct-direccion-envio" type="text" value="' + escapeAttr(p.direccion_envio) + '" placeholder="Ej: Río Cuarto, sucursal Alberdi 850">' +
+        '<p class="hint" style="margin-top:-8px">La usamos para calcular el costo de tus envíos sin tener que preguntarte cada vez.</p>' +
         '<div id="acct-edit-msg"></div>' +
         '<div style="display:flex; gap:10px; margin-top:16px">' +
           '<button type="submit" class="btn-primary" style="flex:1; padding:10px; font-size:.86rem">Guardar</button>' +
@@ -1312,7 +1316,8 @@
         nombre: document.getElementById('acct-nombre').value.trim() || null,
         apellido: document.getElementById('acct-apellido').value.trim() || null,
         telefono: document.getElementById('acct-telefono').value.trim() || null,
-        direccion: document.getElementById('acct-direccion').value.trim() || null
+        direccion: document.getElementById('acct-direccion').value.trim() || null,
+        direccion_envio: document.getElementById('acct-direccion-envio').value.trim() || null
       };
       var res = await sb.from('profiles').update(updates).eq('id', currentUser.id);
       if (res.error){
@@ -2095,15 +2100,41 @@
     go('producto', navMode);
   }
 
-  // Si este comprador ya tiene una cotización de envío contestada para este
-  // producto (todavía sin usar en ningún pedido), se lo mostramos acá
-  // arriba, en el resumen, para que lo vea ANTES de entrar a comprar —
-  // antes solo aparecía recién dentro del checkout.
+  // Qué mostrar en el resumen de la publicación sobre el envío, para este
+  // comprador puntual. Dos casos, en este orden:
+  //
+  // 1) Camino A: ya compró el producto (hay un pedido suyo en curso) y
+  //    Mateo ya cargó el costo del envío aparte — antes acá no había forma
+  //    de pagarlo, solo se veía el dato y el botón de compra, ya inútil,
+  //    decía "Reservado" sin ninguna acción posible. Ahora mostramos un
+  //    botón real que lo manda a "Mis pedidos", donde está el pago.
+  // 2) Camino B: todavía no compró, pero ya pidió y le contestamos el
+  //    costo de envío (sin usar en ningún pedido) — se lo mostramos acá
+  //    arriba para que lo vea antes de entrar a comprar.
   async function loadProductShippingSummary(product){
     var row = document.getElementById('producto-shipping-row');
     if (!row) return;
     row.hidden = true;
+    row.innerHTML = '';
     if (!currentUser || product.user_id === currentUser.id) return;
+
+    var orderRes = await sb.from('orders')
+      .select('delivery_cost,delivery_included_in_payment,delivery_payment_status')
+      .eq('product_id', product.id)
+      .eq('buyer_id', currentUser.id)
+      .neq('status', 'cancelado')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    var order = (!orderRes.error && orderRes.data && orderRes.data.length) ? orderRes.data[0] : null;
+    if (order && order.delivery_cost != null && !order.delivery_included_in_payment &&
+        order.delivery_payment_status !== 'confirmado' && order.delivery_payment_status !== 'comprobante_subido'){
+      row.innerHTML = 'Ya calculamos el envío de tu compra: <b class="tabular">' + money.format(order.delivery_cost) + '</b>, se paga aparte del producto. ' +
+        '<button type="button" class="ghost-btn" style="margin-top:6px" id="producto-pagar-envio-btn">Pagar envío</button>';
+      row.hidden = false;
+      document.getElementById('producto-pagar-envio-btn').addEventListener('click', function(){ go('pedidos'); });
+      return;
+    }
+
     var res = await sb.from('shipping_quotes')
       .select('cost')
       .eq('product_id', product.id)
@@ -2687,7 +2718,17 @@
       // Si todavía no tiene método de envío cargado y el comprador pidió una
       // cotización sin contestar (Camino A), se la copiamos acá para que
       // aparezca en la cola de "Calcular envío (pedido ya pagado)" del panel.
-      if (checkoutUnansweredQuote && !reused.delivery_method){
+      // Si en cambio la cotización YA estaba contestada (Camino B), se suma
+      // directo al pedido reutilizado — antes esta rama no la contemplaba y
+      // el pedido se quedaba sin el costo de envío aunque el checkout
+      // mostrara "ya está sumado al total".
+      if (checkoutPendingQuote && !reused.delivery_method){
+        patch2.delivery_method = checkoutPendingQuote.delivery_method;
+        patch2.delivery_address = checkoutPendingQuote.delivery_address;
+        patch2.delivery_cost = checkoutPendingQuote.cost;
+        patch2.delivery_origin_address = checkoutPendingQuote.origin_address;
+        patch2.delivery_included_in_payment = true;
+      } else if (checkoutUnansweredQuote && !reused.delivery_method){
         patch2.delivery_method = checkoutUnansweredQuote.delivery_method;
         patch2.delivery_address = checkoutUnansweredQuote.delivery_address;
       }
@@ -2695,7 +2736,9 @@
       if (patchRes2.error) throw patchRes2.error;
       Object.assign(reused, patch2);
       orderRow = reused;
-      if (checkoutUnansweredQuote && !checkoutUnansweredQuote.order_id){
+      if (checkoutPendingQuote && !checkoutPendingQuote.order_id){
+        await sb.from('shipping_quotes').update({ order_id: orderRow.id }).eq('id', checkoutPendingQuote.id);
+      } else if (checkoutUnansweredQuote && !checkoutUnansweredQuote.order_id){
         await sb.from('shipping_quotes').update({ order_id: orderRow.id }).eq('id', checkoutUnansweredQuote.id);
       }
     } else {
