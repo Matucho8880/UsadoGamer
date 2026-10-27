@@ -871,7 +871,7 @@
 
     <div class="acct-section">
       <div class="acct-section-head"><h3>Si el producto no llega como se describió</h3></div>
-      <div style="padding:16px 20px"><p style="color:var(--muted)">No confirmes la recepción todavía. Escribinos desde "¿Tenés un problema? Contactanos" dentro de las 48 horas de haberlo recibido, contanos qué pasó (con fotos si podés) y lo revisamos. Mientras el reclamo esté abierto, el pago del producto sigue retenido.</p></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">No confirmes la recepción todavía. Desde "Mis pedidos" tocá "Reportar un problema" y subí una foto de lo que recibiste — así queda registrado y lo revisamos. Si preferís, también podés escribirnos desde "¿Tenés un problema? Contactanos". Mientras el reclamo esté abierto, el pago del producto sigue retenido.</p></div>
     </div>
 
     <div class="acct-section">
@@ -3379,7 +3379,7 @@
   }
 
   function go(view, navMode){
-    if ((view === 'cuenta' || view === 'publicaciones') && !currentUser){ openAuth('login'); return; }
+    if ((view === 'cuenta' || view === 'publicaciones' || view === 'pedidos') && !currentUser){ openAuth('login'); return; }
     tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.view === view)); });
     Object.keys(views).forEach(function(k){ views[k].hidden = (k !== view); });
     window.scrollTo(0,0);
@@ -3481,7 +3481,7 @@
         { q: 'Una publicación que me interesaba ya no aparece', a: 'Puede ser por varias razones: que alguien ya la haya comprado (pasa a "Vendida"), que esté reservada mientras otro comprador la está pagando, o que el vendedor la haya dado de baja. Si ya no está, no se puede recuperar — pero siempre podés contactarnos si te parece raro, o buscar algo parecido en Explorar.' },
         { q: 'No puedo editar mi publicación', a: 'Desde el menú entrá a "Mis publicaciones" y tocá "Editar" en esa publicación. Si no te aparece el botón, puede ser que no hayas iniciado sesión con la cuenta que la publicó.' },
         { q: 'Subí mal una foto y quiero cambiarla', a: 'Sin drama: entrá a "Mis publicaciones", tocá "Editar" y elegí fotos nuevas — al guardar, reemplazan a las anteriores. También tenés un botón "Limpiar fotos" por si te equivocaste al elegirlas.' },
-        { q: 'Quiero dar de baja una publicación', a: 'Por ahora esa opción no está en la web. Escribinos desde el formulario de contacto contándonos cuál es la publicación y la eliminamos nosotros.' }
+        { q: 'Quiero dar de baja una publicación', a: 'Entrá a "Mis publicaciones" y tocá "Eliminar" en esa publicación — te vamos a pedir que confirmes antes de borrarla. Si tiene una compra en curso no se puede eliminar hasta que esa compra se resuelva; en ese caso escribinos desde el formulario de contacto y te ayudamos.' }
       ]
     },
     {
@@ -3662,7 +3662,12 @@
     if (legacyProductId) initialRoute = { view: 'producto', productId: legacyProductId };
   }
   if (initialRoute && initialRoute.view !== 'explorar'){
-    openRoute(initialRoute, 'replace');
+    // Se difiere con setTimeout para que termine de ejecutarse el resto del
+    // script (que más abajo declara variables de vistas como "contacto",
+    // "cuenta", etc.) antes de navegar a una vista que las necesite — si no,
+    // entrar directo por URL a esas vistas podía fallar porque esas
+    // variables todavía no estaban asignadas.
+    setTimeout(function(){ openRoute(initialRoute, 'replace'); }, 0);
   }
 
   // Si vuelven de Mercado Pago (?mp_return=1|0&order=ID), llevarlos a "Mis
