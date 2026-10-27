@@ -335,7 +335,7 @@
     });
     var profilesById = {};
     if (userIds.length){
-      var profRows = await sb.from('profiles').select('id,username,nombre,apellido,email,telefono,direccion,payout_alias,payout_cbu,payout_titular').in('id', userIds);
+      var profRows = await sb.from('profiles').select('id,username,nombre,apellido,email,telefono,direccion,direccion_envio,payout_alias,payout_cbu,payout_titular').in('id', userIds);
       (profRows.data || []).forEach(function(p){ profilesById[p.id] = p; });
     }
     orders.forEach(function(o){
@@ -529,7 +529,7 @@
     var deliveryTxt = q.delivery_method === 'domicilio'
       ? 'A domicilio — ' + (q.delivery_address || 'sin dirección cargada')
       : 'Retiro en sucursal — ' + (q.delivery_address || 'sin localidad cargada');
-    var originValue = q.origin_address || (q.seller && q.seller.direccion) || '';
+    var originValue = q.origin_address || (q.seller && (q.seller.direccion_envio || q.seller.direccion)) || '';
 
     return '' +
       '<div class="order-row status-yellow">' +
@@ -641,7 +641,7 @@
 
     var actions = '';
     if (mode === 'quote'){
-      var originValueO = o.delivery_origin_address || (o.seller && o.seller.direccion) || '';
+      var originValueO = o.delivery_origin_address || (o.seller && (o.seller.direccion_envio || o.seller.direccion)) || '';
       actions += '<div class="quote-form">' +
         '<label for="quote-origin-' + o.id + '">Origen (desde dónde sale, ej: localidad del vendedor)</label>' +
         '<input type="text" class="quote-origin" id="quote-origin-' + o.id + '" placeholder="Ej: Córdoba Capital" value="' + escapeAttr(originValueO) + '">' +
