@@ -179,6 +179,14 @@
 
     <section class="panel">
       <div class="panel-head">
+        <h2>Pedidos cotizados</h2>
+        <span class="count" id="count-quoted"></span>
+      </div>
+      <div class="panel-body" id="list-quoted"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
         <h2>Reclamos (pedidos en disputa)</h2>
         <span class="count" id="count-disputes"></span>
       </div>
@@ -199,6 +207,14 @@
         <span class="count" id="count-delivery-confirm"></span>
       </div>
       <div class="panel-body" id="list-delivery-confirm"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Despachados (esperando que el comprador confirme)</h2>
+        <span class="count" id="count-shipped"></span>
+      </div>
+      <div class="panel-body" id="list-shipped"></div>
     </section>
 
     <section class="panel">
@@ -353,10 +369,20 @@
     renderStats(products, orders, quotes);
     renderMessages(messages);
     renderQuoteQueue(quotes.filter(function(q){ return q.cost == null; }));
+    renderQuotedQueue(
+      quotes.filter(function(q){ return q.cost != null; }),
+      orders.filter(function(o){
+        return o.status !== 'cancelado' && o.delivery_cost != null && (
+          (!o.delivery_included_in_payment && o.delivery_payment_status === 'pendiente') ||
+          (o.delivery_included_in_payment && o.status === 'pendiente_pago')
+        );
+      })
+    );
     renderQueue('list-disputes', 'count-disputes', orders.filter(function(o){ return o.status === 'disputado'; }), 'view');
     renderQueue('list-quote', 'count-quote', orders.filter(function(o){ return o.status !== 'cancelado' && o.delivery_method && o.delivery_cost == null; }), 'quote');
     renderQueue('list-confirm', 'count-confirm', orders.filter(function(o){ return o.status === 'pendiente_pago' && o.receipt_url; }), 'confirm');
     renderQueue('list-delivery-confirm', 'count-delivery-confirm', orders.filter(function(o){ return o.delivery_payment_status === 'comprobante_subido'; }), 'delivery-confirm');
+    renderQueue('list-shipped', 'count-shipped', orders.filter(function(o){ return o.status === 'despachado'; }), 'view');
     renderQueue('list-release', 'count-release', orders.filter(function(o){ return o.status === 'confirmado_entrega'; }), 'release');
     renderQueue('list-all', 'count-all', orders.slice().sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); }), 'view');
     renderProductsPanel(products);
@@ -577,6 +603,63 @@
       return;
     }
     loadDashboard();
+  }
+
+  // ---------- Pedidos cotizados (ya se cargó el costo, pero todavía no se
+  // puede hacer nada más desde acá: o el comprador todavía no compró — es
+  // una consulta respondida — o ya compró y está esperando que pague el
+  // envío aparte, o lo va a pagar junto con el producto). Esta sección es
+  // de solo lectura: evita que una vez cotizado vuelva a aparecer el
+  // formulario para cargar el costo de nuevo, y muestra claramente si se
+  // paga todo junto o por separado.
+  function renderQuotedQueue(answeredQuotes, pendingDeliveryOrders){
+    var el = document.getElementById('list-quoted');
+    var total = answeredQuotes.length + pendingDeliveryOrders.length;
+    document.getElementById('count-quoted').textContent = total + (total === 1 ? ' pedido' : ' pedidos');
+    if (!total){
+      el.innerHTML = '<div class="empty-row">No hay pedidos cotizados por ahora.</div>';
+      return;
+    }
+    var rows = answeredQuotes.map(function(q){ return quotedAnsweredRowHtml(q); })
+      .concat(pendingDeliveryOrders.map(function(o){ return quotedOrderRowHtml(o); }));
+    el.innerHTML = rows.join('');
+  }
+
+  function quotedAnsweredRowHtml(q){
+    var title = (q.products && q.products.title) || 'Producto';
+    var buyerLabel = (q.buyer && (q.buyer.nombre || q.buyer.email)) || q.buyer_id.slice(0,8);
+    var sellerLabel = (q.seller && (q.seller.nombre || q.seller.email)) || q.seller_id.slice(0,8);
+    var deliveryTxt = q.delivery_method === 'domicilio'
+      ? 'A domicilio — ' + (q.delivery_address || 'sin dirección cargada')
+      : 'Retiro en sucursal — ' + (q.delivery_address || 'sin localidad cargada');
+    return '' +
+      '<div class="order-row status-yellow">' +
+        '<div class="order-info">' +
+          '<div class="t">' + title + ' — cotización de envío: ' + money.format(q.cost) + '</div>' +
+          '<div class="d">Comprador: <b>' + buyerLabel + '</b> · Vendedor: <b>' + sellerLabel + '</b></div>' +
+          '<div class="d">📍 Destino: <b>' + deliveryTxt + '</b> · Origen: <b>' + (q.origin_address || '—') + '</b></div>' +
+          '<div class="d">Cotizado: ' + dateFmt(q.answered_at || q.created_at) + '</div>' +
+        '</div>' +
+        '<div class="order-actions"><span class="badge warn">Esperando que compre (todavía no pagó nada)</span></div>' +
+      '</div>';
+  }
+
+  function quotedOrderRowHtml(o){
+    var title = (o.products && o.products.title) || 'Producto';
+    var buyerLabel = (o.buyer && (o.buyer.nombre || o.buyer.email)) || o.buyer_id.slice(0,8);
+    var sellerLabel = (o.seller && (o.seller.nombre || o.seller.email)) || o.seller_id.slice(0,8);
+    var modoTxt = o.delivery_included_in_payment
+      ? 'Se paga todo junto (producto + envío), pedido pendiente de pago'
+      : 'El producto ya está pagado — el envío (' + money.format(o.delivery_cost) + ') se paga aparte, todavía no lo pagó';
+    return '' +
+      '<div class="order-row status-yellow">' +
+        '<div class="order-info">' +
+          '<div class="t">' + title + ' — ' + money.format(o.amount + (o.delivery_included_in_payment ? Number(o.delivery_cost||0) : 0)) + '</div>' +
+          '<div class="d">Comprador: <b>' + buyerLabel + '</b> · Vendedor: <b>' + sellerLabel + '</b></div>' +
+          '<div class="d">Se despacha desde: <b>' + (o.delivery_origin_address || '—') + '</b></div>' +
+        '</div>' +
+        '<div class="order-actions"><span class="badge warn">' + modoTxt + '</span></div>' +
+      '</div>';
   }
 
   function renderQueue(listId, countId, list, mode){

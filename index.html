@@ -707,6 +707,11 @@
       <button class="btn-primary" type="button" id="btn-open-auth-from-publish">Crear cuenta o iniciar sesión</button>
     </div>
 
+    <div id="publicar-necesita-vendedor" style="margin-top:24px; padding:20px; border:1px solid var(--border); border-radius:0; max-width:420px" hidden>
+      <p style="margin-bottom:12px">Para publicar y vender necesitamos antes tus datos de cobro (así podemos pagarte cuando se confirme una venta): alias, CBU y titular de la cuenta.</p>
+      <button class="btn-primary" type="button" id="btn-open-account-from-publish">Cargar mis datos de cobro</button>
+    </div>
+
     <div id="categoria-picker" style="margin-top:20px" hidden>
       <p style="color:var(--muted); margin-bottom:16px">¿Qué querés publicar?</p>
       <div class="cat-tiles">
@@ -1207,7 +1212,7 @@
     }
     notifList.innerHTML = notifCache.map(function(n){
       var when = new Date(n.created_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
-      return '<div class="notif-item' + (n.read ? '' : ' unread') + '" data-notif-product="' + (n.product_id || '') + '">' +
+      return '<div class="notif-item' + (n.read ? '' : ' unread') + '" data-notif-product="' + (n.product_id || '') + '" data-notif-order="' + (n.order_id || '') + '">' +
         '<div class="t">' + escapeHtml(n.title) + '</div>' +
         (n.body ? '<div class="b">' + escapeHtml(n.body) + '</div>' : '') +
         '<div class="d">' + when + '</div></div>';
@@ -1231,8 +1236,17 @@
 
   notifList.addEventListener('click', function(e){
     var item = e.target.closest('[data-notif-product]');
-    if (!item || !item.dataset.notifProduct) return;
+    if (!item) return;
     notifPanel.hidden = true;
+    // Si la notificación es sobre un pedido puntual (pago confirmado,
+    // envío listo para pagar aparte, etc.), hay que llevar a "Mis
+    // pedidos" — NO a la publicación, porque ahí está el botón de
+    // "Comprar" de siempre, que termina pidiendo pagar todo de nuevo.
+    if (item.dataset.notifOrder){
+      go('pedidos');
+      return;
+    }
+    if (!item.dataset.notifProduct) return;
     sb.from('products').select('*').eq('id', item.dataset.notifProduct).single().then(function(res){
       if (res.data) openProductDetail(res.data);
     });
@@ -1640,20 +1654,49 @@
   // el submit actualiza esta publicación en vez de crear una nueva.
   var editingProduct = null;
 
-  function updatePublishAccess(){
+  // Para publicar hace falta tener cargados los datos de cobro (alias +
+  // CBU + titular) en el perfil — así nos aseguramos de que cualquier
+  // cuenta que publique un producto ya pueda cobrar cuando se confirme la
+  // venta, sin importar con qué rol se registró originalmente.
+  function tienePayoutCompleto(p){
+    return !!(p && p.payout_alias && String(p.payout_alias).trim() && p.payout_cbu && String(p.payout_cbu).trim() && p.payout_titular && String(p.payout_titular).trim());
+  }
+
+  async function updatePublishAccess(){
     var locked = document.getElementById('publicar-locked');
+    var needsSeller = document.getElementById('publicar-necesita-vendedor');
     var picker = document.getElementById('categoria-picker');
     var formWrap = document.getElementById('publicar-form-wrap');
     if (!currentUser){
-      locked.hidden = false; picker.hidden = true; formWrap.hidden = true;
+      locked.hidden = false; needsSeller.hidden = true; picker.hidden = true; formWrap.hidden = true;
       return;
     }
     locked.hidden = true;
+
+    // profileCache solo se carga al entrar a "Mi cuenta"; si todavía no se
+    // cargó (por ejemplo, el usuario fue directo a "Publicar"), lo pedimos
+    // acá para poder chequear los datos de cobro.
+    if (!profileCache || profileCache.payout_alias === undefined){
+      var res = await sb.from('profiles').select('username,email,nombre,apellido,telefono,direccion,direccion_envio,rol,payout_alias,payout_cbu,payout_titular').eq('id', currentUser.id).single();
+      profileCache = Object.assign({}, profileCache, res.data || {});
+    }
+
+    if (!tienePayoutCompleto(profileCache)){
+      needsSeller.hidden = false; picker.hidden = true; formWrap.hidden = true;
+      return;
+    }
+    needsSeller.hidden = true;
+
     if (!chosenCategory){
       picker.hidden = false; formWrap.hidden = true;
     } else {
       picker.hidden = true; formWrap.hidden = false;
     }
+  }
+
+  var btnOpenAccountFromPublish = document.getElementById('btn-open-account-from-publish');
+  if (btnOpenAccountFromPublish){
+    btnOpenAccountFromPublish.addEventListener('click', function(){ go('cuenta'); });
   }
 
   document.querySelectorAll('[data-cat-pick]').forEach(function(btn){
@@ -2119,19 +2162,31 @@
     if (!currentUser || product.user_id === currentUser.id) return;
 
     var orderRes = await sb.from('orders')
-      .select('delivery_cost,delivery_included_in_payment,delivery_payment_status')
+      .select('id,status,delivery_cost,delivery_included_in_payment,delivery_payment_status')
       .eq('product_id', product.id)
       .eq('buyer_id', currentUser.id)
       .neq('status', 'cancelado')
       .order('created_at', { ascending: false })
       .limit(1);
     var order = (!orderRes.error && orderRes.data && orderRes.data.length) ? orderRes.data[0] : null;
-    if (order && order.delivery_cost != null && !order.delivery_included_in_payment &&
-        order.delivery_payment_status !== 'confirmado' && order.delivery_payment_status !== 'comprobante_subido'){
-      row.innerHTML = 'Ya calculamos el envío de tu compra: <b class="tabular">' + money.format(order.delivery_cost) + '</b>, se paga aparte del producto. ' +
-        '<button type="button" class="ghost-btn" style="margin-top:6px" id="producto-pagar-envio-btn">Pagar envío</button>';
+    if (order){
+      if (order.delivery_cost != null && !order.delivery_included_in_payment &&
+          order.delivery_payment_status !== 'confirmado' && order.delivery_payment_status !== 'comprobante_subido'){
+        row.innerHTML = 'Ya calculamos el envío de tu compra: <b class="tabular">' + money.format(order.delivery_cost) + '</b>, se paga aparte del producto. ' +
+          '<button type="button" class="ghost-btn" style="margin-top:6px" id="producto-pagar-envio-btn">Pagar envío</button>';
+        row.hidden = false;
+        document.getElementById('producto-pagar-envio-btn').addEventListener('click', function(){ go('pedidos'); });
+        return;
+      }
+      // Ya existe un pedido tuyo (en cualquier otro estado) para este
+      // producto. El botón de "Comprar" de más arriba va a estar
+      // deshabilitado porque el producto está reservado/vendido por ese
+      // mismo pedido — en vez de dejarlo como un callejón sin salida,
+      // mandamos directo a "Mis pedidos" para ver o seguir ese pedido.
+      row.innerHTML = 'Ya tenés un pedido en curso con este producto. ' +
+        '<button type="button" class="ghost-btn" style="margin-top:6px" id="producto-ver-pedido-btn">Ver en Mis pedidos</button>';
       row.hidden = false;
-      document.getElementById('producto-pagar-envio-btn').addEventListener('click', function(){ go('pedidos'); });
+      document.getElementById('producto-ver-pedido-btn').addEventListener('click', function(){ go('pedidos'); });
       return;
     }
 
@@ -3137,9 +3192,14 @@
       var box = document.createElement('div');
       box.style.cssText = 'border:1px solid var(--border); border-left:4px solid ' + statusBorderColor(order.status) + '; border-radius:0; padding:14px';
       var title = order.products ? order.products.title : 'Producto';
+      // Si hay más de un pedido para el mismo producto (por ejemplo, un
+      // pedido cancelado anterior y uno nuevo), mostramos los últimos
+      // caracteres del id para poder distinguirlos de un vistazo.
+      var shortId = order.id ? order.id.slice(-6) : '';
       var html = '<div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">' +
         '<b>' + escapeHtml(title) + '</b><span class="tabular">' + money.format(order.amount) + '</span></div>' +
-        '<p class="hint" style="margin-top:6px">Estado: ' + (statusLabels[order.status] || order.status) + '</p>';
+        '<p class="hint" style="margin-top:2px; font-size:.78rem">Pedido #' + shortId + ' · ' + new Date(order.created_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) + '</p>' +
+        '<p style="margin-top:6px; font-weight:600">Estado de tu ' + (tipo === 'compra' ? 'compra' : 'venta') + ': ' + (statusLabels[order.status] || order.status) + '</p>';
 
       if (order.delivery_method){
         html += '<p class="hint" style="margin-top:4px">Entrega: ' +
