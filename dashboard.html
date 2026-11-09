@@ -347,7 +347,7 @@
     statsGrid.innerHTML = '<div class="stat-card"><div class="n">…</div><div class="l">Cargando</div></div>';
 
     var productsRes = await sb.from('products').select('id,status,title,price,category,condition,photo_url,photo_urls,user_id,created_at').order('created_at', { ascending: false });
-    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,delivery_origin_address,delivery_included_in_payment,delivery_payment_status,delivery_payment_method,delivery_receipt_url,seller_package_photo_url,buyer_received_photo_url,products(title)');
+    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,delivery_origin_address,delivery_included_in_payment,delivery_payment_status,delivery_payment_method,delivery_receipt_url,tracking_info,dispute_reason,products(title)');
     var quotesRes = await sb.from('shipping_quotes').select('id,delivery_method,delivery_address,cost,origin_address,buyer_id,seller_id,product_id,order_id,created_at,products(title)').is('order_id', null);
     var messagesRes = await sb.from('contact_messages').select('id,nombre,email,motivo,referencia,mensaje,estado,created_at').order('created_at', { ascending: false });
     var verificationsRes = await sb.from('profiles').select('id,username,nombre,apellido,email,telefono,sexo,fecha_nacimiento,dni,dni_photo_path,payout_alias,payout_cbu,payout_titular,verification_status,verification_requested_at').eq('verification_status', 'pendiente').order('verification_requested_at', { ascending: true });
@@ -918,16 +918,16 @@
       ? '<div class="d">Se despacha desde: <b>' + o.delivery_origin_address + '</b></div>'
       : '';
 
-    // Fotos de respaldo para resolver reclamos: la del vendedor (paquete
-    // cerrado, obligatoria al despachar) y la del comprador (lo que recibió,
-    // solo si hizo un reclamo). Se muestran siempre que existan, en
-    // cualquier cola, para tenerlas a mano sin tener que buscarlas.
+    // Datos para resolver reclamos: el seguimiento que cargó el vendedor al
+    // despachar, y el motivo que escribió el comprador si reportó un
+    // problema. Se muestran siempre que existan, en cualquier cola, para
+    // tenerlos a mano sin tener que buscarlos.
     var photosBlock = '';
-    if (o.seller_package_photo_url || o.buyer_received_photo_url){
-      var photoLinks = [];
-      if (o.seller_package_photo_url) photoLinks.push('<a class="btn-sm link" href="' + o.seller_package_photo_url + '" target="_blank" rel="noopener">📦 Foto del paquete (vendedor)</a>');
-      if (o.buyer_received_photo_url) photoLinks.push('<a class="btn-sm link" href="' + o.buyer_received_photo_url + '" target="_blank" rel="noopener">📷 Foto de lo recibido (comprador)</a>');
-      photosBlock = '<div class="d" style="margin-top:6px">' + photoLinks.join(' ') + '</div>';
+    if (o.tracking_info || o.dispute_reason){
+      var disputeBits = [];
+      if (o.tracking_info) disputeBits.push('<div class="d">📦 Seguimiento (vendedor): <b>' + o.tracking_info + '</b></div>');
+      if (o.dispute_reason) disputeBits.push('<div class="d">⚠️ Motivo del reclamo (comprador): ' + o.dispute_reason + '</div>');
+      photosBlock = '<div style="margin-top:6px">' + disputeBits.join('') + '</div>';
     }
 
     // Para liberar el pago hace falta saber a dónde transferirle al vendedor,

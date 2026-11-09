@@ -817,10 +817,6 @@
       <div class="step"><div class="num">03</div><h3>Confirmás la recepción</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Cuando te llega, revisás que esté en el estado que esperabas y lo confirmás desde la web.</p></div>
       <div class="step"><div class="num">04</div><h3>Se libera el pago</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Recién ahí, con tu confirmación, el dinero se libera y pasa al vendedor. Si algo no está bien, no se libera: nos encargamos de resolverlo.</p></div>
     </div>
-    <div class="step" style="margin-top:20px">
-      <h3>Fotos como respaldo, para que un reclamo se resuelva rápido</h3>
-      <p style="color:var(--muted); font-size:.9rem; margin-top:8px">Para despachar un producto vendido, el vendedor tiene que subir una foto del paquete ya cerrado — es obligatorio, y queda como prueba de qué se mandó. Te recomendamos revisar esa foto (la vas a ver en "Mis pedidos") antes de abrir el paquete cuando te llegue: si el paquete que recibiste no es el mismo que el de la foto, sacale una foto vos también antes de abrirlo. No es obligatorio, pero ayuda muchísimo a resolver cualquier problema más rápido. Si todo llegó bien, simplemente confirmás la recepción desde "Mis pedidos" y no hace falta subir nada. Si no te llegó, o te llegó algo distinto a lo publicado, desde ahí mismo podés reportarlo subiendo una foto de lo que recibiste — vamos a revisar tu caso.</p>
-    </div>
   </section>
 
   <section id="view-politicas-uso" hidden>
@@ -879,7 +875,7 @@
 
     <div class="acct-section">
       <div class="acct-section-head"><h3>Si el producto no llega como se describió</h3></div>
-      <div style="padding:16px 20px"><p style="color:var(--muted)">No confirmes la recepción todavía. Desde "Mis pedidos" tocá "Reportar un problema" y subí una foto de lo que recibiste — así queda registrado y lo revisamos. Si preferís, también podés escribirnos desde "¿Tenés un problema? Contactanos". Mientras el reclamo esté abierto, el pago del producto sigue retenido.</p></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">No confirmes la recepción todavía. Desde "Mis pedidos" tocá "Reportar un problema" y contanos qué pasó — así queda registrado y lo revisamos. Si preferís, también podés escribirnos desde "¿Tenés un problema? Contactanos". Mientras el reclamo esté abierto, el pago del producto sigue retenido.</p></div>
     </div>
 
     <div class="acct-section">
@@ -980,7 +976,7 @@
 
   <section id="view-publicaciones" hidden>
     <h2 style="font-size:1.5rem; margin-bottom:4px; padding-top:40px">Mis publicaciones</h2>
-    <p style="color:var(--muted); margin-top:8px">Todo lo que publicaste, con la opción de editarlo. Lo que ya se vendió necesita que subas una foto del paquete antes de despachar.</p>
+    <p style="color:var(--muted); margin-top:8px">Todo lo que publicaste, con la opción de editarlo. Lo que ya se vendió te va a pedir que lo marques como despachado desde acá.</p>
     <div id="publicaciones-list" style="display:flex; flex-direction:column; gap:12px; margin-top:20px"><p class="empty-note">Cargando...</p></div>
   </section>
 
@@ -1384,7 +1380,7 @@
   };
 
   // Las fotos de DNI van a un bucket PRIVADO ("identity-docs") — a
-  // diferencia de las fotos de paquete/comprobantes, acá nadie más que el
+  // diferencia de los comprobantes de pago, acá nadie más que el
   // dueño y el administrador puede verla, ni aunque adivine la URL. Por
   // eso no guardamos un link público: guardamos la ruta del archivo
   // (dni_photo_path) y generamos un link temporario (60 segundos) recién
@@ -2280,9 +2276,9 @@
   }
 
   // Si esta publicación es tuya y ya se vendió, mostramos acá mismo (no
-  // solo en "Mis publicaciones") todo lo referido al despacho: la foto del
-  // paquete cerrado, el número de seguimiento, y el botón para marcarlo
-  // como despachado — así no hace falta ir a buscarlo a otra sección.
+  // solo en "Mis publicaciones") todo lo referido al despacho: el número
+  // de seguimiento y el botón para marcarlo como despachado — así no hace
+  // falta ir a buscarlo a otra sección.
   async function loadSellerShipBox(product, isMine){
     var box = document.getElementById('producto-seller-ship-box');
     if (!box) return;
@@ -2295,7 +2291,7 @@
     // consulta de abajo decida según el pedido real.
     if (!isMine || product.status === 'disponible') return;
     var orderRes = await sb.from('orders')
-      .select('id,status,seller_package_photo_url')
+      .select('id,status')
       .eq('product_id', product.id)
       .neq('status', 'cancelado')
       .order('created_at', { ascending: false })
@@ -2309,9 +2305,7 @@
       box.innerHTML = '<p class="hint" style="margin-top:0">Esperando que se confirme el pago del comprador.</p>';
       box.hidden = false;
     } else if (order.status === 'despachado' || order.status === 'confirmado_entrega' || order.status === 'liberado'){
-      box.innerHTML = '<p class="hint" style="margin-top:0">Ya despachado' +
-        (order.seller_package_photo_url ? ' — <a href="' + order.seller_package_photo_url + '" target="_blank" rel="noopener">ver foto del paquete</a>' : '') +
-        '.</p>';
+      box.innerHTML = '<p class="hint" style="margin-top:0">Ya despachado.</p>';
       box.hidden = false;
     }
   }
@@ -3168,9 +3162,7 @@
       } else if (order && order.status === 'pendiente_pago'){
         html += '<p class="hint" style="margin-top:8px">Esperando que se confirme el pago del comprador.</p>';
       } else if (order && (order.status === 'despachado' || order.status === 'confirmado_entrega' || order.status === 'liberado')){
-        html += '<p class="hint" style="margin-top:8px">Ya despachado' +
-          (order.seller_package_photo_url ? ' — <a href="' + order.seller_package_photo_url + '" target="_blank" rel="noopener">ver foto del paquete</a>' : '') +
-          '.</p>';
+        html += '<p class="hint" style="margin-top:8px">Ya despachado.</p>';
       }
     }
 
@@ -3284,59 +3276,34 @@
     '</div>';
   }
 
-  // ---------- Fotos de respaldo para reclamos ----------
-  // Usan el mismo bucket de Storage que los comprobantes de transferencia
-  // (order-receipts), solo que en otra carpeta adentro, para no tener que
-  // crear ni configurar un bucket nuevo.
-  async function uploadOrderPhoto(orderId, file, folder){
-    var path = folder + '/' + orderId + '-' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    var upload = await sb.storage.from('order-receipts').upload(path, file);
-    if (upload.error) throw upload.error;
-    return sb.storage.from('order-receipts').getPublicUrl(path).data.publicUrl;
-  }
-
-  // Bloque del vendedor para marcar como despachado: la foto del paquete
-  // cerrado es obligatoria (queda como prueba de qué se mandó, para
-  // resolver reclamos rápido). Se usa tanto en "Mis pedidos" como en "Mis
-  // publicaciones", por eso es una función aparte.
+  // Bloque del vendedor para marcar como despachado. Se usa tanto en "Mis
+  // pedidos" como en "Mis publicaciones", por eso es una función aparte.
   // El mismo pedido puede aparecer renderizado a la vez en "Mis pedidos" y
   // en "Mis publicaciones" (uno de los dos queda oculto con [hidden], pero
   // sigue existiendo en el DOM) — por eso este bloque NO usa ids ni
   // atributos únicos por pedido: markOrderShipped busca siempre adentro del
-  // contenedor del botón que apretaron, nunca por todo el documento, así
-  // nunca lee por error la foto del otro lugar.
+  // contenedor del botón que apretaron, nunca por todo el documento.
   function sellerShipBlockHtml(order){
     return '<div class="ship-block" style="margin-top:10px">' +
-      '<label style="margin-top:0">Foto del paquete ya cerrado (obligatoria)</label>' +
-      '<input type="file" accept="image/*" data-ship-photo>' +
-      '<label style="margin-top:10px">Número de seguimiento (opcional)</label>' +
+      '<label style="margin-top:0">Número de seguimiento (opcional)</label>' +
       '<input type="text" data-tracking-input placeholder="Ej: Correo Argentino 123456789">' +
       '<button type="button" class="ghost-btn" style="margin-top:8px" data-mark-shipped="' + order.id + '">Marcar como despachado</button>' +
       '<div class="ship-msg"></div>' +
     '</div>';
   }
 
-  // Marca un pedido como despachado: sube la foto (obligatoria), guarda el
-  // seguimiento si cargaron uno, y cambia el estado.
+  // Marca un pedido como despachado y guarda el seguimiento si cargaron uno.
   async function markOrderShipped(orderId, btn){
     var container = btn.closest('.ship-block');
-    var photoInput = container ? container.querySelector('[data-ship-photo]') : null;
     var trackingInput = container ? container.querySelector('[data-tracking-input]') : null;
     var msgEl = container ? container.querySelector('.ship-msg') : null;
-    var file = photoInput && photoInput.files[0];
-    if (!file){
-      if (msgEl) msgEl.innerHTML = '<div class="msg err">Subí una foto del paquete ya cerrado antes de despachar.</div>';
-      return;
-    }
     btn.disabled = true;
     if (msgEl) msgEl.innerHTML = '';
     try {
-      var photoUrl = await uploadOrderPhoto(orderId, file, 'package-photos');
       var res = await sb.from('orders').update({
         status: 'despachado',
         shipped_at: new Date().toISOString(),
-        tracking_info: trackingInput ? trackingInput.value.trim() : null,
-        seller_package_photo_url: photoUrl
+        tracking_info: trackingInput ? trackingInput.value.trim() : null
       }).eq('id', orderId);
       if (res.error) throw res.error;
       if (!views.pedidos.hidden) loadPedidos();
@@ -3350,25 +3317,24 @@
 
   // Bloque de reclamo del comprador: dos caminos bien separados, para que
   // quede claro cuál usar.
-  // 1) "Confirmar recepción": llegó todo bien, no hace falta ninguna foto.
-  //    Solo aparece mientras el pedido está "despachado" (todavía no se
-  //    confirmó nada).
+  // 1) "Confirmar recepción": llegó todo bien. Solo aparece mientras el
+  //    pedido está "despachado" (todavía no se confirmó nada).
   // 2) "Reportar un problema": no llegó, llegó distinto a lo publicado, o
-  //    apareció un problema después de confirmar la recepción — acá SÍ hace
-  //    falta una foto (si se puede, antes de abrir el paquete) y pasa el
-  //    pedido a "En disputa" para que Mateo lo revise desde el panel. Queda
-  //    disponible mientras el pedido siga en curso, incluso después de
-  //    confirmada la entrega o liberado el pago, por si el problema se nota
-  //    más tarde.
+  //    apareció un problema después de confirmar la recepción — se pide una
+  //    descripción del problema (no una foto: Mateo revisa el caso a mano,
+  //    contactando a las dos partes) y pasa el pedido a "En disputa" para
+  //    que lo revise desde el panel. Queda disponible mientras el pedido
+  //    siga en curso, incluso después de confirmada la entrega o liberado
+  //    el pago, por si el problema se nota más tarde.
   function buyerReceivedBlockHtml(order, soloReclamo){
     return '<div class="received-block" style="margin-top:10px">' +
       (soloReclamo ? '' : '<button type="button" class="ghost-btn" data-confirm-receipt="' + order.id + '">Confirmar recepción (llegó todo bien)</button>') +
       '<p class="hint" style="margin-top:' + (soloReclamo ? '0' : '12px') + '; font-weight:' + (soloReclamo ? '600' : 'normal') + '">' +
       (soloReclamo ? '¿Tenés un problema con este pedido? ' : '¿No llegó, o llegó algo distinto a lo publicado? ') +
-      'Sacale una foto a lo que recibiste — si podés, antes de abrir el paquete — y reportalo para que lo revisemos.</p>' +
-      '<input type="file" accept="image/*" data-received-photo="' + order.id + '">' +
+      'Contanos qué pasó y lo revisamos.</p>' +
+      '<textarea data-dispute-reason="' + order.id + '" placeholder="Contá qué pasó: no llegó, llegó dañado, es distinto a lo publicado, etc."></textarea>' +
       '<button type="button" class="ghost-btn" style="margin-top:8px" data-report-problem="' + order.id + '">Reportar un problema</button>' +
-      (order.buyer_received_photo_url ? '<p class="hint" style="margin-top:6px">Ya reportaste un problema con una foto. <a href="' + order.buyer_received_photo_url + '" target="_blank" rel="noopener">Verla</a></p>' : '') +
+      (order.dispute_reason ? '<p class="hint" style="margin-top:6px">Ya reportaste un problema: "' + escapeHtml(order.dispute_reason) + '"</p>' : '') +
       '<div id="received-msg-' + order.id + '"></div>' +
     '</div>';
   }
@@ -3602,17 +3568,16 @@
     var reportBtn = e.target.closest('[data-report-problem]');
     if (reportBtn){
       var orderId = reportBtn.dataset.reportProblem;
-      var photoInput = document.querySelector('[data-received-photo="' + orderId + '"]');
+      var reasonInput = document.querySelector('[data-dispute-reason="' + orderId + '"]');
       var msgEl = document.getElementById('received-msg-' + orderId);
-      var file = photoInput && photoInput.files[0];
-      if (!file){
-        if (msgEl) msgEl.innerHTML = '<div class="msg err">Subí una foto de lo que recibiste para poder reportar el problema.</div>';
+      var reason = reasonInput ? reasonInput.value.trim() : '';
+      if (!reason){
+        if (msgEl) msgEl.innerHTML = '<div class="msg err">Contanos qué pasó para poder reportar el problema.</div>';
         return;
       }
       reportBtn.disabled = true;
       try {
-        var photoUrl = await uploadOrderPhoto(orderId, file, 'delivery-photos');
-        var res = await sb.from('orders').update({ buyer_received_photo_url: photoUrl, status: 'disputado' }).eq('id', orderId);
+        var res = await sb.from('orders').update({ dispute_reason: reason, status: 'disputado' }).eq('id', orderId);
         if (res.error) throw res.error;
         if (msgEl) msgEl.innerHTML = '<div class="msg ok">Listo, reportamos el problema. Vamos a revisar tu caso y contactarte.</div>';
         loadPedidos();
@@ -3785,11 +3750,10 @@
     {
       id: 'proteccion',
       label: 'Cómo funciona la protección',
-      intro: 'Te cuento así quedás tranquilo: cuando comprás algo acá, tu plata no va directo al vendedor. La retenemos nosotros hasta que vos confirmes que todo llegó bien. El vendedor tiene que subir una foto del paquete ya cerrado antes de despacharlo, así queda registro de qué mandó. Cuando te llega, vos elegís: si está todo en orden, confirmás la recepción y ahí recién se le libera la plata al vendedor. Si algo no cuadra, reportás el problema con una foto en vez de confirmar, y la plata queda retenida hasta que lo resolvamos nosotros.',
+      intro: 'Te cuento así quedás tranquilo: cuando comprás algo acá, tu plata no va directo al vendedor. La retenemos nosotros hasta que vos confirmes que todo llegó bien. Cuando te llega, vos elegís: si está todo en orden, confirmás la recepción y ahí recién se le libera la plata al vendedor. Si algo no cuadra, reportás el problema contándonos qué pasó en vez de confirmar, y la plata queda retenida hasta que lo resolvamos nosotros.',
       topics: [
         { q: '¿Qué pasa si no recibo el producto?', a: 'Primero revisá el estado del pedido en "Mis pedidos". Si ya está despachado, dale un poco de margen porque depende del correo — pero si ves que se pasó de tiempo o algo no cierra, usá el botón "Reportar un problema" ahí mismo. No hace falta esperar a tenerlo en la mano, y mientras tanto tu plata sigue retenida.' },
-        { q: '¿Cuándo se libera el pago al vendedor?', a: 'Recién cuando vos, como comprador, confirmás que lo recibiste bien desde "Mis pedidos". Hasta ese momento, el dinero queda guardado de nuestro lado.' },
-        { q: '¿Las fotos del paquete son obligatorias?', a: 'Para el vendedor sí, siempre: antes de despachar tiene que subir la foto del paquete cerrado. Para vos como comprador, solo hace falta si vas a reportar un problema — si llegó todo bien, con confirmar alcanza.' }
+        { q: '¿Cuándo se libera el pago al vendedor?', a: 'Recién cuando vos, como comprador, confirmás que lo recibiste bien desde "Mis pedidos". Hasta ese momento, el dinero queda guardado de nuestro lado.' }
       ]
     },
     {
@@ -3809,8 +3773,8 @@
       intro: 'Tranquilo, esto se resuelve. ¿Cuál de estas es la que te pasa?',
       topics: [
         { q: '¿Cuánto tarda el vendedor en despachar?', a: 'El vendedor tiene 72 horas hábiles desde que confirmamos tu pago para despachar el producto. Si se pasa de ese plazo sin despachar ni avisar, se cancela la compra y te devolvemos la plata — como esa plata nunca llegó a manos del vendedor, no hay drama en devolverla.' },
-        { q: 'Recibí el paquete, ¿qué hago?', a: 'Antes de abrirlo, dale un vistazo a la foto que subió el vendedor del paquete cerrado (la ves en "Mis pedidos") y fijate que sea el mismo que te llegó. Si es igual, lo abrís tranquilo y después confirmás la recepción. Si te da la sensación de que no es el mismo paquete, sacale una foto vos también antes de abrirlo, por las dudas.' },
-        { q: 'No llegó lo que esperaba, ¿cómo reclamo?', a: 'Andá a "Mis pedidos", buscá ese pedido y NO confirmes la recepción. Usá el botón "Reportar un problema", subí una foto de lo que recibiste, y listo: el pedido queda marcado para que lo revisemos y el pago sigue retenido mientras tanto.' },
+        { q: 'Recibí el paquete, ¿qué hago?', a: 'Si está todo en orden, confirmá la recepción desde "Mis pedidos" y ahí se le libera la plata al vendedor. Si algo no cierra, no confirmes: usá "Reportar un problema" en su lugar.' },
+        { q: 'No llegó lo que esperaba, ¿cómo reclamo?', a: 'Andá a "Mis pedidos", buscá ese pedido y NO confirmes la recepción. Usá el botón "Reportar un problema", contanos qué pasó, y listo: el pedido queda marcado para que lo revisemos y el pago sigue retenido mientras tanto.' },
         { q: '¿Puedo cancelar mi compra?', a: 'Si todavía dice "pendiente de pago", la cancelás vos mismo desde "Mis pedidos" sin ningún costo. Si ya pagaste, escribinos desde el formulario de contacto y lo vemos juntos.' }
       ]
     },
