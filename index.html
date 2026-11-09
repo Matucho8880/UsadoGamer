@@ -7,14 +7,15 @@
 <link rel="icon" href="/favicon-joystick.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700&family=Playfair+Display:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#ffffff; --surface:#f7f7f8; --surface-2:#eff0f2; --fg:#0a0a0a; --muted:#64666c;
-    --accent:#2454ff; --accent-dim:#e8edff; --accent-ink:#ffffff;
-    --good:#0f9d6b; --good-bg:#e7f8f1; --border:#e3e3e6; --danger:#d93f3f; --danger-bg:#fdeaea;
-    --warn:#b4790f; --warn-bg:#fdf1de;
-    --font-display:'Space Grotesk', 'Segoe UI', sans-serif;
+    --bg:#fbf5ec; --surface:#f4ebdc; --surface-2:#ecdfc8; --fg:#201509; --muted:#7a6a55;
+    --accent:#e2540c; --accent-dim:#fbe3cf; --accent-ink:#fff8f0;
+    --good:#3f7d4a; --good-bg:#e7f1e3; --border:#e2d4ba; --danger:#b8402f; --danger-bg:#fbe7e1;
+    --warn:#a06a0f; --warn-bg:#f8ecd6;
+    --radius:14px;
+    --font-display:'Fraunces', 'Georgia', serif;
     --font-body:'Inter', 'Segoe UI', sans-serif;
   }
   *{box-sizing:border-box}
@@ -26,7 +27,8 @@
   html{height:100%}
   body{height:100%; display:flex; flex-direction:column; background:var(--bg); color:var(--fg); font-family:var(--font-body); margin:0; padding-inline:24px; -webkit-font-smoothing:antialiased; overflow-x:hidden}
   a{color:inherit}
-  h1,h2,h3{font-family:var(--font-display); margin:0}
+  h1,h2,h3{font-family:var(--font-display); font-weight:600; letter-spacing:-.01em; margin:0}
+  h2{font-size:1.5rem}
   p{margin:0}
   .tabular{font-variant-numeric:tabular-nums}
   .wrap{max-width:1120px; margin-inline:auto}
@@ -34,13 +36,13 @@
 
   header.bar{
     position:sticky; top:0; z-index:5; background:rgba(255,255,255,.92); backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--border); padding-block:16px; margin-inline:-24px; padding-inline:24px;
+    border-bottom:1px solid var(--border); padding-block:20px; margin-inline:-24px; padding-inline:24px;
     flex:none;
   }
   .barrow{max-width:1120px; margin-inline:auto; display:flex; align-items:center; gap:16px; flex-wrap:nowrap}
   .logo{display:flex; align-items:center; gap:10px; font-family:'Outfit', var(--font-body); font-weight:700; font-size:1rem; letter-spacing:-.01em; white-space:nowrap; min-width:0; flex:none}
   .logo-mark{width:38px; height:38px; display:block; flex:none}
-  .ghost-btn{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--fg); background:transparent; border:1px solid var(--border); border-radius:0; padding:9px 16px; cursor:pointer; white-space:nowrap; flex:none}
+  .ghost-btn{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--fg); background:transparent; border:1px solid var(--border); border-radius:var(--radius); padding:9px 16px; cursor:pointer; white-space:nowrap; flex:none}
   .user-chip{font-size:.85rem; color:var(--muted); display:flex; align-items:center; gap:10px; min-width:0}
   .user-chip span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px}
   #auth-area{display:flex; align-items:center; gap:10px; min-width:0}
@@ -48,7 +50,7 @@
   .bell-btn{position:relative; background:none; border:none; cursor:pointer; padding:6px; display:flex; align-items:center; color:var(--fg); flex:none}
   .bell-btn svg{width:20px; height:20px; display:block}
   .bell-dot{position:absolute; top:3px; right:3px; width:8px; height:8px; border-radius:50%; background:var(--danger); border:2px solid var(--bg)}
-  .notif-panel{position:fixed; top:66px; right:16px; width:330px; max-width:calc(100vw - 32px); max-height:70vh; overflow-y:auto; background:var(--bg); border:1px solid var(--border); border-radius:0; box-shadow:0 18px 40px -16px rgba(10,10,10,.28); z-index:25}
+  .notif-panel{position:fixed; top:66px; right:16px; width:330px; max-width:calc(100vw - 32px); max-height:70vh; overflow-y:auto; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 18px 40px -16px rgba(10,10,10,.28); z-index:25}
   .notif-head{font-family:var(--font-display); font-weight:700; padding:14px 16px; border-bottom:1px solid var(--border)}
   .notif-item{padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer}
   .notif-item:last-child{border-bottom:none}
@@ -85,9 +87,9 @@
   .wallet-item:last-child{border-bottom:none}
   .wallet-item .t{font-weight:700; font-size:.9rem; display:flex; justify-content:space-between; gap:8px}
   .wallet-item .note{color:var(--muted); font-size:.8rem; margin-top:4px; line-height:1.4}
-  .wallet-item .badge{display:inline-block; margin-top:6px; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:0; border:1px solid var(--accent); color:var(--accent); background:none}
-  .payout-note{background:var(--accent-dim); border:1px solid rgba(36,84,255,.3); padding:14px 20px; font-size:.85rem; color:var(--fg)}
-  .logout-btn{width:100%; background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger-bg); border-radius:0; padding:10px; font-weight:700; cursor:pointer; font-size:.88rem}
+  .wallet-item .badge{display:inline-block; margin-top:6px; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:var(--radius); border:1px solid var(--accent); color:var(--accent); background:none}
+  .payout-note{background:var(--accent-dim); border:1px solid rgba(226,84,12,.3); padding:14px 20px; font-size:.85rem; color:var(--fg)}
+  .logout-btn{width:100%; background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger-bg); border-radius:var(--radius); padding:10px; font-weight:700; cursor:pointer; font-size:.88rem}
   .logout-btn:hover{filter:brightness(0.97)}
 
   @media (max-width:480px){
@@ -129,9 +131,9 @@
      el mismo método de margin-inline negativo que header.bar/footer. */
   .hero{
     position:relative; width:100vw; left:50%; margin-left:-50vw;
-    padding-block:56px 64px; padding-inline:24px;
+    padding-block:72px 84px; padding-inline:24px;
     background:var(--bg);
-    color:#f3f4fa;
+    color:#fbf5ec;
   }
   @media (max-width:1168px){
     .hero{ width:auto; left:auto; margin-left:-24px; margin-right:-24px; }
@@ -143,7 +145,7 @@
      recortarlo con clip-path sin afectar el texto ni la ilustración. */
   .hero-bg{
     position:absolute; inset:0; z-index:0;
-    background:radial-gradient(120% 140% at 85% 0%, #1a2550 0%, #0c1226 55%, #080b18 100%);
+    background:radial-gradient(120% 140% at 85% 0%, #3a2414 0%, #1c130b 55%, #110a05 100%);
     clip-path:polygon(0 0, 66% 0, 50% 100%, 0 100%);
   }
   /* En celular se oculta la ilustración de la mano (ver .hero-visual más
@@ -152,16 +154,17 @@
      coincidía con el alto real del hero en todos los celulares. */
   @media (max-width:760px){ .hero-bg{ clip-path:none; } }
   .hero-inner{position:relative; z-index:1; display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; max-width:1120px; margin-inline:auto}
-  @media (max-width:760px){ .hero-inner{grid-template-columns:1fr} .hero{padding-block:36px 48px} }
-  .eyebrow{display:inline-flex; align-items:center; gap:7px; color:#8fb0ff; font-weight:700; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; margin-bottom:18px}
-  .eyebrow .pip{width:7px; height:7px; border-radius:50%; background:#8fb0ff}
-  .hero h1{font-size:clamp(2.1rem,4.4vw,3.2rem); line-height:1.06; letter-spacing:-.02em; margin-bottom:18px; color:#fff}
-  .hero h1 em{font-style:normal; color:#7c9cff}
-  .hero .ghost-btn{color:#fff; border-color:rgba(255,255,255,.3)}
-  .hero .ghost-btn:hover{background:rgba(255,255,255,.08)}
-  .hero p.lead{color:#b7bdd1; font-size:1.08rem; line-height:1.6; max-width:46ch; margin-bottom:28px}
+  @media (max-width:760px){ .hero-inner{grid-template-columns:1fr} .hero{padding-block:44px 56px} }
+  .eyebrow{display:inline-flex; align-items:center; gap:7px; color:#f4a65c; font-weight:700; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; margin-bottom:20px}
+  .eyebrow .pip{width:7px; height:7px; border-radius:50%; background:#f4a65c}
+  .hero h1{font-family:var(--font-display); font-weight:600; font-size:clamp(2.5rem,5.6vw,4.1rem); line-height:1.02; letter-spacing:-.01em; margin-bottom:20px; color:#fff8f0}
+  .hero h1 em{font-style:italic; color:#ff9b54}
+  .hero .ghost-btn{color:#fff8f0; border-color:rgba(255,248,240,.3)}
+  .hero .ghost-btn:hover{background:rgba(255,248,240,.08)}
+  .hero p.lead{color:#d9c7b4; font-size:1.14rem; line-height:1.62; max-width:46ch; margin-bottom:32px}
   .hero-actions{display:flex; gap:12px; flex-wrap:wrap}
-  .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--accent-ink); background:var(--accent); border:none; border-radius:0; padding:14px 24px; cursor:pointer}
+  .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.97rem; letter-spacing:.01em; color:var(--accent-ink); background:var(--accent); border:none; border-radius:var(--radius); padding:15px 26px; cursor:pointer}
+  .btn-primary:not(:disabled):hover{filter:brightness(1.06)}
   .btn-primary:disabled{opacity:.6; cursor:default}
   /* Botón de pago con Mercado Pago: mismo color que el resto de los botones
      de la página (no el amarillo de la marca, que quedaba como un botón
@@ -181,13 +184,13 @@
   @media (max-width:760px){ .hero-visual{display:none} }
 
   .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
-  .chip{font-family:var(--font-body); font-weight:600; font-size:.86rem; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:0; padding:8px 15px; cursor:pointer}
+  .chip{font-family:var(--font-body); font-weight:600; font-size:.86rem; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:var(--radius); padding:8px 15px; cursor:pointer}
   .chip[aria-pressed="true"]{color:var(--accent-ink); background:var(--accent); border-color:var(--accent)}
 
-  .market-layout{display:grid; grid-template-columns:240px minmax(0,1fr); gap:28px; align-items:start; padding-bottom:40px; padding-top:28px}
+  .market-layout{display:grid; grid-template-columns:240px minmax(0,1fr); gap:32px; align-items:start; padding-bottom:44px; padding-top:32px}
   @media (max-width:860px){ .market-layout{grid-template-columns:1fr} }
 
-  .filters-panel{position:sticky; top:84px; display:flex; flex-direction:column; gap:18px; background:var(--surface); border:1px solid var(--border); border-radius:0; padding:18px}
+  .filters-panel{position:sticky; top:84px; display:flex; flex-direction:column; gap:18px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px}
   @media (max-width:860px){ .filters-panel{position:static} }
   .filters-panel h3{font-family:var(--font-display); font-size:1rem; margin:0}
   .filters-panel #filter-search{margin-top:-6px}
@@ -203,8 +206,8 @@
   .sort-label{display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--muted); font-weight:600}
   .sort-label select{width:auto; padding:8px 10px}
 
-  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:16px; min-height:120px}
-  .card{background:var(--bg); border:1px solid var(--border); border-radius:0; overflow:hidden; display:flex; flex-direction:column; min-width:0}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:20px; min-height:120px}
+  .card{background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; min-width:0}
   /* Alto fijo (no aspect-ratio) a propósito: dentro de un flex column, algunos
      navegadores calculan mal el aspect-ratio de un hijo según fotos de distinto
      tamaño, y las fotos terminaban con alturas distintas entre sí, desalineando
@@ -212,11 +215,11 @@
      exactamente lo mismo sin importar el tamaño original que subió el vendedor. */
   .thumb{height:180px; flex:none; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:2.1rem; overflow:hidden}
   .thumb img{width:100%; height:100%; object-fit:cover; display:block}
-  .card-body{padding:14px; display:flex; flex-direction:column; gap:8px; flex:1}
+  .card-body{padding:18px; display:flex; flex-direction:column; gap:9px; flex:1}
   .card-cat{font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:700}
   .card-title{font-family:var(--font-display); font-size:1rem; line-height:1.25; min-width:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
   .badges{display:flex; gap:6px; flex-wrap:wrap}
-  .badge{font-size:.68rem; font-weight:700; padding:4px 8px; border-radius:0; letter-spacing:.02em}
+  .badge{font-size:.68rem; font-weight:700; padding:4px 8px; border-radius:var(--radius); letter-spacing:.02em}
   .badge.cond{background:var(--surface-2); color:var(--muted)}
   .badge.protected{background:var(--good-bg); color:var(--good)}
   .card-foot{margin-top:auto; display:flex; align-items:baseline; justify-content:space-between; padding-top:6px}
@@ -224,8 +227,8 @@
   .seller{font-size:.78rem; color:var(--muted)}
   .empty-note{color:var(--muted); font-size:.92rem; padding-block:30px}
 
-  .cat-tiles{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:14px; max-width:620px}
-  .cat-tile{display:flex; flex-direction:column; align-items:center; gap:10px; background:var(--bg); border:1.5px solid var(--border); border-radius:0; padding:28px 14px; font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--fg); cursor:pointer}
+  .cat-tiles{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:18px; max-width:620px}
+  .cat-tile{display:flex; flex-direction:column; align-items:center; gap:10px; background:var(--bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:28px 14px; font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--fg); cursor:pointer}
   .cat-tile:hover{border-color:var(--accent); background:var(--accent-dim)}
   .cat-tile-icon{font-size:2.2rem}
 
@@ -241,14 +244,14 @@
   @media (max-width:800px){
     .producto-wrap{grid-template-areas:"media" "summary" "qa"}
   }
-  fieldset{border:1px solid var(--border); border-radius:0; padding:18px; margin:0 0 16px; min-width:0}
+  fieldset{border:1px solid var(--border); border-radius:var(--radius); padding:18px; margin:0 0 16px; min-width:0}
   legend{font-family:var(--font-display); font-weight:700; padding-inline:6px}
   label{display:block; font-size:.82rem; font-weight:600; color:var(--muted); margin-bottom:6px; margin-top:14px}
   label:first-of-type{margin-top:0}
-  input,select,textarea{width:100%; background:var(--surface); border:1px solid var(--border); border-radius:0; padding:10px 12px; color:var(--fg); font-family:var(--font-body); font-size:.92rem}
+  input,select,textarea{width:100%; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; color:var(--fg); font-family:var(--font-body); font-size:.92rem}
   textarea{resize:vertical; min-height:80px}
   .hint{font-size:.78rem; color:var(--muted); margin-top:6px}
-  .price-hint{display:flex; align-items:center; gap:8px; background:var(--accent-dim); border:1px solid rgba(36,84,255,.3); border-radius:0; padding:10px 12px; margin-top:8px; font-size:.82rem}
+  .price-hint{display:flex; align-items:center; gap:8px; background:var(--accent-dim); border:1px solid rgba(226,84,12,.3); border-radius:var(--radius); padding:10px 12px; margin-top:8px; font-size:.82rem}
   .price-hint b{font-family:var(--font-display); color:var(--accent)}
   .checklist label{display:flex; align-items:flex-start; gap:8px; font-weight:500; color:var(--fg); margin-top:10px}
   .checklist input[type=checkbox],
@@ -259,40 +262,40 @@
   /* Método de envío deshabilitado (Andreani): insignia + tooltip prolijo al pasar el mouse */
   .carrier-soon{position:relative}
   .badge-soon{display:inline-block; font-size:.68rem; font-weight:700; letter-spacing:.02em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); border-radius:20px; padding:2px 8px; margin-left:6px; vertical-align:middle}
-  .carrier-tooltip{position:absolute; left:0; bottom:calc(100% + 8px); z-index:5; width:240px; max-width:70vw; background:var(--fg); color:var(--bg); font-size:.8rem; font-weight:500; line-height:1.4; border-radius:0; padding:10px 12px; box-shadow:0 12px 30px -10px rgba(10,10,10,.4); opacity:0; transform:translateY(4px); pointer-events:none; transition:opacity .15s ease, transform .15s ease}
+  .carrier-tooltip{position:absolute; left:0; bottom:calc(100% + 8px); z-index:5; width:240px; max-width:70vw; background:var(--fg); color:var(--bg); font-size:.8rem; font-weight:500; line-height:1.4; border-radius:var(--radius); padding:10px 12px; box-shadow:0 12px 30px -10px rgba(10,10,10,.4); opacity:0; transform:translateY(4px); pointer-events:none; transition:opacity .15s ease, transform .15s ease}
   .carrier-soon:hover .carrier-tooltip, .carrier-soon:focus-within .carrier-tooltip{opacity:1; transform:translateY(0)}
-  .msg{border-radius:0; padding:10px 12px; font-size:.85rem; margin-top:14px}
+  .msg{border-radius:var(--radius); padding:10px 12px; font-size:.85rem; margin-top:14px}
   .msg.ok{background:var(--good-bg); color:var(--good)}
   .msg.err{background:var(--danger-bg); color:var(--danger)}
 
-  .steps{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:24px}
+  .steps{display:grid; grid-template-columns:repeat(4,1fr); gap:22px; margin-top:28px}
   @media (max-width:960px){ .steps{grid-template-columns:repeat(2,1fr)} }
   @media (max-width:520px){ .steps{grid-template-columns:1fr} }
-  .step{background:var(--surface); border:1px solid var(--border); border-radius:0; padding:20px}
-  .step .num{font-family:var(--font-display); font-size:1.5rem; color:var(--accent); margin-bottom:8px}
+  .step{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px}
+  .step .num{font-family:var(--font-display); font-weight:600; font-size:1.6rem; color:var(--accent); margin-bottom:9px}
 
   footer{
     position:relative; margin-inline:-24px; margin-top:48px; flex:none;
     padding:40px 24px 24px;
-    background:radial-gradient(120% 140% at 85% 0%, #1a2550 0%, #0c1226 55%, #080b18 100%);
-    color:#b7bdd1; font-size:.82rem;
+    background:radial-gradient(120% 140% at 85% 0%, #3a2414 0%, #1c130b 55%, #110a05 100%);
+    color:#d9c7b4; font-size:.82rem;
   }
   @media (max-width:480px){ footer{margin-inline:-16px} }
   .footer-inner{max-width:1100px; margin:0 auto}
   .footer-top{display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap}
   .footer-brand{max-width:360px}
   .footer-brand .logo{pointer-events:none; color:#fff}
-  .footer-tagline{margin-top:10px; color:#8fb0ff; font-family:'Playfair Display', 'Georgia', serif; font-style:italic; font-weight:500; font-size:1.15rem; letter-spacing:.01em}
-  .footer-desc{margin-top:12px; color:#8589a0; font-size:.83rem; line-height:1.55}
+  .footer-tagline{margin-top:10px; color:#f4a65c; font-family:var(--font-display); font-style:italic; font-weight:500; font-size:1.2rem; letter-spacing:.01em}
+  .footer-desc{margin-top:12px; color:#b3a38e; font-size:.83rem; line-height:1.55}
   .footer-badges{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px}
-  .footer-badge{display:inline-flex; align-items:center; gap:6px; font-size:.72rem; font-weight:700; letter-spacing:.01em; color:#8fb0ff; background:rgba(143,176,255,.1); border:1px solid rgba(143,176,255,.3); border-radius:20px; padding:5px 11px 5px 8px}
+  .footer-badge{display:inline-flex; align-items:center; gap:6px; font-size:.72rem; font-weight:700; letter-spacing:.01em; color:#f4a65c; background:rgba(244,166,92,.12); border:1px solid rgba(244,166,92,.35); border-radius:20px; padding:5px 11px 5px 8px}
   .footer-badge svg{width:13px; height:13px; flex:none}
   .footer-links{display:flex; flex-direction:column; gap:10px; align-items:flex-end; text-align:right}
-  .footer-links button{background:none; border:none; padding:0; color:#b7bdd1; font-size:.85rem; font-family:var(--font-body); cursor:pointer}
-  .footer-links button:hover{color:#fff}
-  .footer-links .footer-contact-link{color:#7c9cff; font-weight:700}
-  .footer-note{color:#6d7086; font-size:.76rem; line-height:1.55; margin-top:30px; max-width:76ch}
-  .footer-bottom{text-align:center; border-top:1px solid rgba(255,255,255,.12); margin-top:18px; padding-top:16px; font-size:.78rem; color:#8589a0}
+  .footer-links button{background:none; border:none; padding:0; color:#d9c7b4; font-size:.85rem; font-family:var(--font-body); cursor:pointer}
+  .footer-links button:hover{color:#fff8f0}
+  .footer-links .footer-contact-link{color:#ff9b54; font-weight:700}
+  .footer-note{color:#8a7a65; font-size:.76rem; line-height:1.55; margin-top:30px; max-width:76ch}
+  .footer-bottom{text-align:center; border-top:1px solid rgba(255,248,240,.12); margin-top:18px; padding-top:16px; font-size:.78rem; color:#b3a38e}
   @media (max-width:640px){ .footer-top{flex-direction:column} .footer-links{align-items:flex-start; text-align:left} .footer-brand{max-width:none} }
 
   /* checkout */
@@ -320,7 +323,7 @@
      modal se sigue viendo centrado cuando entra entero, y cuando no entra,
      arranca arriba y se puede scrollear completo sin mover el fondo. */
   .overlay{position:fixed; inset:0; background:rgba(8,9,14,.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:flex-start; justify-content:center; padding:20px; z-index:20; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
-  .modal{background:var(--bg); border-radius:0; max-width:380px; width:100%; padding:26px; border:1px solid var(--border); box-shadow:0 24px 60px -20px rgba(10,10,10,.4); margin-block:auto}
+  .modal{background:var(--bg); border-radius:var(--radius); max-width:380px; width:100%; padding:26px; border:1px solid var(--border); box-shadow:0 24px 60px -20px rgba(10,10,10,.4); margin-block:auto}
   .modal h2{font-size:1.25rem; margin-bottom:4px}
   .modal p.sub{color:var(--muted); font-size:.88rem; margin-top:6px; margin-bottom:18px}
   .modal-foot{display:flex; justify-content:space-between; align-items:center; margin-top:16px}
@@ -328,23 +331,23 @@
 
   /* producto / galería / copiar / preguntas */
   .card[data-product]{cursor:pointer}
-  .copy-btn{display:inline-flex; align-items:center; justify-content:center; background:none; border:none; color:var(--accent); cursor:pointer; padding:4px; vertical-align:middle; border-radius:0}
+  .copy-btn{display:inline-flex; align-items:center; justify-content:center; background:none; border:none; color:var(--accent); cursor:pointer; padding:4px; vertical-align:middle; border-radius:var(--radius)}
   .copy-btn:hover{background:var(--surface-2)}
   .copy-btn svg{width:15px; height:15px; display:block}
-  .gallery-main{height:340px; background:var(--surface-2); border-radius:0; display:flex; align-items:center; justify-content:center; font-size:3rem; overflow:hidden}
+  .gallery-main{height:340px; background:var(--surface-2); border-radius:var(--radius); display:flex; align-items:center; justify-content:center; font-size:3rem; overflow:hidden}
   @media (max-width:480px){ .gallery-main{height:260px} }
   .gallery-main img{width:100%; height:100%; object-fit:cover; cursor:zoom-in}
   .gallery-thumbs{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
-  .gallery-thumbs img{width:60px; height:60px; object-fit:cover; border-radius:0; cursor:pointer; border:2px solid transparent}
+  .gallery-thumbs img{width:60px; height:60px; object-fit:cover; border-radius:var(--radius); cursor:pointer; border:2px solid transparent}
   .gallery-thumbs img[aria-current="true"]{border-color:var(--accent)}
   .lightbox{position:fixed; inset:0; z-index:999; background:rgba(8,9,14,.9); display:flex; align-items:center; justify-content:center; padding:24px; cursor:zoom-out}
   .lightbox[hidden]{display:none}
   .lightbox img{max-width:100%; max-height:100%; object-fit:contain}
-  .lightbox-close{position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:0; border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.4); color:#fff; font-size:1.3rem; line-height:1; cursor:pointer}
-  .lightbox-nav{position:absolute; top:50%; transform:translateY(-50%); width:48px; height:48px; border-radius:0; border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.4); color:#fff; font-size:1.8rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center}
+  .lightbox-close{position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:var(--radius); border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.4); color:#fff; font-size:1.3rem; line-height:1; cursor:pointer}
+  .lightbox-nav{position:absolute; top:50%; transform:translateY(-50%); width:48px; height:48px; border-radius:var(--radius); border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.4); color:#fff; font-size:1.8rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center}
   .lightbox-prev{left:16px}
   .lightbox-next{right:16px}
-  .qa-item{border:1px solid var(--border); border-radius:0; padding:12px}
+  .qa-item{border:1px solid var(--border); border-radius:var(--radius); padding:12px}
   .qa-item .q{font-weight:600; font-size:.88rem}
   .qa-item .a{color:var(--muted); font-size:.86rem; margin-top:6px; padding-top:6px; border-top:1px solid var(--border)}
 
@@ -355,11 +358,11 @@
      que no tape el resto de la página. */
   .chatbot-toggle{position:fixed; right:20px; bottom:20px; width:52px; height:52px; border-radius:50%; background:var(--accent); color:#fff; border:none; font-size:1.6rem; line-height:1; cursor:pointer; box-shadow:0 14px 32px -10px rgba(10,10,10,.45); z-index:40; display:flex; align-items:center; justify-content:center}
   .chatbot-toggle:hover{filter:brightness(1.08)}
-  .chatbot-panel{position:fixed; right:20px; bottom:82px; width:300px; max-width:calc(100vw - 32px); height:min(420px, calc(100vh - 120px)); background:var(--bg); border:1px solid var(--border); border-radius:0; box-shadow:0 24px 60px -20px rgba(10,10,10,.4); z-index:40; display:flex; flex-direction:column; overflow:hidden}
+  .chatbot-panel{position:fixed; right:20px; bottom:82px; width:300px; max-width:calc(100vw - 32px); height:min(420px, calc(100vh - 120px)); background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 24px 60px -20px rgba(10,10,10,.4); z-index:40; display:flex; flex-direction:column; overflow:hidden}
   .chatbot-head{background:var(--fg); color:#fff; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; font-family:var(--font-display); font-weight:700; font-size:.88rem; flex:none}
   .chatbot-head-close{background:none; border:none; color:#fff; font-size:1.2rem; line-height:1; cursor:pointer; padding:2px 4px}
   .chatbot-body{padding:12px; overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1; display:flex; flex-direction:column; gap:8px}
-  .chatbot-msg{max-width:88%; padding:8px 11px; font-size:.8rem; line-height:1.45; border-radius:0; white-space:pre-line}
+  .chatbot-msg{max-width:88%; padding:8px 11px; font-size:.8rem; line-height:1.45; border-radius:var(--radius); white-space:pre-line}
   .chatbot-msg-bot{align-self:flex-start; background:var(--surface); border:1px solid var(--border)}
   .chatbot-msg-user{align-self:flex-end; background:var(--accent); color:#fff}
   .chatbot-typing{align-self:flex-start; background:var(--surface); border:1px solid var(--border); padding:9px 13px; display:inline-flex; gap:4px}
@@ -368,7 +371,7 @@
   .chatbot-typing span:nth-child(3){animation-delay:.4s}
   @keyframes chatbotBlink{0%,80%,100%{opacity:.25} 40%{opacity:1}}
   .chatbot-options{display:flex; flex-direction:column; gap:5px; align-self:flex-start; max-width:92%}
-  .chatbot-options button{text-align:left; background:var(--bg); border:1px solid var(--border); border-radius:0; padding:7px 10px; font-size:.78rem; cursor:pointer; color:var(--fg); font-family:var(--font-body)}
+  .chatbot-options button{text-align:left; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:7px 10px; font-size:.78rem; cursor:pointer; color:var(--fg); font-family:var(--font-body)}
   .chatbot-options button:hover{border-color:var(--accent); background:var(--accent-dim)}
   .chatbot-options button.chatbot-contact-option{border-color:var(--accent); color:var(--accent); font-weight:700}
   @media (max-width:480px){
@@ -435,33 +438,33 @@
                    este degradé, en vez de un borde recto, se desvanecen de a
                    poco hasta transparente, como si se mezclaran con el fondo. -->
               <linearGradient id="handFadeLeft" x1="-50" y1="0" x2="65" y2="0" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#f3f4fa" stop-opacity="0"/>
-                <stop offset="1" stop-color="#f3f4fa" stop-opacity="1"/>
+                <stop offset="0" stop-color="#fbf5ec" stop-opacity="0"/>
+                <stop offset="1" stop-color="#fbf5ec" stop-opacity="1"/>
               </linearGradient>
               <linearGradient id="handFadeRight" x1="650" y1="0" x2="535" y2="0" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#141b3a" stop-opacity="0"/>
-                <stop offset="1" stop-color="#141b3a" stop-opacity="1"/>
+                <stop offset="0" stop-color="#2a1b10" stop-opacity="0"/>
+                <stop offset="1" stop-color="#2a1b10" stop-opacity="1"/>
               </linearGradient>
             </defs>
-            <g stroke="#8fb0ff" stroke-width="5" stroke-linecap="round" opacity=".55">
+            <g stroke="#f4a65c" stroke-width="5" stroke-linecap="round" opacity=".55">
               <line x1="205" y1="78" x2="172" y2="122"/>
               <line x1="236" y1="68" x2="203" y2="112"/>
               <line x1="267" y1="60" x2="234" y2="104"/>
             </g>
             <rect x="-50" y="160" width="130" height="95" rx="40" fill="url(#handFadeLeft)"/>
-            <rect x="65" y="145" width="115" height="125" rx="42" fill="#f3f4fa"/>
-            <rect x="150" y="172" width="62" height="72" rx="22" fill="#f3f4fa" transform="rotate(-14 181 208)"/>
+            <rect x="65" y="145" width="115" height="125" rx="42" fill="#fbf5ec"/>
+            <rect x="150" y="172" width="62" height="72" rx="22" fill="#fbf5ec" transform="rotate(-14 181 208)"/>
             <rect x="520" y="165" width="130" height="90" rx="38" fill="url(#handFadeRight)"/>
-            <rect x="420" y="150" width="110" height="120" rx="40" fill="#141b3a"/>
-            <rect x="392" y="175" width="58" height="68" rx="22" fill="#141b3a" transform="rotate(13 420 209)"/>
-            <rect x="212" y="176" width="180" height="84" rx="42" fill="#1a2550" stroke="#7c9cff" stroke-width="3"/>
-            <rect x="243" y="208" width="10" height="28" rx="3" fill="#8fb0ff"/>
-            <rect x="229" y="222" width="38" height="10" rx="3" fill="#8fb0ff"/>
-            <circle cx="347" cy="200" r="7" fill="#7c9cff"/>
-            <circle cx="367" cy="218" r="7" fill="#8fb0ff"/>
-            <circle cx="347" cy="236" r="7" fill="#7c9cff"/>
-            <circle cx="327" cy="218" r="7" fill="#8fb0ff"/>
-            <g stroke="#1a2550" stroke-width="5" stroke-linecap="round" opacity=".32">
+            <rect x="420" y="150" width="110" height="120" rx="40" fill="#2a1b10"/>
+            <rect x="392" y="175" width="58" height="68" rx="22" fill="#2a1b10" transform="rotate(13 420 209)"/>
+            <rect x="212" y="176" width="180" height="84" rx="42" fill="#3a2414" stroke="#ff9b54" stroke-width="3"/>
+            <rect x="243" y="208" width="10" height="28" rx="3" fill="#f4a65c"/>
+            <rect x="229" y="222" width="38" height="10" rx="3" fill="#f4a65c"/>
+            <circle cx="347" cy="200" r="7" fill="#ff9b54"/>
+            <circle cx="367" cy="218" r="7" fill="#f4a65c"/>
+            <circle cx="347" cy="236" r="7" fill="#ff9b54"/>
+            <circle cx="327" cy="218" r="7" fill="#f4a65c"/>
+            <g stroke="#3a2414" stroke-width="5" stroke-linecap="round" opacity=".32">
               <line x1="402" y1="330" x2="369" y2="374"/>
               <line x1="433" y1="320" x2="400" y2="364"/>
               <line x1="464" y1="310" x2="431" y2="354"/>
@@ -703,12 +706,12 @@
     <h2 style="font-size:1.5rem; margin-bottom:4px; padding-top:40px">Publicar un producto</h2>
     <p style="color:var(--muted); margin-top:8px">Cuanto más completo el formulario, más rápido se vende.</p>
 
-    <div id="publicar-locked" style="margin-top:24px; padding:20px; border:1px solid var(--border); border-radius:0; max-width:420px">
+    <div id="publicar-locked" style="margin-top:24px; padding:20px; border:1px solid var(--border); border-radius:var(--radius); max-width:420px">
       <p style="margin-bottom:12px">Necesitás una cuenta para publicar.</p>
       <button class="btn-primary" type="button" id="btn-open-auth-from-publish">Crear cuenta o iniciar sesión</button>
     </div>
 
-    <div id="publicar-necesita-vendedor" style="margin-top:24px; padding:20px; border:1px solid var(--border); border-radius:0; max-width:420px" hidden>
+    <div id="publicar-necesita-vendedor" style="margin-top:24px; padding:20px; border:1px solid var(--border); border-radius:var(--radius); max-width:420px" hidden>
       <div id="publicar-necesita-vendedor-body"></div>
     </div>
 
@@ -793,7 +796,7 @@
       <div>
         <fieldset>
           <legend>Fotos</legend>
-          <label for="f-photo" style="display:block; border:1.5px dashed var(--border); border-radius:0; padding:20px 16px; text-align:center; color:var(--muted); font-size:.85rem; background:var(--surface); cursor:pointer">
+          <label for="f-photo" style="display:block; border:1.5px dashed var(--border); border-radius:var(--radius); padding:20px 16px; text-align:center; color:var(--muted); font-size:.85rem; background:var(--surface); cursor:pointer">
             <span id="photo-label">Tocá para elegir hasta 6 fotos</span><br><span class="hint">El cambio de fondo automático lo sumamos en un paso aparte</span>
           </label>
           <input id="f-photo" type="file" accept="image/*" multiple style="margin-top:10px; width:100%">
@@ -2020,7 +2023,7 @@
         var img = document.createElement('img');
         img.src = ev.target.result;
         img.alt = '';
-        img.style.cssText = 'width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:0';
+        img.style.cssText = 'width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:var(--radius)';
         photoPreviewGrid.appendChild(img);
       };
       reader.readAsDataURL(file);
@@ -2208,7 +2211,7 @@
         var img = document.createElement('img');
         img.src = url;
         img.alt = '';
-        img.style.cssText = 'width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:0';
+        img.style.cssText = 'width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:var(--radius)';
         photoPreviewGrid.appendChild(img);
       });
     } else {
@@ -3135,7 +3138,7 @@
       : (icons[p.category] || '🎮');
     var statusLabel = PROD_STATUS_LABEL[p.status] || p.status;
     var statusColor = p.status === 'disponible' ? 'var(--good)' : (p.status === 'vendido' ? 'var(--muted)' : 'var(--warn)');
-    var html = '<div style="border:1px solid var(--border); border-left:4px solid ' + statusColor + '; border-radius:0; padding:14px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start">' +
+    var html = '<div style="border:1px solid var(--border); border-left:4px solid ' + statusColor + '; border-radius:var(--radius); padding:14px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start">' +
       '<div style="width:64px; height:64px; flex:none; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:1.6rem; overflow:hidden">' + thumb + '</div>' +
       '<div style="flex:1; min-width:200px">' +
         '<div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap">' +
@@ -3378,7 +3381,7 @@
     container.innerHTML = '';
     rows.forEach(function(order){
       var box = document.createElement('div');
-      box.style.cssText = 'border:1px solid var(--border); border-left:4px solid ' + statusBorderColor(order.status) + '; border-radius:0; padding:14px';
+      box.style.cssText = 'border:1px solid var(--border); border-left:4px solid ' + statusBorderColor(order.status) + '; border-radius:var(--radius); padding:14px';
       var title = order.products ? order.products.title : 'Producto';
       // Si hay más de un pedido para el mismo producto (por ejemplo, un
       // pedido cancelado anterior y uno nuevo), mostramos los últimos
