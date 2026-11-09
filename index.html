@@ -7,15 +7,15 @@
 <link rel="icon" href="/favicon-joystick.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#fbf5ec; --surface:#f4ebdc; --surface-2:#ecdfc8; --fg:#201509; --muted:#7a6a55;
-    --accent:#e2540c; --accent-dim:#fbe3cf; --accent-ink:#fff8f0;
-    --good:#3f7d4a; --good-bg:#e7f1e3; --border:#e2d4ba; --danger:#b8402f; --danger-bg:#fbe7e1;
-    --warn:#a06a0f; --warn-bg:#f8ecd6;
-    --radius:14px;
-    --font-display:'Fraunces', 'Georgia', serif;
+    --bg:#ffffff; --surface:#eef1f8; --surface-2:#e1e6f2; --fg:#090d1a; --muted:#5b6479;
+    --accent:#2b56ff; --accent-dim:#e3e9ff; --accent-ink:#ffffff;
+    --good:#0e9f6e; --good-bg:#e3f7ee; --border:#dde2ef; --danger:#e23d5c; --danger-bg:#fde7ec;
+    --warn:#b4790f; --warn-bg:#fdf1de;
+    --radius:10px;
+    --font-display:'Bricolage Grotesque', 'Segoe UI', sans-serif;
     --font-body:'Inter', 'Segoe UI', sans-serif;
   }
   *{box-sizing:border-box}
@@ -88,7 +88,7 @@
   .wallet-item .t{font-weight:700; font-size:.9rem; display:flex; justify-content:space-between; gap:8px}
   .wallet-item .note{color:var(--muted); font-size:.8rem; margin-top:4px; line-height:1.4}
   .wallet-item .badge{display:inline-block; margin-top:6px; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:var(--radius); border:1px solid var(--accent); color:var(--accent); background:none}
-  .payout-note{background:var(--accent-dim); border:1px solid rgba(226,84,12,.3); padding:14px 20px; font-size:.85rem; color:var(--fg)}
+  .payout-note{background:var(--accent-dim); border:1px solid rgba(43,86,255,.3); padding:14px 20px; font-size:.85rem; color:var(--fg)}
   .logout-btn{width:100%; background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger-bg); border-radius:var(--radius); padding:10px; font-weight:700; cursor:pointer; font-size:.88rem}
   .logout-btn:hover{filter:brightness(0.97)}
 
@@ -133,7 +133,7 @@
     position:relative; width:100vw; left:50%; margin-left:-50vw;
     padding-block:72px 84px; padding-inline:24px;
     background:var(--bg);
-    color:#fbf5ec;
+    color:#f3f6ff;
   }
   @media (max-width:1168px){
     .hero{ width:auto; left:auto; margin-left:-24px; margin-right:-24px; }
@@ -145,7 +145,7 @@
      recortarlo con clip-path sin afectar el texto ni la ilustración. */
   .hero-bg{
     position:absolute; inset:0; z-index:0;
-    background:radial-gradient(120% 140% at 85% 0%, #3a2414 0%, #1c130b 55%, #110a05 100%);
+    background:radial-gradient(120% 140% at 85% 0%, #17317d 0%, #0b1333 55%, #04060f 100%);
     clip-path:polygon(0 0, 66% 0, 50% 100%, 0 100%);
   }
   /* En celular se oculta la ilustración de la mano (ver .hero-visual más
@@ -155,13 +155,13 @@
   @media (max-width:760px){ .hero-bg{ clip-path:none; } }
   .hero-inner{position:relative; z-index:1; display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; max-width:1120px; margin-inline:auto}
   @media (max-width:760px){ .hero-inner{grid-template-columns:1fr} .hero{padding-block:44px 56px} }
-  .eyebrow{display:inline-flex; align-items:center; gap:7px; color:#f4a65c; font-weight:700; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; margin-bottom:20px}
-  .eyebrow .pip{width:7px; height:7px; border-radius:50%; background:#f4a65c}
-  .hero h1{font-family:var(--font-display); font-weight:600; font-size:clamp(2.5rem,5.6vw,4.1rem); line-height:1.02; letter-spacing:-.01em; margin-bottom:20px; color:#fff8f0}
-  .hero h1 em{font-style:italic; color:#ff9b54}
-  .hero .ghost-btn{color:#fff8f0; border-color:rgba(255,248,240,.3)}
-  .hero .ghost-btn:hover{background:rgba(255,248,240,.08)}
-  .hero p.lead{color:#d9c7b4; font-size:1.14rem; line-height:1.62; max-width:46ch; margin-bottom:32px}
+  .eyebrow{display:inline-flex; align-items:center; gap:7px; color:#6e93ff; font-weight:700; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; margin-bottom:20px}
+  .eyebrow .pip{width:7px; height:7px; border-radius:50%; background:#6e93ff}
+  .hero h1{font-family:var(--font-display); font-weight:700; font-size:clamp(2.5rem,5.6vw,4.1rem); line-height:1.02; letter-spacing:-.02em; margin-bottom:20px; color:#f6f8ff}
+  .hero h1 em{font-style:normal; color:#5ec9ff}
+  .hero .ghost-btn{color:#f6f8ff; border-color:rgba(246,248,255,.3)}
+  .hero .ghost-btn:hover{background:rgba(246,248,255,.08)}
+  .hero p.lead{color:#aab4d4; font-size:1.14rem; line-height:1.62; max-width:46ch; margin-bottom:32px}
   .hero-actions{display:flex; gap:12px; flex-wrap:wrap}
   .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.97rem; letter-spacing:.01em; color:var(--accent-ink); background:var(--accent); border:none; border-radius:var(--radius); padding:15px 26px; cursor:pointer}
   .btn-primary:not(:disabled):hover{filter:brightness(1.06)}
@@ -251,7 +251,7 @@
   input,select,textarea{width:100%; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; color:var(--fg); font-family:var(--font-body); font-size:.92rem}
   textarea{resize:vertical; min-height:80px}
   .hint{font-size:.78rem; color:var(--muted); margin-top:6px}
-  .price-hint{display:flex; align-items:center; gap:8px; background:var(--accent-dim); border:1px solid rgba(226,84,12,.3); border-radius:var(--radius); padding:10px 12px; margin-top:8px; font-size:.82rem}
+  .price-hint{display:flex; align-items:center; gap:8px; background:var(--accent-dim); border:1px solid rgba(43,86,255,.3); border-radius:var(--radius); padding:10px 12px; margin-top:8px; font-size:.82rem}
   .price-hint b{font-family:var(--font-display); color:var(--accent)}
   .checklist label{display:flex; align-items:flex-start; gap:8px; font-weight:500; color:var(--fg); margin-top:10px}
   .checklist input[type=checkbox],
@@ -277,25 +277,25 @@
   footer{
     position:relative; margin-inline:-24px; margin-top:48px; flex:none;
     padding:40px 24px 24px;
-    background:radial-gradient(120% 140% at 85% 0%, #3a2414 0%, #1c130b 55%, #110a05 100%);
-    color:#d9c7b4; font-size:.82rem;
+    background:radial-gradient(120% 140% at 85% 0%, #17317d 0%, #0b1333 55%, #04060f 100%);
+    color:#aab4d4; font-size:.82rem;
   }
   @media (max-width:480px){ footer{margin-inline:-16px} }
   .footer-inner{max-width:1100px; margin:0 auto}
   .footer-top{display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap}
   .footer-brand{max-width:360px}
   .footer-brand .logo{pointer-events:none; color:#fff}
-  .footer-tagline{margin-top:10px; color:#f4a65c; font-family:var(--font-display); font-style:italic; font-weight:500; font-size:1.2rem; letter-spacing:.01em}
-  .footer-desc{margin-top:12px; color:#b3a38e; font-size:.83rem; line-height:1.55}
+  .footer-tagline{margin-top:10px; color:#6e93ff; font-family:var(--font-display); font-style:normal; font-weight:600; font-size:1.2rem; letter-spacing:-.01em}
+  .footer-desc{margin-top:12px; color:#8891ad; font-size:.83rem; line-height:1.55}
   .footer-badges{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px}
-  .footer-badge{display:inline-flex; align-items:center; gap:6px; font-size:.72rem; font-weight:700; letter-spacing:.01em; color:#f4a65c; background:rgba(244,166,92,.12); border:1px solid rgba(244,166,92,.35); border-radius:20px; padding:5px 11px 5px 8px}
+  .footer-badge{display:inline-flex; align-items:center; gap:6px; font-size:.72rem; font-weight:700; letter-spacing:.01em; color:#6e93ff; background:rgba(110,147,255,.12); border:1px solid rgba(110,147,255,.35); border-radius:20px; padding:5px 11px 5px 8px}
   .footer-badge svg{width:13px; height:13px; flex:none}
   .footer-links{display:flex; flex-direction:column; gap:10px; align-items:flex-end; text-align:right}
-  .footer-links button{background:none; border:none; padding:0; color:#d9c7b4; font-size:.85rem; font-family:var(--font-body); cursor:pointer}
-  .footer-links button:hover{color:#fff8f0}
-  .footer-links .footer-contact-link{color:#ff9b54; font-weight:700}
-  .footer-note{color:#8a7a65; font-size:.76rem; line-height:1.55; margin-top:30px; max-width:76ch}
-  .footer-bottom{text-align:center; border-top:1px solid rgba(255,248,240,.12); margin-top:18px; padding-top:16px; font-size:.78rem; color:#b3a38e}
+  .footer-links button{background:none; border:none; padding:0; color:#aab4d4; font-size:.85rem; font-family:var(--font-body); cursor:pointer}
+  .footer-links button:hover{color:#f6f8ff}
+  .footer-links .footer-contact-link{color:#5ec9ff; font-weight:700}
+  .footer-note{color:#636d8c; font-size:.76rem; line-height:1.55; margin-top:30px; max-width:76ch}
+  .footer-bottom{text-align:center; border-top:1px solid rgba(246,248,255,.12); margin-top:18px; padding-top:16px; font-size:.78rem; color:#8891ad}
   @media (max-width:640px){ .footer-top{flex-direction:column} .footer-links{align-items:flex-start; text-align:left} .footer-brand{max-width:none} }
 
   /* checkout */
@@ -438,33 +438,33 @@
                    este degradé, en vez de un borde recto, se desvanecen de a
                    poco hasta transparente, como si se mezclaran con el fondo. -->
               <linearGradient id="handFadeLeft" x1="-50" y1="0" x2="65" y2="0" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#fbf5ec" stop-opacity="0"/>
-                <stop offset="1" stop-color="#fbf5ec" stop-opacity="1"/>
+                <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+                <stop offset="1" stop-color="#ffffff" stop-opacity="1"/>
               </linearGradient>
               <linearGradient id="handFadeRight" x1="650" y1="0" x2="535" y2="0" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#2a1b10" stop-opacity="0"/>
-                <stop offset="1" stop-color="#2a1b10" stop-opacity="1"/>
+                <stop offset="0" stop-color="#0d1538" stop-opacity="0"/>
+                <stop offset="1" stop-color="#0d1538" stop-opacity="1"/>
               </linearGradient>
             </defs>
-            <g stroke="#f4a65c" stroke-width="5" stroke-linecap="round" opacity=".55">
+            <g stroke="#6e93ff" stroke-width="5" stroke-linecap="round" opacity=".55">
               <line x1="205" y1="78" x2="172" y2="122"/>
               <line x1="236" y1="68" x2="203" y2="112"/>
               <line x1="267" y1="60" x2="234" y2="104"/>
             </g>
             <rect x="-50" y="160" width="130" height="95" rx="40" fill="url(#handFadeLeft)"/>
-            <rect x="65" y="145" width="115" height="125" rx="42" fill="#fbf5ec"/>
-            <rect x="150" y="172" width="62" height="72" rx="22" fill="#fbf5ec" transform="rotate(-14 181 208)"/>
+            <rect x="65" y="145" width="115" height="125" rx="42" fill="#ffffff"/>
+            <rect x="150" y="172" width="62" height="72" rx="22" fill="#ffffff" transform="rotate(-14 181 208)"/>
             <rect x="520" y="165" width="130" height="90" rx="38" fill="url(#handFadeRight)"/>
-            <rect x="420" y="150" width="110" height="120" rx="40" fill="#2a1b10"/>
-            <rect x="392" y="175" width="58" height="68" rx="22" fill="#2a1b10" transform="rotate(13 420 209)"/>
-            <rect x="212" y="176" width="180" height="84" rx="42" fill="#3a2414" stroke="#ff9b54" stroke-width="3"/>
-            <rect x="243" y="208" width="10" height="28" rx="3" fill="#f4a65c"/>
-            <rect x="229" y="222" width="38" height="10" rx="3" fill="#f4a65c"/>
-            <circle cx="347" cy="200" r="7" fill="#ff9b54"/>
-            <circle cx="367" cy="218" r="7" fill="#f4a65c"/>
-            <circle cx="347" cy="236" r="7" fill="#ff9b54"/>
-            <circle cx="327" cy="218" r="7" fill="#f4a65c"/>
-            <g stroke="#3a2414" stroke-width="5" stroke-linecap="round" opacity=".32">
+            <rect x="420" y="150" width="110" height="120" rx="40" fill="#0d1538"/>
+            <rect x="392" y="175" width="58" height="68" rx="22" fill="#0d1538" transform="rotate(13 420 209)"/>
+            <rect x="212" y="176" width="180" height="84" rx="42" fill="#17317d" stroke="#5ec9ff" stroke-width="3"/>
+            <rect x="243" y="208" width="10" height="28" rx="3" fill="#6e93ff"/>
+            <rect x="229" y="222" width="38" height="10" rx="3" fill="#6e93ff"/>
+            <circle cx="347" cy="200" r="7" fill="#5ec9ff"/>
+            <circle cx="367" cy="218" r="7" fill="#6e93ff"/>
+            <circle cx="347" cy="236" r="7" fill="#5ec9ff"/>
+            <circle cx="327" cy="218" r="7" fill="#6e93ff"/>
+            <g stroke="#17317d" stroke-width="5" stroke-linecap="round" opacity=".32">
               <line x1="402" y1="330" x2="369" y2="374"/>
               <line x1="433" y1="320" x2="400" y2="364"/>
               <line x1="464" y1="310" x2="431" y2="354"/>
