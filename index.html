@@ -541,6 +541,7 @@
           <button type="button" class="btn-primary" style="width:100%; margin-top:18px" id="producto-buy-btn">Comprar</button>
           <div id="oferta-box" style="margin-top:14px"></div>
           <p class="hint" id="producto-own-note" style="margin-top:10px" hidden>Esta publicación es tuya.</p>
+          <div id="producto-seller-ship-box" hidden></div>
           <p class="hint" style="margin-top:12px; line-height:1.5">Compra protegida: tu dinero queda retenido hasta que confirmás que el producto llegó como se describió. Si el envío falla o no es lo que esperabas, escribinos antes de confirmar la recepción y te ayudamos a resolverlo.</p>
         </fieldset>
       </div>
@@ -708,8 +709,7 @@
     </div>
 
     <div id="publicar-necesita-vendedor" style="margin-top:24px; padding:20px; border:1px solid var(--border); border-radius:0; max-width:420px" hidden>
-      <p style="margin-bottom:12px">Para publicar y vender necesitamos antes tus datos de cobro (así podemos pagarte cuando se confirme una venta): alias, CBU y titular de la cuenta.</p>
-      <button class="btn-primary" type="button" id="btn-open-account-from-publish">Cargar mis datos de cobro</button>
+      <div id="publicar-necesita-vendedor-body"></div>
     </div>
 
     <div id="categoria-picker" style="margin-top:20px" hidden>
@@ -1274,10 +1274,14 @@
     return '<div class="acct-row"><span class="k">' + k + '</span><span class="v">' + escapeHtml(v) + '</span></div>';
   }
 
+  // Campos del perfil que hacen falta tanto en "Mi cuenta" como en el gate
+  // de "Publicar" (updatePublishAccess) — una sola lista para no repetirla.
+  var PROFILE_SELECT_FIELDS = 'username,email,nombre,apellido,telefono,direccion,direccion_envio,rol,payout_alias,payout_cbu,payout_titular,sexo,fecha_nacimiento,dni,dni_photo_path,verification_status,verification_rejection_reason';
+
   async function loadAccount(){
     if (!currentUser) return;
     accountBody.innerHTML = '<p class="empty-note" style="padding:20px">Cargando...</p>';
-    var res = await sb.from('profiles').select('username,email,nombre,apellido,telefono,direccion,direccion_envio,rol,payout_alias,payout_cbu,payout_titular').eq('id', currentUser.id).single();
+    var res = await sb.from('profiles').select(PROFILE_SELECT_FIELDS).eq('id', currentUser.id).single();
     profileCache = res.data || {};
     renderAccountView();
     renderPayoutSection();
@@ -1368,32 +1372,106 @@
     document.getElementById('become-seller-btn').addEventListener('click', renderPayoutEdit);
   }
 
+  var SEXO_LABEL = { femenino: 'Femenino', masculino: 'Masculino', otro: 'Otro' };
+  var VERIFICATION_LABEL = {
+    no_iniciado: 'Sin verificar',
+    pendiente: 'En revisión',
+    verificado: 'Verificado ✅',
+    rechazado: 'Rechazado'
+  };
+
+  // Las fotos de DNI van a un bucket PRIVADO ("identity-docs") — a
+  // diferencia de las fotos de paquete/comprobantes, acá nadie más que el
+  // dueño y el administrador puede verla, ni aunque adivine la URL. Por
+  // eso no guardamos un link público: guardamos la ruta del archivo
+  // (dni_photo_path) y generamos un link temporario (60 segundos) recién
+  // en el momento de querer verla.
+  async function uploadIdentityPhoto(userId, file){
+    var path = userId + '/dni-' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    var upload = await sb.storage.from('identity-docs').upload(path, file, { upsert: false });
+    if (upload.error) throw upload.error;
+    return path;
+  }
+
+  async function getIdentityPhotoSignedUrl(path){
+    var res = await sb.storage.from('identity-docs').createSignedUrl(path, 60);
+    if (res.error) throw res.error;
+    return res.data.signedUrl;
+  }
+
+  function calcularEdad(fechaNacimiento){
+    if (!fechaNacimiento) return null;
+    var hoy = new Date();
+    var nac = new Date(fechaNacimiento + 'T00:00:00');
+    var edad = hoy.getFullYear() - nac.getFullYear();
+    var m = hoy.getMonth() - nac.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+    return edad;
+  }
+
   function renderPayoutView(){
     var p = profileCache || {};
+    var vStatus = p.verification_status || 'no_iniciado';
     payoutBody.innerHTML =
       '<div class="acct-list">' +
         acctRow('Alias', p.payout_alias || '—') +
         acctRow('CBU', p.payout_cbu || '—') +
         acctRow('Titular de la cuenta', p.payout_titular || '—') +
+        acctRow('Sexo', SEXO_LABEL[p.sexo] || '—') +
+        acctRow('Fecha de nacimiento', p.fecha_nacimiento || '—') +
+        acctRow('DNI', p.dni || '—') +
+        acctRow('Verificación', VERIFICATION_LABEL[vStatus] || vStatus) +
       '</div>' +
-      '<div class="acct-foot"><button type="button" class="link-btn" id="payout-edit-btn">Editar datos de cobro</button></div>';
+      (vStatus === 'rechazado' && p.verification_rejection_reason
+        ? '<p class="hint" style="margin-top:8px; padding:0 20px">Motivo: ' + escapeHtml(p.verification_rejection_reason) + '</p>'
+        : '') +
+      (p.dni_photo_path ? '<p class="hint" style="margin-top:8px; padding:0 20px"><button type="button" class="link-btn" id="ver-dni-foto-btn">Ver la foto de mi DNI</button></p>' : '') +
+      '<div class="acct-foot"><button type="button" class="link-btn" id="payout-edit-btn">Editar mis datos</button></div>';
     document.getElementById('payout-edit-btn').addEventListener('click', renderPayoutEdit);
+    var verFotoBtn = document.getElementById('ver-dni-foto-btn');
+    if (verFotoBtn){
+      verFotoBtn.addEventListener('click', async function(){
+        verFotoBtn.disabled = true;
+        try {
+          var url = await getIdentityPhotoSignedUrl(p.dni_photo_path);
+          window.open(url, '_blank', 'noopener');
+        } catch (err) {
+          alert('No se pudo abrir la foto: ' + (err.message || 'error desconocido'));
+        }
+        verFotoBtn.disabled = false;
+      });
+    }
   }
 
   function renderPayoutEdit(){
     var p = profileCache || {};
+    var vStatus = p.verification_status || 'no_iniciado';
     payoutBody.innerHTML =
       '<form id="payout-edit-form">' +
-        '<p class="hint" style="margin-top:0">El alias y el CBU son obligatorios: los necesitamos para poder depositarte cuando se libere un pago.</p>' +
+        '<p class="hint" style="margin-top:0">Para vender necesitamos tus datos de cobro y verificar tu identidad (lo revisamos nosotros a mano, no es automático). Todos los campos son obligatorios.</p>' +
         '<label for="payout-alias">Alias de tu cuenta</label>' +
         '<input id="payout-alias" type="text" required value="' + escapeAttr(p.payout_alias) + '" placeholder="Tu alias">' +
         '<label for="payout-cbu">CBU</label>' +
         '<input id="payout-cbu" type="text" required inputmode="numeric" minlength="22" maxlength="22" value="' + escapeAttr(p.payout_cbu) + '" placeholder="22 dígitos">' +
         '<label for="payout-titular">Titular de la cuenta</label>' +
         '<input id="payout-titular" type="text" required value="' + escapeAttr(p.payout_titular) + '" placeholder="Nombre y apellido del titular">' +
+        '<label for="payout-sexo">Sexo</label>' +
+        '<select id="payout-sexo" required>' +
+          '<option value=""' + (!p.sexo ? ' selected' : '') + ' disabled>Elegí una opción</option>' +
+          '<option value="femenino"' + (p.sexo === 'femenino' ? ' selected' : '') + '>Femenino</option>' +
+          '<option value="masculino"' + (p.sexo === 'masculino' ? ' selected' : '') + '>Masculino</option>' +
+          '<option value="otro"' + (p.sexo === 'otro' ? ' selected' : '') + '>Otro</option>' +
+        '</select>' +
+        '<label for="payout-fecha-nac">Fecha de nacimiento</label>' +
+        '<input id="payout-fecha-nac" type="date" required value="' + escapeAttr(p.fecha_nacimiento) + '">' +
+        '<label for="payout-dni">DNI (sin puntos)</label>' +
+        '<input id="payout-dni" type="text" required inputmode="numeric" minlength="7" maxlength="8" value="' + escapeAttr(p.dni) + '" placeholder="Ej: 35123456">' +
+        '<label for="payout-dni-foto">Foto del DNI (frente)</label>' +
+        (p.dni_photo_path ? '<p class="hint" style="margin-top:0; margin-bottom:6px">Ya subiste una foto. Si no elegís un archivo nuevo, dejamos la que ya tenemos.</p>' : '') +
+        '<input id="payout-dni-foto" type="file" accept="image/*"' + (p.dni_photo_path ? '' : ' required') + '>' +
         '<div id="payout-edit-msg"></div>' +
         '<div style="display:flex; gap:10px; margin-top:16px">' +
-          '<button type="submit" class="btn-primary" style="flex:1; padding:10px; font-size:.86rem">Guardar</button>' +
+          '<button type="submit" class="btn-primary" style="flex:1; padding:10px; font-size:.86rem">' + (vStatus === 'verificado' ? 'Guardar' : 'Mandar para revisar') + '</button>' +
           (esVendedor(p) ? '<button type="button" class="link-btn" id="payout-cancel-btn">Cancelar</button>' : '') +
         '</div>' +
       '</form>';
@@ -1402,27 +1480,61 @@
     document.getElementById('payout-edit-form').addEventListener('submit', async function(e){
       e.preventDefault();
       var submitBtn = e.target.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Guardando...';
-      var wasVendedor = esVendedor(profileCache || {});
-      var updates = {
-        payout_alias: document.getElementById('payout-alias').value.trim(),
-        payout_cbu: document.getElementById('payout-cbu').value.trim(),
-        payout_titular: document.getElementById('payout-titular').value.trim()
-      };
-      if (!wasVendedor){
-        updates.rol = (profileCache && profileCache.rol === 'comprar') ? 'ambos' : (profileCache.rol || 'ambos');
-      }
-      var res = await sb.from('profiles').update(updates).eq('id', currentUser.id);
-      if (res.error){
-        var msg = document.getElementById('payout-edit-msg');
-        msg.innerHTML = '<div class="msg err" style="margin-top:10px">No se pudo guardar: ' + res.error.message + '</div>';
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Guardar';
+      var msg = document.getElementById('payout-edit-msg');
+      msg.innerHTML = '';
+
+      var fechaNac = document.getElementById('payout-fecha-nac').value;
+      var edad = calcularEdad(fechaNac);
+      if (edad === null || edad < 18){
+        msg.innerHTML = '<div class="msg err" style="margin-top:10px">Tenés que ser mayor de 18 años para vender.</div>';
         return;
       }
-      profileCache = Object.assign({}, profileCache, updates);
-      renderPayoutSection();
+      var dniVal = document.getElementById('payout-dni').value.trim();
+      if (!/^\d{7,8}$/.test(dniVal)){
+        msg.innerHTML = '<div class="msg err" style="margin-top:10px">Ingresá un DNI válido, solo números (sin puntos).</div>';
+        return;
+      }
+      var fotoInput = document.getElementById('payout-dni-foto');
+      var fotoFile = fotoInput && fotoInput.files[0];
+      if (!fotoFile && !p.dni_photo_path){
+        msg.innerHTML = '<div class="msg err" style="margin-top:10px">Subí una foto del frente de tu DNI.</div>';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+      try {
+        var wasVendedor = esVendedor(profileCache || {});
+        var updates = {
+          payout_alias: document.getElementById('payout-alias').value.trim(),
+          payout_cbu: document.getElementById('payout-cbu').value.trim(),
+          payout_titular: document.getElementById('payout-titular').value.trim(),
+          sexo: document.getElementById('payout-sexo').value,
+          fecha_nacimiento: fechaNac,
+          dni: dniVal,
+          // Cualquier cambio en los datos de venta vuelve a mandar la cuenta
+          // a revisión — así Mateo siempre revisa la versión más nueva de
+          // los datos, no una vieja ya aprobada.
+          verification_status: 'pendiente',
+          verification_rejection_reason: null,
+          verification_requested_at: new Date().toISOString()
+        };
+        if (fotoFile){
+          updates.dni_photo_path = await uploadIdentityPhoto(currentUser.id, fotoFile);
+        }
+        if (!wasVendedor){
+          updates.rol = (profileCache && profileCache.rol === 'comprar') ? 'ambos' : (profileCache.rol || 'ambos');
+        }
+        var res = await sb.from('profiles').update(updates).eq('id', currentUser.id);
+        if (res.error) throw res.error;
+        profileCache = Object.assign({}, profileCache, updates);
+        renderPayoutSection();
+        updatePublishAccess();
+      } catch (err) {
+        msg.innerHTML = '<div class="msg err" style="margin-top:10px">No se pudo guardar: ' + (err.message || 'error desconocido') + '</div>';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Mandar para revisar';
+      }
     });
   }
 
@@ -1665,6 +1777,7 @@
   async function updatePublishAccess(){
     var locked = document.getElementById('publicar-locked');
     var needsSeller = document.getElementById('publicar-necesita-vendedor');
+    var needsSellerBody = document.getElementById('publicar-necesita-vendedor-body');
     var picker = document.getElementById('categoria-picker');
     var formWrap = document.getElementById('publicar-form-wrap');
     if (!currentUser){
@@ -1675,14 +1788,38 @@
 
     // profileCache solo se carga al entrar a "Mi cuenta"; si todavía no se
     // cargó (por ejemplo, el usuario fue directo a "Publicar"), lo pedimos
-    // acá para poder chequear los datos de cobro.
+    // acá para poder chequear los datos de cobro y de verificación.
     if (!profileCache || profileCache.payout_alias === undefined){
-      var res = await sb.from('profiles').select('username,email,nombre,apellido,telefono,direccion,direccion_envio,rol,payout_alias,payout_cbu,payout_titular').eq('id', currentUser.id).single();
+      var res = await sb.from('profiles').select(PROFILE_SELECT_FIELDS).eq('id', currentUser.id).single();
       profileCache = Object.assign({}, profileCache, res.data || {});
     }
 
-    if (!tienePayoutCompleto(profileCache)){
+    // Para publicar hacen falta dos cosas: los datos de cobro, Y que Mateo
+    // haya verificado la identidad (DNI + foto). Mostramos un mensaje
+    // distinto según en qué parte del proceso esté la cuenta.
+    var p = profileCache || {};
+    var vStatus = p.verification_status || 'no_iniciado';
+    if (!tienePayoutCompleto(p) || vStatus === 'no_iniciado' || vStatus === 'rechazado'){
       needsSeller.hidden = false; picker.hidden = true; formWrap.hidden = true;
+      if (vStatus === 'rechazado'){
+        needsSellerBody.innerHTML =
+          '<p style="margin-bottom:8px; font-weight:600">No pudimos verificar tus datos.</p>' +
+          (p.verification_rejection_reason ? '<p style="margin-bottom:12px">' + escapeHtml(p.verification_rejection_reason) + '</p>' : '<p style="margin-bottom:12px">Revisalos e intentá de nuevo.</p>') +
+          '<button class="btn-primary" type="button" id="btn-open-account-from-publish">Revisar mis datos</button>';
+      } else {
+        needsSellerBody.innerHTML =
+          '<p style="margin-bottom:12px">Para publicar y vender necesitamos antes tus datos de cobro y verificar tu identidad (es un trámite rápido, lo revisamos a mano): alias, CBU, titular, DNI y una foto del documento.</p>' +
+          '<button class="btn-primary" type="button" id="btn-open-account-from-publish">Cargar mis datos</button>';
+      }
+      document.getElementById('btn-open-account-from-publish').addEventListener('click', function(){ go('cuenta'); });
+      return;
+    }
+    if (vStatus === 'pendiente'){
+      needsSeller.hidden = false; picker.hidden = true; formWrap.hidden = true;
+      needsSellerBody.innerHTML =
+        '<p style="margin-bottom:12px">Ya tenemos tus datos. Los estamos revisando — en cuanto los confirmemos, te avisamos y vas a poder publicar.</p>' +
+        '<button class="ghost-btn" type="button" id="btn-open-account-from-publish">Ver mis datos</button>';
+      document.getElementById('btn-open-account-from-publish').addEventListener('click', function(){ go('cuenta'); });
       return;
     }
     needsSeller.hidden = true;
@@ -1692,11 +1829,6 @@
     } else {
       picker.hidden = true; formWrap.hidden = false;
     }
-  }
-
-  var btnOpenAccountFromPublish = document.getElementById('btn-open-account-from-publish');
-  if (btnOpenAccountFromPublish){
-    btnOpenAccountFromPublish.addEventListener('click', function(){ go('cuenta'); });
   }
 
   document.querySelectorAll('[data-cat-pick]').forEach(function(btn){
@@ -2140,7 +2272,45 @@
     loadQuestions(product.id);
     loadOfertas(product);
     loadProductShippingSummary(product);
+    loadSellerShipBox(product, isMine);
     go('producto', navMode);
+  }
+
+  // Si esta publicación es tuya y ya se vendió, mostramos acá mismo (no
+  // solo en "Mis publicaciones") todo lo referido al despacho: la foto del
+  // paquete cerrado, el número de seguimiento, y el botón para marcarlo
+  // como despachado — así no hace falta ir a buscarlo a otra sección.
+  async function loadSellerShipBox(product, isMine){
+    var box = document.getElementById('producto-seller-ship-box');
+    if (!box) return;
+    box.hidden = true;
+    box.innerHTML = '';
+    // El producto recién pasa a "vendido" cuando se libera el pago (al
+    // final de todo) — durante "pago_confirmado"/"despachado" sigue
+    // figurando como "reservado". Así que acá solo descartamos el caso
+    // obvio (todavía disponible, nunca se vendió) y dejamos que la
+    // consulta de abajo decida según el pedido real.
+    if (!isMine || product.status === 'disponible') return;
+    var orderRes = await sb.from('orders')
+      .select('id,status,seller_package_photo_url')
+      .eq('product_id', product.id)
+      .neq('status', 'cancelado')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    var order = (!orderRes.error && orderRes.data && orderRes.data.length) ? orderRes.data[0] : null;
+    if (!order) return;
+    if (order.status === 'pago_confirmado'){
+      box.innerHTML = '<p class="hint" style="margin-top:0; font-weight:600">Despacho de esta venta</p>' + sellerShipBlockHtml(order);
+      box.hidden = false;
+    } else if (order.status === 'pendiente_pago'){
+      box.innerHTML = '<p class="hint" style="margin-top:0">Esperando que se confirme el pago del comprador.</p>';
+      box.hidden = false;
+    } else if (order.status === 'despachado' || order.status === 'confirmado_entrega' || order.status === 'liberado'){
+      box.innerHTML = '<p class="hint" style="margin-top:0">Ya despachado' +
+        (order.seller_package_photo_url ? ' — <a href="' + order.seller_package_photo_url + '" target="_blank" rel="noopener">ver foto del paquete</a>' : '') +
+        '.</p>';
+      box.hidden = false;
+    }
   }
 
   // Qué mostrar en el resumen de la publicación sobre el envío, para este
@@ -2942,9 +3112,13 @@
       publicacionesList.innerHTML = '<p class="empty-note">Todavía no publicaste nada.</p>';
       return;
     }
-    // Para las vendidas, buscamos el pedido asociado (el más reciente no
-    // cancelado) para poder mostrar ahí mismo "confirmar envío + foto".
-    var soldIds = rows.filter(function(p){ return p.status === 'vendido'; }).map(function(p){ return p.id; });
+    // Para las reservadas o vendidas, buscamos el pedido asociado (el más
+    // reciente no cancelado) para poder mostrar ahí mismo "confirmar envío
+    // + foto". El producto queda "reservado" (no "vendido") durante todo
+    // el proceso de pago/despacho — recién pasa a "vendido" cuando se
+    // libera el pago al final — así que hay que buscar el pedido en ambos
+    // casos, no solo cuando ya está vendido.
+    var soldIds = rows.filter(function(p){ return p.status === 'reservado' || p.status === 'vendido'; }).map(function(p){ return p.id; });
     var ordersByProduct = {};
     if (soldIds.length){
       var ordersRes = await sb.from('orders').select('*').in('product_id', soldIds).neq('status', 'cancelado').order('created_at', { ascending: false });
@@ -2980,7 +3154,12 @@
           ? ' <button type="button" class="ghost-btn" style="margin-top:8px; color:var(--danger); border-color:var(--danger-bg)" data-delete-product="' + p.id + '">Eliminar</button>'
           : '');
 
-    if (p.status === 'vendido'){
+    // Ojo: el producto recién pasa a "vendido" cuando se libera el pago (al
+    // final de todo el proceso) — mientras se está confirmando el pago o
+    // despachando, sigue figurando como "reservado". Por eso este bloque se
+    // muestra para cualquier estado que no sea "disponible", y es el pedido
+    // (no el producto) el que decide qué mostrar.
+    if (p.status !== 'disponible'){
       if (order && order.status === 'pago_confirmado'){
         html += sellerShipBlockHtml(order);
       } else if (order && order.status === 'pendiente_pago'){
@@ -3159,22 +3338,31 @@
       if (res.error) throw res.error;
       if (!views.pedidos.hidden) loadPedidos();
       if (!views.publicaciones.hidden) loadMisPublicaciones();
+      if (!views.producto.hidden && currentProduct) loadSellerShipBox(currentProduct, true);
     } catch (err) {
       if (msgEl) msgEl.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo marcar como despachado.') + '</div>';
       btn.disabled = false;
     }
   }
 
-  // Bloque del comprador cuando el pedido ya está despachado: dos caminos
-  // bien separados, para que quede claro cuál usar.
+  // Bloque de reclamo del comprador: dos caminos bien separados, para que
+  // quede claro cuál usar.
   // 1) "Confirmar recepción": llegó todo bien, no hace falta ninguna foto.
-  // 2) "Reportar un problema": no llegó, o llegó distinto a lo publicado —
-  //    acá SÍ hace falta una foto (si se puede, antes de abrir el paquete) y
-  //    pasa el pedido a "En disputa" para que Mateo lo revise desde el panel.
-  function buyerReceivedBlockHtml(order){
+  //    Solo aparece mientras el pedido está "despachado" (todavía no se
+  //    confirmó nada).
+  // 2) "Reportar un problema": no llegó, llegó distinto a lo publicado, o
+  //    apareció un problema después de confirmar la recepción — acá SÍ hace
+  //    falta una foto (si se puede, antes de abrir el paquete) y pasa el
+  //    pedido a "En disputa" para que Mateo lo revise desde el panel. Queda
+  //    disponible mientras el pedido siga en curso, incluso después de
+  //    confirmada la entrega o liberado el pago, por si el problema se nota
+  //    más tarde.
+  function buyerReceivedBlockHtml(order, soloReclamo){
     return '<div class="received-block" style="margin-top:10px">' +
-      '<button type="button" class="ghost-btn" data-confirm-receipt="' + order.id + '">Confirmar recepción (llegó todo bien)</button>' +
-      '<p class="hint" style="margin-top:12px">¿No llegó, o llegó algo distinto a lo publicado? Sacale una foto a lo que recibiste — si podés, antes de abrir el paquete — y reportalo para que lo revisemos.</p>' +
+      (soloReclamo ? '' : '<button type="button" class="ghost-btn" data-confirm-receipt="' + order.id + '">Confirmar recepción (llegó todo bien)</button>') +
+      '<p class="hint" style="margin-top:' + (soloReclamo ? '0' : '12px') + '; font-weight:' + (soloReclamo ? '600' : 'normal') + '">' +
+      (soloReclamo ? '¿Tenés un problema con este pedido? ' : '¿No llegó, o llegó algo distinto a lo publicado? ') +
+      'Sacale una foto a lo que recibiste — si podés, antes de abrir el paquete — y reportalo para que lo revisemos.</p>' +
       '<input type="file" accept="image/*" data-received-photo="' + order.id + '">' +
       '<button type="button" class="ghost-btn" style="margin-top:8px" data-report-problem="' + order.id + '">Reportar un problema</button>' +
       (order.buyer_received_photo_url ? '<p class="hint" style="margin-top:6px">Ya reportaste un problema con una foto. <a href="' + order.buyer_received_photo_url + '" target="_blank" rel="noopener">Verla</a></p>' : '') +
@@ -3227,7 +3415,9 @@
         }
       }
       if (tipo === 'compra' && order.status === 'despachado'){
-        html += buyerReceivedBlockHtml(order);
+        html += buyerReceivedBlockHtml(order, false);
+      } else if (tipo === 'compra' && (order.status === 'confirmado_entrega' || order.status === 'liberado')){
+        html += buyerReceivedBlockHtml(order, true);
       }
 
       // Envío: independiente del estado del pago del producto (menos si se
@@ -3427,6 +3617,15 @@
         if (msgEl) msgEl.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo reportar el problema.') + '</div>';
         reportBtn.disabled = false;
       }
+    }
+  });
+
+  // Mismo botón "Marcar como despachado" que en "Mis publicaciones" y "Mis
+  // pedidos", ahora también disponible directo desde la publicación.
+  document.getElementById('view-producto').addEventListener('click', async function(e){
+    var shipBtn = e.target.closest('[data-mark-shipped]');
+    if (shipBtn){
+      await markOrderShipped(shipBtn.dataset.markShipped, shipBtn);
     }
   });
 

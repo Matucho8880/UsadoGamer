@@ -56,6 +56,12 @@
   .stat-card .n{font-family:var(--font-display); font-size:1.7rem; font-weight:700; line-height:1.1}
   .stat-card .l{color:var(--muted); font-size:.8rem; margin-top:4px}
 
+  /* Agrupa las secciones del panel por tema, para que no sea una lista
+     larga de 11 cajas todas iguales: separa lo urgente (reclamos), lo que
+     requiere una acción hoy, lo que es solo seguimiento/lectura, y
+     publicaciones, al final de todo. */
+  .group-title{font-family:var(--font-display); font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:36px 0 10px; padding-bottom:8px; border-bottom:2px solid var(--border)}
+  .group-title:first-of-type{margin-top:0}
   section.panel{background:var(--bg); border:1px solid var(--border); border-radius:14px; margin-bottom:28px; overflow:hidden}
   .panel-head{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
   .panel-head h2{font-size:1.05rem}
@@ -153,6 +159,26 @@
 
     <div class="stats-grid" id="stats-grid"></div>
 
+    <div class="group-title">⚠️ Reclamos</div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Reclamos (pedidos en disputa)</h2>
+        <span class="count" id="count-disputes"></span>
+      </div>
+      <div class="panel-body" id="list-disputes"></div>
+    </section>
+
+    <div class="group-title">Para hacer ahora</div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Verificaciones de identidad (para poder vender)</h2>
+        <span class="count" id="count-verifications"></span>
+      </div>
+      <div class="panel-body" id="list-verifications"></div>
+    </section>
+
     <section class="panel">
       <div class="panel-head">
         <h2>Mensajes (contacto)</h2>
@@ -179,22 +205,6 @@
 
     <section class="panel">
       <div class="panel-head">
-        <h2>Pedidos cotizados</h2>
-        <span class="count" id="count-quoted"></span>
-      </div>
-      <div class="panel-body" id="list-quoted"></div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Reclamos (pedidos en disputa)</h2>
-        <span class="count" id="count-disputes"></span>
-      </div>
-      <div class="panel-body" id="list-disputes"></div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
         <h2>Pagos a confirmar</h2>
         <span class="count" id="count-confirm"></span>
       </div>
@@ -211,18 +221,28 @@
 
     <section class="panel">
       <div class="panel-head">
-        <h2>Despachados (esperando que el comprador confirme)</h2>
-        <span class="count" id="count-shipped"></span>
-      </div>
-      <div class="panel-body" id="list-shipped"></div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
         <h2>Listos para liberar pago</h2>
         <span class="count" id="count-release"></span>
       </div>
       <div class="panel-body" id="list-release"></div>
+    </section>
+
+    <div class="group-title">Seguimiento (solo para consultar)</div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Pedidos cotizados</h2>
+        <span class="count" id="count-quoted"></span>
+      </div>
+      <div class="panel-body" id="list-quoted"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Despachados (esperando que el comprador confirme)</h2>
+        <span class="count" id="count-shipped"></span>
+      </div>
+      <div class="panel-body" id="list-shipped"></div>
     </section>
 
     <section class="panel">
@@ -232,6 +252,8 @@
       </div>
       <div class="panel-body" id="list-all"></div>
     </section>
+
+    <div class="group-title">Publicaciones</div>
 
     <section class="panel">
       <div class="panel-head">
@@ -328,11 +350,13 @@
     var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,delivery_origin_address,delivery_included_in_payment,delivery_payment_status,delivery_payment_method,delivery_receipt_url,seller_package_photo_url,buyer_received_photo_url,products(title)');
     var quotesRes = await sb.from('shipping_quotes').select('id,delivery_method,delivery_address,cost,origin_address,buyer_id,seller_id,product_id,order_id,created_at,products(title)').is('order_id', null);
     var messagesRes = await sb.from('contact_messages').select('id,nombre,email,motivo,referencia,mensaje,estado,created_at').order('created_at', { ascending: false });
+    var verificationsRes = await sb.from('profiles').select('id,username,nombre,apellido,email,telefono,sexo,fecha_nacimiento,dni,dni_photo_path,payout_alias,payout_cbu,payout_titular,verification_status,verification_requested_at').eq('verification_status', 'pendiente').order('verification_requested_at', { ascending: true });
 
     var products = (productsRes.data || []);
     var orders = (ordersRes.data || []);
     var quotes = (quotesRes.data || []);
     var messages = (messagesRes.data || []);
+    var verifications = (verificationsRes.data || []);
 
     // orders/shipping_quotes no tienen una foreign key directa a profiles
     // (apuntan a auth.users), así que los nombres de comprador/vendedor se
@@ -366,8 +390,9 @@
       p.seller = profilesById[p.user_id];
     });
 
-    renderStats(products, orders, quotes);
+    renderStats(products, orders, quotes, verifications);
     renderMessages(messages);
+    renderVerificationsQueue(verifications);
     renderQuoteQueue(quotes.filter(function(q){ return q.cost == null; }));
     renderQuotedQueue(
       quotes.filter(function(q){ return q.cost != null; }),
@@ -388,7 +413,7 @@
     renderProductsPanel(products);
   }
 
-  function renderStats(products, orders, quotes){
+  function renderStats(products, orders, quotes, verifications){
     var activos = products.filter(function(p){ return p.status === 'disponible'; }).length;
     var reservados = products.filter(function(p){ return p.status === 'reservado'; }).length;
     var vendidos = products.filter(function(p){ return p.status === 'vendido'; }).length;
@@ -406,11 +431,14 @@
     var aLiberar = orders.filter(function(o){ return o.status === 'confirmado_entrega'; }).length;
     var enDisputa = orders.filter(function(o){ return o.status === 'disputado'; }).length;
 
+    var aVerificar = (verifications || []).length;
+
     var cards = [
       { n: activos, l: 'Publicaciones activas' },
       { n: reservados, l: 'Reservados (en proceso)' },
       { n: vendidos, l: 'Vendidos' },
       { n: enDisputa, l: 'Reclamos abiertos' },
+      { n: aVerificar, l: 'Verificaciones de identidad pendientes' },
       { n: consultasACotizar, l: 'Consultas de envío a cotizar' },
       { n: aCotizar, l: 'Envíos a calcular (ya pagado)' },
       { n: aConfirmar, l: 'Pagos a confirmar' },
@@ -474,6 +502,115 @@
       alert('No se pudo eliminar: ' + res.error.message);
       btn.disabled = false;
       btn.textContent = 'Eliminar publicación';
+      return;
+    }
+    loadDashboard();
+  }
+
+  // ---------- Verificaciones de identidad (para poder vender) ----------
+  // Revisión 100% manual: no cruzamos contra ninguna base oficial desde
+  // acá (eso lo hacés vos, a mano, por ejemplo con la Constancia de CUIL de
+  // ANSES si hace falta). Acá mostramos los datos que cargó la persona
+  // junto con la foto de su DNI, para que puedas compararlos de un
+  // vistazo — sobre todo que el nombre del titular de cobro coincida con
+  // el nombre del DNI.
+  var SEXO_LABEL_DASH = { femenino: 'Femenino', masculino: 'Masculino', otro: 'Otro' };
+
+  function edadDesde(fechaNacimiento){
+    if (!fechaNacimiento) return null;
+    var hoy = new Date();
+    var nac = new Date(fechaNacimiento + 'T00:00:00');
+    var edad = hoy.getFullYear() - nac.getFullYear();
+    var m = hoy.getMonth() - nac.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+    return edad;
+  }
+
+  function renderVerificationsQueue(list){
+    var el = document.getElementById('list-verifications');
+    document.getElementById('count-verifications').textContent = list.length + (list.length === 1 ? ' cuenta' : ' cuentas');
+    if (!list.length){
+      el.innerHTML = '<div class="empty-row">No hay verificaciones pendientes por ahora.</div>';
+      return;
+    }
+    el.innerHTML = list.map(function(p){ return verificationRowHtml(p); }).join('');
+    list.forEach(function(p){
+      var verBtn = document.getElementById('ver-dni-' + p.id);
+      if (verBtn) verBtn.addEventListener('click', function(){ verDniFotoAdmin(p.dni_photo_path, verBtn); });
+      var okBtn = document.getElementById('verif-ok-' + p.id);
+      if (okBtn) okBtn.addEventListener('click', function(){ approveVerification(p.id, okBtn); });
+      var noBtn = document.getElementById('verif-no-' + p.id);
+      if (noBtn) noBtn.addEventListener('click', function(){ rejectVerification(p.id, noBtn); });
+    });
+  }
+
+  function verificationRowHtml(p){
+    var nombreCompleto = [p.nombre, p.apellido].filter(Boolean).join(' ') || '(sin nombre cargado)';
+    var edad = edadDesde(p.fecha_nacimiento);
+    var titularCoincide = p.payout_titular && nombreCompleto !== '(sin nombre cargado)' &&
+      p.payout_titular.trim().toLowerCase() === nombreCompleto.trim().toLowerCase();
+    return '' +
+      '<div class="order-row status-yellow">' +
+        '<div class="order-info">' +
+          '<div class="t">' + escapeAttr(nombreCompleto) + ' · @' + escapeAttr(p.username || '—') + '</div>' +
+          '<div class="d">' + escapeAttr(p.email || '(sin email)') + ' · ' + escapeAttr(p.telefono || '(sin teléfono)') + '</div>' +
+          '<div class="d">DNI: <b>' + escapeAttr(p.dni || '—') + '</b> · Sexo: <b>' + (SEXO_LABEL_DASH[p.sexo] || '—') + '</b> · Nacimiento: <b>' + escapeAttr(p.fecha_nacimiento || '—') + (edad != null ? ' (' + edad + ' años)' : '') + '</b></div>' +
+          '<div class="d">Cobra a nombre de: <b>' + escapeAttr(p.payout_titular || '—') + '</b>' +
+            (titularCoincide ? ' <span class="badge good">coincide con el nombre</span>' : ' <span class="badge warn">revisar si coincide</span>') +
+            ' · Alias ' + escapeAttr(p.payout_alias || '—') + ' · CBU ' + escapeAttr(p.payout_cbu || '—') +
+          '</div>' +
+          '<div class="d">Pedido: ' + dateFmt(p.verification_requested_at) + '</div>' +
+        '</div>' +
+        '<div class="order-actions">' +
+          (p.dni_photo_path ? '<button type="button" class="btn-sm link" id="ver-dni-' + p.id + '">Ver foto del DNI</button>' : '<span class="badge warn">Sin foto</span>') +
+          '<button type="button" class="btn-sm confirm" id="verif-ok-' + p.id + '">Aprobar</button>' +
+          '<button type="button" class="btn-sm cancel" id="verif-no-' + p.id + '">Rechazar</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  async function verDniFotoAdmin(path, btn){
+    btn.disabled = true;
+    var res = await sb.storage.from('identity-docs').createSignedUrl(path, 60);
+    btn.disabled = false;
+    if (res.error){
+      alert('No se pudo abrir la foto: ' + res.error.message);
+      return;
+    }
+    window.open(res.data.signedUrl, '_blank', 'noopener');
+  }
+
+  async function approveVerification(userId, btn){
+    btn.disabled = true;
+    btn.textContent = 'Aprobando...';
+    var res = await sb.from('profiles').update({
+      verification_status: 'verificado',
+      verification_rejection_reason: null,
+      verification_reviewed_at: new Date().toISOString()
+    }).eq('id', userId);
+    if (res.error){
+      alert('No se pudo aprobar: ' + res.error.message);
+      btn.disabled = false;
+      btn.textContent = 'Aprobar';
+      return;
+    }
+    loadDashboard();
+  }
+
+  async function rejectVerification(userId, btn){
+    var motivo = window.prompt('¿Por qué no se puede confirmar? Este mensaje se le muestra a la persona para que corrija y vuelva a mandar sus datos.');
+    if (motivo === null) return; // canceló el prompt
+    btn.disabled = true;
+    btn.textContent = 'Rechazando...';
+    var res = await sb.from('profiles').update({
+      verification_status: 'rechazado',
+      verification_rejection_reason: motivo.trim() || 'No pudimos confirmar tus datos. Revisalos y volvé a mandarlos.',
+      verification_reviewed_at: new Date().toISOString()
+    }).eq('id', userId);
+    if (res.error){
+      alert('No se pudo rechazar: ' + res.error.message);
+      btn.disabled = false;
+      btn.textContent = 'Rechazar';
       return;
     }
     loadDashboard();
