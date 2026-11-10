@@ -7,47 +7,42 @@
 <link rel="icon" href="/favicon-joystick.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f3f7fc; --card:#ffffff; --surface:#e8eff8; --surface-2:#d9e4f2; --fg:#0a1226; --muted:#4d5d7b;
-    --accent:#1d4dff; --accent-hover:#1438cc; --accent-dim:#dfe8ff; --accent-ink:#ffffff;
-    --ice:#7fdcff; --ink:#0a1226; --ink-2:#12214d;
-    --good:#00775a; --good-bg:#dcf4ec; --border:#cfdbec; --danger:#d12a4f; --danger-bg:#fde6ec;
-    --warn:#9a6200; --warn-bg:#fcefd6;
-    --radius:6px;
-    --font-display:'Unbounded', 'Segoe UI', sans-serif;
-    --font-body:'Hanken Grotesk', 'Segoe UI', sans-serif;
-    --ease:cubic-bezier(.16,1,.3,1);
+    --bg:#ffffff; --surface:#eef1f8; --surface-2:#e1e6f2; --fg:#090d1a; --muted:#5b6479;
+    --accent:#2b56ff; --accent-dim:#e3e9ff; --accent-ink:#ffffff;
+    --good:#0e9f6e; --good-bg:#e3f7ee; --border:#dde2ef; --danger:#e23d5c; --danger-bg:#fde7ec;
+    --warn:#b4790f; --warn-bg:#fdf1de;
+    --radius:10px;
+    --font-display:'Bricolage Grotesque', 'Segoe UI', sans-serif;
+    --font-body:'Inter', 'Segoe UI', sans-serif;
   }
   *{box-sizing:border-box}
-  /* Pie de página siempre pegado abajo: html/body al 100% de alto y body en
-     columna, <main> (flex:1) se estira y empuja el pie hasta el final. */
-  html{height:100%; scrollbar-color:var(--accent) var(--surface); scrollbar-width:thin}
-  body{height:100%; display:flex; flex-direction:column; background:var(--bg); color:var(--fg); font-family:var(--font-body); font-size:16px; line-height:1.5; margin:0; padding-inline:24px; -webkit-font-smoothing:antialiased; overflow-x:hidden}
-  ::selection{background:var(--accent); color:#fff}
-  ::-webkit-scrollbar{width:10px; height:10px}
-  ::-webkit-scrollbar-track{background:var(--surface)}
-  ::-webkit-scrollbar-thumb{background:var(--accent); border-radius:6px; border:2px solid var(--surface)}
-  a{color:inherit; text-underline-offset:3px}
-  :focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-  h1,h2,h3{font-family:var(--font-display); font-weight:600; letter-spacing:-.02em; margin:0; text-wrap:balance}
-  h2{font-size:1.35rem; line-height:1.2}
+  /* Pie de página siempre pegado abajo: en páginas con poco contenido (p.ej.
+     "Cómo funciona"), sin esto el pie quedaba más arriba de lo esperado, a
+     mitad de página, en vez de ir al fondo de la pantalla. Con html/body al
+     100% de alto y el body en columna, <main> (flex:1 más abajo) se estira
+     para ocupar el espacio libre y empuja el pie siempre hasta el final. */
+  html{height:100%}
+  body{height:100%; display:flex; flex-direction:column; background:var(--bg); color:var(--fg); font-family:var(--font-body); margin:0; padding-inline:24px; -webkit-font-smoothing:antialiased; overflow-x:hidden}
+  a{color:inherit}
+  h1,h2,h3{font-family:var(--font-display); font-weight:600; letter-spacing:-.01em; margin:0}
+  h2{font-size:1.5rem}
   p{margin:0}
   .tabular{font-variant-numeric:tabular-nums}
   .wrap{max-width:1120px; margin-inline:auto}
   [hidden]{display:none!important}
 
   header.bar{
-    position:sticky; top:0; z-index:5; background:rgba(243,247,252,.9); backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--border); padding-block:18px; margin-inline:-24px; padding-inline:24px;
+    position:sticky; top:0; z-index:5; background:rgba(255,255,255,.92); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border); padding-block:20px; margin-inline:-24px; padding-inline:24px;
     flex:none;
   }
   .barrow{max-width:1120px; margin-inline:auto; display:flex; align-items:center; gap:16px; flex-wrap:nowrap}
-  .logo{display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:.95rem; letter-spacing:-.03em; white-space:nowrap; min-width:0; flex:none}
-  .logo-mark{width:36px; height:36px; display:block; flex:none}
-  .ghost-btn{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--fg); background:transparent; border:1.5px solid var(--fg); border-radius:var(--radius); padding:9px 16px; cursor:pointer; white-space:nowrap; flex:none; transition:background .2s var(--ease), color .2s var(--ease)}
-  .ghost-btn:hover{background:var(--fg); color:var(--bg)}
+  .logo{display:flex; align-items:center; gap:10px; font-family:'Outfit', var(--font-body); font-weight:700; font-size:1rem; letter-spacing:-.01em; white-space:nowrap; min-width:0; flex:none}
+  .logo-mark{width:38px; height:38px; display:block; flex:none}
+  .ghost-btn{font-family:var(--font-body); font-weight:600; font-size:.88rem; color:var(--fg); background:transparent; border:1px solid var(--border); border-radius:var(--radius); padding:9px 16px; cursor:pointer; white-space:nowrap; flex:none}
   .user-chip{font-size:.85rem; color:var(--muted); display:flex; align-items:center; gap:10px; min-width:0}
   .user-chip span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px}
   #auth-area{display:flex; align-items:center; gap:10px; min-width:0}
@@ -55,8 +50,8 @@
   .bell-btn{position:relative; background:none; border:none; cursor:pointer; padding:6px; display:flex; align-items:center; color:var(--fg); flex:none}
   .bell-btn svg{width:20px; height:20px; display:block}
   .bell-dot{position:absolute; top:3px; right:3px; width:8px; height:8px; border-radius:50%; background:var(--danger); border:2px solid var(--bg)}
-  .notif-panel{position:fixed; top:66px; right:16px; width:330px; max-width:calc(100vw - 32px); max-height:70vh; overflow-y:auto; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 18px 40px -16px rgba(10,18,38,.35); z-index:25}
-  .notif-head{font-family:var(--font-display); font-weight:600; font-size:.9rem; padding:14px 16px; border-bottom:1px solid var(--border)}
+  .notif-panel{position:fixed; top:66px; right:16px; width:330px; max-width:calc(100vw - 32px); max-height:70vh; overflow-y:auto; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 18px 40px -16px rgba(10,10,10,.28); z-index:25}
+  .notif-head{font-family:var(--font-display); font-weight:700; padding:14px 16px; border-bottom:1px solid var(--border)}
   .notif-item{padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer}
   .notif-item:last-child{border-bottom:none}
   .notif-item.unread{background:var(--accent-dim)}
@@ -68,9 +63,9 @@
   .profile-btn svg{width:26px; height:26px; display:block}
   .profile-btn:hover{background:var(--accent-dim)}
   /* ---- Mi cuenta (página completa) ---- */
-  .acct-section{border:1px solid var(--border); border-radius:var(--radius); background:var(--card); margin-bottom:24px; overflow:hidden}
+  .acct-section{border:1px solid var(--border); background:var(--bg); margin-bottom:24px}
   .acct-section-head{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap}
-  .acct-section-head h3{font-size:.98rem}
+  .acct-section-head h3{font-size:1.05rem}
   .acct-section-head p{color:var(--muted); font-size:.85rem; margin-top:4px}
   .acct-list{padding:4px 20px}
   .acct-row{display:flex; justify-content:space-between; gap:16px; padding:12px 0; border-bottom:1px solid var(--border); font-size:.9rem}
@@ -82,18 +77,18 @@
   #acct-edit-form label, #payout-edit-form label{margin-top:12px}
   #acct-edit-form label:first-of-type, #payout-edit-form label:first-of-type{margin-top:0}
   .acct-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--border)}
-  .acct-stat{background:var(--card); padding:18px 20px}
-  .acct-stat .n{font-family:var(--font-display); font-size:1.25rem; font-weight:600; line-height:1.15}
-  .acct-stat .l{color:var(--muted); font-size:.78rem; margin-top:6px}
+  .acct-stat{background:var(--bg); padding:18px 20px}
+  .acct-stat .n{font-family:var(--font-display); font-size:1.4rem; font-weight:700; line-height:1.15}
+  .acct-stat .l{color:var(--muted); font-size:.78rem; margin-top:4px}
   .wallet-summary{padding:18px 20px; border-bottom:1px solid var(--border)}
-  .wallet-summary .amt{font-family:var(--font-display); font-size:1.5rem; font-weight:600; line-height:1.15; font-variant-numeric:tabular-nums}
-  .wallet-summary .lbl{color:var(--muted); font-size:.82rem; margin-top:6px}
+  .wallet-summary .amt{font-family:var(--font-display); font-size:1.6rem; font-weight:700; line-height:1.15}
+  .wallet-summary .lbl{color:var(--muted); font-size:.82rem; margin-top:4px}
   .wallet-item{padding:14px 20px; border-bottom:1px solid var(--border)}
   .wallet-item:last-child{border-bottom:none}
   .wallet-item .t{font-weight:700; font-size:.9rem; display:flex; justify-content:space-between; gap:8px}
   .wallet-item .note{color:var(--muted); font-size:.8rem; margin-top:4px; line-height:1.4}
   .wallet-item .badge{display:inline-block; margin-top:6px; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:var(--radius); border:1px solid var(--accent); color:var(--accent); background:none}
-  .payout-note{background:var(--accent-dim); border:1px solid rgba(29,77,255,.25); padding:14px 20px; font-size:.85rem; color:var(--fg)}
+  .payout-note{background:var(--accent-dim); border:1px solid rgba(43,86,255,.3); padding:14px 20px; font-size:.85rem; color:var(--fg)}
   .logout-btn{width:100%; background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger-bg); border-radius:var(--radius); padding:10px; font-weight:700; cursor:pointer; font-size:.88rem}
   .logout-btn:hover{filter:brightness(0.97)}
 
@@ -101,7 +96,7 @@
     body{padding-inline:16px}
     header.bar{margin-inline:-16px; padding-inline:16px; padding-block:12px}
     .barrow{gap:8px}
-    .logo span{font-size:.82rem}
+    .logo span{font-size:.9rem}
     .ghost-btn{padding:8px 11px; font-size:.8rem}
     .user-chip span{max-width:72px; font-size:.78rem}
     .user-chip{gap:6px}
@@ -109,140 +104,139 @@
   }
 
   /* menú hamburguesa / cajón lateral */
-  .hamburger-btn{background:none; border:none; cursor:pointer; padding:8px 6px; display:flex; flex-direction:column; gap:5px; flex:none}
-  .hamburger-btn span{display:block; width:22px; height:2px; background:var(--fg); border-radius:2px}
-  .hamburger-btn span:nth-child(2){width:15px; align-self:flex-end}
-  .drawer-overlay{position:fixed; inset:0; background:rgba(10,18,38,.55); z-index:30; opacity:0; pointer-events:none; transition:opacity .2s}
+  .hamburger-btn{background:none; border:none; cursor:pointer; padding:8px 6px; display:flex; flex-direction:column; gap:4px; flex:none}
+  .hamburger-btn span{display:block; width:20px; height:2px; background:var(--fg); border-radius:2px}
+  .drawer-overlay{position:fixed; inset:0; background:rgba(10,10,10,.45); z-index:30; opacity:0; pointer-events:none; transition:opacity .2s}
   .drawer-overlay.open{opacity:1; pointer-events:auto}
-  .drawer{position:fixed; top:0; left:0; bottom:0; width:270px; max-width:80vw; background:var(--bg); border-right:1px solid var(--border); padding:18px; display:flex; flex-direction:column; transform:translateX(-100%); transition:transform .3s var(--ease)}
+  .drawer{position:fixed; top:0; left:0; bottom:0; width:270px; max-width:80vw; background:var(--bg); border-right:1px solid var(--border); padding:18px; display:flex; flex-direction:column; transform:translateX(-100%); transition:transform .25s}
   .drawer-overlay.open .drawer{transform:translateX(0)}
   .drawer-close{align-self:flex-end; background:none; border:none; font-size:1.6rem; line-height:1; cursor:pointer; color:var(--muted); padding:4px 8px; margin-bottom:10px}
-  .drawer-link{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--border); font-family:var(--font-display); font-weight:500; font-size:.92rem; letter-spacing:-.02em; color:var(--fg); padding:16px 4px; cursor:pointer; transition:color .15s, padding-left .25s var(--ease)}
-  .drawer-link:hover{color:var(--accent); padding-left:10px}
+  .drawer-link{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--border); font-family:var(--font-body); font-weight:600; font-size:1rem; color:var(--fg); padding:15px 4px; cursor:pointer}
   .drawer-link[aria-selected="true"]{color:var(--accent)}
   .drawer-logo{display:flex; align-items:center; gap:10px; margin-top:auto; padding-top:20px; border-top:1px solid var(--border)}
   .drawer-logo img{width:32px; height:32px}
-  .drawer-logo span{font-family:var(--font-display); font-weight:700; font-size:.92rem; letter-spacing:-.03em}
+  .drawer-logo span{font-family:'Outfit', var(--font-body); font-weight:700; font-size:1rem}
 
   main{padding-block:0 60px; flex:1 0 auto; width:100%}
   section[hidden]{display:none!important}
 
-  /* .hero vive adentro de <main class="wrap"> (max-width:1120px, centrado), por
-     eso acá SÍ hace falta "escapar" del contenedor con 100vw; en pantallas
-     angostas se usa margin-inline negativo (100vw genera un hueco con scrollbar). */
+  /* .hero vive adentro de <main class="wrap"> (max-width:1120px, centrado),
+     a diferencia de header.bar/footer que son hijos directos de <body> — por
+     eso acá SÍ hace falta el truco de "escapar" del contenedor centrado con
+     100vw, y no alcanza con cancelar el padding del body como en esos otros
+     dos. En pantallas angostas (hasta donde <main> deja de estar topeado en
+     1120px: 1120 + 24px de padding de cada lado = 1168px) no hace falta ese
+     truco, y conviene evitarlo porque 100vw puede generar un hueco a la
+     derecha cuando hay scrollbar (bug que se reportó en tablet) — ahí se usa
+     el mismo método de margin-inline negativo que header.bar/footer. */
   .hero{
     position:relative; width:100vw; left:50%; margin-left:-50vw;
-    padding-block:76px 88px; padding-inline:24px;
+    padding-block:72px 84px; padding-inline:24px;
     background:var(--bg);
-    color:#eef4ff;
-    overflow:hidden;
+    color:#f3f6ff;
   }
   @media (max-width:1168px){
     .hero{ width:auto; left:auto; margin-left:-24px; margin-right:-24px; }
   }
   @media (max-width:480px){ .hero{padding-inline:16px; margin-left:-16px; margin-right:-16px} }
-  /* Cuña diagonal oscura a la izquierda; a la derecha queda el hielo del fondo.
-     La mano de la izquierda es clara sobre lo oscuro y la de la derecha oscura
-     sobre lo claro: el mando cruza la diagonal. */
+  /* Fondo diagonal: la mancha oscura cubre un 60-65% del ancho a la izquierda
+     (más angosta abajo que arriba) y el resto queda blanco, el fondo normal
+     de la página. Es un div aparte en vez de ser el fondo de .hero para poder
+     recortarlo con clip-path sin afectar el texto ni la ilustración. */
   .hero-bg{
     position:absolute; inset:0; z-index:0;
-    background:linear-gradient(160deg, #12214d 0%, #0a1226 62%);
-    clip-path:polygon(0 0, 62% 0, 48% 100%, 0 100%);
+    background:radial-gradient(120% 140% at 85% 0%, #17317d 0%, #0b1333 55%, #04060f 100%);
+    clip-path:polygon(0 0, 66% 0, 50% 100%, 0 100%);
   }
-  .hero-bg::after{content:""; position:absolute; inset:0; background:var(--accent); clip-path:polygon(calc(62% - 4px) 0, 62% 0, 48% 100%, calc(48% - 4px) 100%)}
-  @media (max-width:760px){ .hero-bg{ clip-path:none } .hero-bg::after{display:none} }
+  /* En celular se oculta la ilustración de la mano (ver .hero-visual más
+     abajo) y el recorte diagonal deja de tener sentido: sin diagonal, el
+     fondo se ve como una franja azul pareja en vez de una cuña que no
+     coincidía con el alto real del hero en todos los celulares. */
+  @media (max-width:760px){ .hero-bg{ clip-path:none; } }
   .hero-inner{position:relative; z-index:1; display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; max-width:1120px; margin-inline:auto}
-  @media (max-width:760px){ .hero-inner{grid-template-columns:1fr} .hero{padding-block:48px 56px} }
-  .eyebrow{display:inline-flex; align-items:center; gap:9px; color:var(--ice); font-weight:600; font-size:.84rem; margin-top:26px}
-  .eyebrow .pip{width:8px; height:8px; border-radius:50%; background:var(--ice); box-shadow:0 0 0 4px rgba(127,220,255,.2)}
-  .hero h1{font-family:var(--font-display); font-weight:600; font-size:clamp(1.9rem,4.2vw,3.2rem); line-height:1.1; letter-spacing:-.035em; margin-bottom:22px; color:#f4f8ff}
-  .hero h1 em{font-style:normal; color:var(--ice)}
-  .hero .ghost-btn{color:#f4f8ff; border-color:rgba(244,248,255,.4)}
-  .hero .ghost-btn:hover{background:#f4f8ff; color:var(--ink)}
-  .hero p.lead{color:#b3c2e3; font-size:1.06rem; line-height:1.65; max-width:46ch; margin-bottom:32px}
+  @media (max-width:760px){ .hero-inner{grid-template-columns:1fr} .hero{padding-block:44px 56px} }
+  .eyebrow{display:inline-flex; align-items:center; gap:7px; color:#6e93ff; font-weight:700; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; margin-bottom:20px}
+  .eyebrow .pip{width:7px; height:7px; border-radius:50%; background:#6e93ff}
+  .hero h1{font-family:var(--font-display); font-weight:700; font-size:clamp(2.5rem,5.6vw,4.1rem); line-height:1.02; letter-spacing:-.02em; margin-bottom:20px; color:#f6f8ff}
+  .hero h1 em{font-style:normal; color:#5ec9ff}
+  .hero .ghost-btn{color:#f6f8ff; border-color:rgba(246,248,255,.3)}
+  .hero .ghost-btn:hover{background:rgba(246,248,255,.08)}
+  .hero p.lead{color:#aab4d4; font-size:1.14rem; line-height:1.62; max-width:46ch; margin-bottom:32px}
   .hero-actions{display:flex; gap:12px; flex-wrap:wrap}
-  .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.95rem; letter-spacing:.005em; color:var(--accent-ink); background:var(--accent); border:none; border-radius:var(--radius); padding:15px 26px; cursor:pointer; transition:background .2s var(--ease), transform .2s var(--ease)}
-  .btn-primary:not(:disabled):hover{background:var(--accent-hover)}
-  .btn-primary:not(:disabled):active{transform:translateY(1px)}
-  .hero .btn-primary{background:var(--ice); color:var(--ink)}
-  .hero .btn-primary:not(:disabled):hover{background:#a6e8ff}
+  .btn-primary{font-family:var(--font-body); font-weight:700; font-size:.97rem; letter-spacing:.01em; color:var(--accent-ink); background:var(--accent); border:none; border-radius:var(--radius); padding:15px 26px; cursor:pointer}
+  .btn-primary:not(:disabled):hover{filter:brightness(1.06)}
   .btn-primary:disabled{opacity:.6; cursor:default}
-  /* Botón de pago con Mercado Pago: mismo color que el resto de los botones;
-     solo cambia la tipografía de la palabra. */
-  .mp-word{font-family:var(--font-display); letter-spacing:-.02em}
-  .mp-word b{font-weight:700}
+  /* Botón de pago con Mercado Pago: mismo color que el resto de los botones
+     de la página (no el amarillo de la marca, que quedaba como un botón
+     "trucho" aparte del resto del sitio) — solo cambia la tipografía de la
+     palabra para que se note que es un pago distinto. */
+  .mp-word{font-family:var(--font-display); letter-spacing:-.01em}
+  .mp-word b{font-weight:800}
   #checkout-delivery-domicilio-fields input, #checkout-delivery-domicilio-fields select,
   #checkout-step-buyer input, #checkout-step-buyer select{min-width:0}
 
-  /* Dos manos intercambiando un mando (SVG propio). En celular se oculta. */
+  /* Ilustración de la mano que entrega el joystick: un SVG hecho a mano
+     (no tenemos generador de imágenes), pensado para "atravesar" la línea
+     diagonal del fondo, como en el boceto. En celular se oculta: el fondo
+     oscuro pasa a cubrir casi todo el ancho y el texto ocupa todo el lugar. */
   .hero-visual{position:relative; height:400px; z-index:1}
-  .hero-visual svg{position:absolute; top:50%; left:-18%; transform:translateY(-50%); width:136%; max-width:660px; height:auto; -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 10%, #000 90%, transparent 100%); mask-image:linear-gradient(90deg, transparent 0, #000 10%, #000 90%, transparent 100%)}
-  .hand-l{animation:handInL 1s var(--ease) both}
-  .hand-r{animation:handInR 1s var(--ease) both}
-  .pad{animation:padFloat 4.5s ease-in-out 1s infinite alternate}
-  @keyframes handInL{from{transform:translateX(-46px); opacity:0} to{transform:none; opacity:1}}
-  @keyframes handInR{from{transform:translateX(46px); opacity:0} to{transform:none; opacity:1}}
-  @keyframes padFloat{from{transform:translateY(0)} to{transform:translateY(-7px)}}
-  @media (prefers-reduced-motion:reduce){ .hand-l,.hand-r,.pad{animation:none} }
-  /* En celular el fondo es todo oscuro: la mano derecha pasa a azul hielo y la escena baja debajo del texto. */
-  @media (max-width:760px){
-    .hero-visual{height:230px}
-    .hero-visual svg{left:50%; width:118%; max-width:430px; transform:translate(-50%,-50%)}
-    .hand-r{color:var(--ice)}
-  }
+  .hero-visual svg{position:absolute; top:50%; left:-22%; transform:translateY(-50%); width:140%; max-width:640px; height:auto}
+  @media (max-width:760px){ .hero-visual{display:none} }
 
   .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
   .chip{font-family:var(--font-body); font-weight:600; font-size:.86rem; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:var(--radius); padding:8px 15px; cursor:pointer}
-  .chip:hover{border-color:var(--accent); color:var(--accent)}
   .chip[aria-pressed="true"]{color:var(--accent-ink); background:var(--accent); border-color:var(--accent)}
 
-  .market-layout{display:grid; grid-template-columns:240px minmax(0,1fr); gap:32px; align-items:start; padding-bottom:44px; padding-top:40px}
+  .market-layout{display:grid; grid-template-columns:240px minmax(0,1fr); gap:32px; align-items:start; padding-bottom:44px; padding-top:32px}
   @media (max-width:860px){ .market-layout{grid-template-columns:1fr} }
 
-  .filters-panel{position:sticky; top:84px; display:flex; flex-direction:column; gap:20px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px}
+  .filters-panel{position:sticky; top:84px; display:flex; flex-direction:column; gap:18px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px}
   @media (max-width:860px){ .filters-panel{position:static} }
-  .filters-panel h3{font-family:var(--font-display); font-size:.92rem; margin:0}
+  .filters-panel h3{font-family:var(--font-display); font-size:1rem; margin:0}
   .filters-panel #filter-search{margin-top:-6px}
   .filter-group{display:flex; flex-direction:column; gap:9px}
-  .filter-group h4{font-family:var(--font-body); font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:0}
-  .filter-group label{display:flex; align-items:center; gap:9px; font-size:.88rem; cursor:pointer; color:var(--fg)}
+  .filter-group h4{font-family:var(--font-body); font-size:.74rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0}
+  .filter-group label{display:flex; align-items:center; gap:9px; font-size:.87rem; cursor:pointer}
   .filter-group input[type=checkbox]{width:auto; accent-color:var(--accent)}
   .price-range-inputs{display:flex; align-items:center; gap:8px}
   .price-range-inputs input{min-width:0}
 
-  .market-toolbar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px}
+  .market-toolbar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px}
   .results-count{color:var(--muted); font-size:.85rem}
   .sort-label{display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--muted); font-weight:600}
   .sort-label select{width:auto; padding:8px 10px}
 
   .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:20px; min-height:120px}
-  .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; min-width:0; transition:transform .3s var(--ease), border-color .2s, box-shadow .3s var(--ease)}
-  .card[data-product]:hover{transform:translateY(-3px); border-color:var(--accent); box-shadow:0 16px 28px -18px rgba(10,18,38,.4)}
-  /* Alto fijo (no aspect-ratio) a propósito: así todas las fotos miden lo mismo
-     y precio/botón quedan alineados entre cards. */
+  .card{background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; min-width:0}
+  /* Alto fijo (no aspect-ratio) a propósito: dentro de un flex column, algunos
+     navegadores calculan mal el aspect-ratio de un hijo según fotos de distinto
+     tamaño, y las fotos terminaban con alturas distintas entre sí, desalineando
+     precio/botón entre una card y otra. Con alto fijo, todas las fotos miden
+     exactamente lo mismo sin importar el tamaño original que subió el vendedor. */
   .thumb{height:180px; flex:none; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:2.1rem; overflow:hidden}
   .thumb img{width:100%; height:100%; object-fit:cover; display:block}
   .card-body{padding:18px; display:flex; flex-direction:column; gap:9px; flex:1}
-  .card-cat{font-size:.68rem; letter-spacing:.09em; text-transform:uppercase; color:var(--accent); font-weight:700}
-  .card-title{font-family:var(--font-body); font-weight:600; font-size:1rem; line-height:1.3; letter-spacing:-.005em; min-width:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+  .card-cat{font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:700}
+  .card-title{font-family:var(--font-display); font-size:1rem; line-height:1.25; min-width:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
   .badges{display:flex; gap:6px; flex-wrap:wrap}
-  .badge{font-size:.72rem; font-weight:700; padding:4px 8px; border-radius:4px; letter-spacing:.02em}
-  .badge.cond{background:var(--surface); color:var(--muted)}
+  .badge{font-size:.68rem; font-weight:700; padding:4px 8px; border-radius:var(--radius); letter-spacing:.02em}
+  .badge.cond{background:var(--surface-2); color:var(--muted)}
   .badge.protected{background:var(--good-bg); color:var(--good)}
-  .card-foot{margin-top:auto; display:flex; align-items:baseline; justify-content:space-between; padding-top:8px; border-top:1px solid var(--border)}
-  .price{font-family:var(--font-display); font-size:1.02rem; font-weight:600; letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+  .card-foot{margin-top:auto; display:flex; align-items:baseline; justify-content:space-between; padding-top:6px}
+  .price{font-family:var(--font-display); font-size:1.1rem; font-weight:700}
   .seller{font-size:.78rem; color:var(--muted)}
   .empty-note{color:var(--muted); font-size:.92rem; padding-block:30px}
 
   .cat-tiles{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:18px; max-width:620px}
-  .cat-tile{display:flex; flex-direction:column; align-items:center; gap:10px; background:var(--card); border:1.5px solid var(--border); border-radius:var(--radius); padding:28px 14px; font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--fg); cursor:pointer}
+  .cat-tile{display:flex; flex-direction:column; align-items:center; gap:10px; background:var(--bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:28px 14px; font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--fg); cursor:pointer}
   .cat-tile:hover{border-color:var(--accent); background:var(--accent-dim)}
   .cat-tile-icon{font-size:2.2rem}
 
   .form-wrap{display:grid; grid-template-columns:1.2fr .8fr; gap:28px}
   @media (max-width:800px){ .form-wrap{grid-template-columns:1fr} }
-  /* Ficha de producto: en desktop, fotos+descripción y preguntas a la izquierda con
-     el resumen/comprar al lado; en celular, todo apilado fotos -> resumen -> preguntas. */
+  /* Ficha de producto: en desktop, fotos+descripción y preguntas van en la columna
+     izquierda con el resumen/comprar al lado; en celular, todo se apila en el orden
+     fotos -> resumen/comprar/oferta -> preguntas, que es como se compra con el pulgar. */
   .producto-wrap{grid-template-areas:"media summary" "qa summary"; align-items:start}
   #producto-media{grid-area:media}
   #producto-summary{grid-area:summary}
@@ -250,29 +244,25 @@
   @media (max-width:800px){
     .producto-wrap{grid-template-areas:"media" "summary" "qa"}
   }
-  fieldset{border:1px solid var(--border); border-radius:var(--radius); background:var(--card); padding:18px; margin:0 0 16px; min-width:0}
-  legend{font-family:var(--font-display); font-weight:600; font-size:.9rem; padding-inline:6px}
+  fieldset{border:1px solid var(--border); border-radius:var(--radius); padding:18px; margin:0 0 16px; min-width:0}
+  legend{font-family:var(--font-display); font-weight:700; padding-inline:6px}
   label{display:block; font-size:.82rem; font-weight:600; color:var(--muted); margin-bottom:6px; margin-top:14px}
   label:first-of-type{margin-top:0}
-  input,select,textarea{width:100%; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; color:var(--fg); font-family:var(--font-body); font-size:.92rem; transition:border-color .15s, box-shadow .15s}
-  input:hover,select:hover,textarea:hover{border-color:#a9bbd6}
-  input:focus,select:focus,textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(29,77,255,.18)}
-  input::placeholder,textarea::placeholder{color:#5a6985}
-  input,textarea{caret-color:var(--accent)}
+  input,select,textarea{width:100%; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; color:var(--fg); font-family:var(--font-body); font-size:.92rem}
   textarea{resize:vertical; min-height:80px}
   .hint{font-size:.78rem; color:var(--muted); margin-top:6px}
-  .price-hint{display:flex; align-items:center; gap:8px; background:var(--accent-dim); border:1px solid rgba(29,77,255,.25); border-radius:var(--radius); padding:10px 12px; margin-top:8px; font-size:.82rem}
-  .price-hint b{font-family:var(--font-display); font-weight:600; color:var(--accent)}
+  .price-hint{display:flex; align-items:center; gap:8px; background:var(--accent-dim); border:1px solid rgba(43,86,255,.3); border-radius:var(--radius); padding:10px 12px; margin-top:8px; font-size:.82rem}
+  .price-hint b{font-family:var(--font-display); color:var(--accent)}
   .checklist label{display:flex; align-items:flex-start; gap:8px; font-weight:500; color:var(--fg); margin-top:10px}
   .checklist input[type=checkbox],
-  .checklist input[type=radio]{width:auto; flex:none; margin-top:3px; accent-color:var(--accent)}
+  .checklist input[type=radio]{width:auto; flex:none; margin-top:3px}
   .checklist label:has(input:disabled){color:var(--muted); cursor:default}
-  input:disabled, select:disabled, textarea:disabled{opacity:.6; cursor:not-allowed; background:var(--surface)}
+  input:disabled, select:disabled, textarea:disabled{opacity:.6; cursor:not-allowed; background:var(--surface-2, #f2f2f2)}
 
-  /* Método de envío deshabilitado (Andreani): insignia + tooltip */
+  /* Método de envío deshabilitado (Andreani): insignia + tooltip prolijo al pasar el mouse */
   .carrier-soon{position:relative}
-  .badge-soon{display:inline-block; font-size:.72rem; font-weight:700; letter-spacing:.02em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); border-radius:20px; padding:2px 8px; margin-left:6px; vertical-align:middle}
-  .carrier-tooltip{position:absolute; left:0; bottom:calc(100% + 8px); z-index:5; width:240px; max-width:70vw; background:var(--ink); color:#eef4ff; font-size:.8rem; font-weight:500; line-height:1.4; border-radius:var(--radius); padding:10px 12px; box-shadow:0 12px 30px -10px rgba(10,18,38,.5); opacity:0; transform:translateY(4px); pointer-events:none; transition:opacity .15s ease, transform .15s ease}
+  .badge-soon{display:inline-block; font-size:.68rem; font-weight:700; letter-spacing:.02em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); border-radius:20px; padding:2px 8px; margin-left:6px; vertical-align:middle}
+  .carrier-tooltip{position:absolute; left:0; bottom:calc(100% + 8px); z-index:5; width:240px; max-width:70vw; background:var(--fg); color:var(--bg); font-size:.8rem; font-weight:500; line-height:1.4; border-radius:var(--radius); padding:10px 12px; box-shadow:0 12px 30px -10px rgba(10,10,10,.4); opacity:0; transform:translateY(4px); pointer-events:none; transition:opacity .15s ease, transform .15s ease}
   .carrier-soon:hover .carrier-tooltip, .carrier-soon:focus-within .carrier-tooltip{opacity:1; transform:translateY(0)}
   .msg{border-radius:var(--radius); padding:10px 12px; font-size:.85rem; margin-top:14px}
   .msg.ok{background:var(--good-bg); color:var(--good)}
@@ -281,58 +271,63 @@
   .steps{display:grid; grid-template-columns:repeat(4,1fr); gap:22px; margin-top:28px}
   @media (max-width:960px){ .steps{grid-template-columns:repeat(2,1fr)} }
   @media (max-width:520px){ .steps{grid-template-columns:1fr} }
-  .step{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px}
-  .step .num{font-family:var(--font-display); font-weight:600; font-size:1.5rem; color:var(--accent); margin-bottom:10px}
+  .step{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px}
+  .step .num{font-family:var(--font-display); font-weight:600; font-size:1.6rem; color:var(--accent); margin-bottom:9px}
 
   footer{
     position:relative; margin-inline:-24px; margin-top:48px; flex:none;
-    padding:44px 24px 24px;
-    background:var(--ink);
-    border-top:3px solid var(--accent);
-    color:#b3c2e3; font-size:.82rem;
+    padding:40px 24px 24px;
+    background:radial-gradient(120% 140% at 85% 0%, #17317d 0%, #0b1333 55%, #04060f 100%);
+    color:#aab4d4; font-size:.82rem;
   }
   @media (max-width:480px){ footer{margin-inline:-16px} }
   .footer-inner{max-width:1100px; margin:0 auto}
   .footer-top{display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap}
   .footer-brand{max-width:360px}
   .footer-brand .logo{pointer-events:none; color:#fff}
-  .footer-tagline{margin-top:12px; color:var(--ice); font-family:var(--font-display); font-style:normal; font-weight:500; font-size:1.05rem; letter-spacing:-.03em}
-  .footer-desc{margin-top:12px; color:#9aa9cc; font-size:.83rem; line-height:1.6}
+  .footer-tagline{margin-top:10px; color:#6e93ff; font-family:var(--font-display); font-style:normal; font-weight:600; font-size:1.2rem; letter-spacing:-.01em}
+  .footer-desc{margin-top:12px; color:#8891ad; font-size:.83rem; line-height:1.55}
   .footer-badges{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px}
-  .footer-badge{display:inline-flex; align-items:center; gap:6px; font-size:.72rem; font-weight:700; letter-spacing:.01em; color:var(--ice); background:rgba(127,220,255,.1); border:1px solid rgba(127,220,255,.35); border-radius:20px; padding:5px 11px 5px 8px}
+  .footer-badge{display:inline-flex; align-items:center; gap:6px; font-size:.72rem; font-weight:700; letter-spacing:.01em; color:#6e93ff; background:rgba(110,147,255,.12); border:1px solid rgba(110,147,255,.35); border-radius:20px; padding:5px 11px 5px 8px}
   .footer-badge svg{width:13px; height:13px; flex:none}
   .footer-links{display:flex; flex-direction:column; gap:10px; align-items:flex-end; text-align:right}
-  .footer-links button{background:none; border:none; padding:0; color:#b3c2e3; font-size:.85rem; font-family:var(--font-body); cursor:pointer}
-  .footer-links button:hover{color:#fff}
-  .footer-links .footer-contact-link{color:var(--ice); font-weight:700}
-  .footer-note{color:#8392b8; font-size:.76rem; line-height:1.55; margin-top:30px; max-width:76ch}
-  .footer-bottom{text-align:center; border-top:1px solid rgba(238,244,255,.14); margin-top:18px; padding-top:16px; font-size:.78rem; color:#9aa9cc}
+  .footer-links button{background:none; border:none; padding:0; color:#aab4d4; font-size:.85rem; font-family:var(--font-body); cursor:pointer}
+  .footer-links button:hover{color:#f6f8ff}
+  .footer-links .footer-contact-link{color:#5ec9ff; font-weight:700}
+  .footer-note{color:#636d8c; font-size:.76rem; line-height:1.55; margin-top:30px; max-width:76ch}
+  .footer-bottom{text-align:center; border-top:1px solid rgba(246,248,255,.12); margin-top:18px; padding-top:16px; font-size:.78rem; color:#8891ad}
   @media (max-width:640px){ .footer-top{flex-direction:column} .footer-links{align-items:flex-start; text-align:left} .footer-brand{max-width:none} }
 
   /* checkout */
   .checkout-layout{display:grid; grid-template-columns:1fr 340px; gap:32px; align-items:start; margin-top:16px}
   @media (max-width:860px){ .checkout-layout{grid-template-columns:1fr} }
-  .order-summary{border:1px solid var(--border); border-radius:var(--radius); background:var(--card); position:sticky; top:84px; overflow:hidden}
-  .order-summary-head{padding:16px 18px; border-bottom:1px solid var(--border); font-family:var(--font-display); font-weight:600; font-size:.92rem}
+  .order-summary{border:1px solid var(--border); background:var(--surface); position:sticky; top:84px}
+  .order-summary-head{padding:16px 18px; border-bottom:1px solid var(--border); font-family:var(--font-display); font-weight:700; font-size:1rem}
   .order-summary-product{display:flex; gap:12px; padding:16px 18px; border-bottom:1px solid var(--border)}
-  .order-summary-thumb{width:64px; height:64px; flex:none; background:var(--surface-2); border-radius:var(--radius); display:flex; align-items:center; justify-content:center; font-size:1.6rem; overflow:hidden}
+  .order-summary-thumb{width:64px; height:64px; flex:none; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:1.6rem; overflow:hidden}
   .order-summary-thumb img{width:100%; height:100%; object-fit:cover; display:block}
   .order-summary-info{min-width:0}
   .order-summary-info .t{font-weight:700; font-size:.9rem; line-height:1.3}
   .order-summary-info .c{color:var(--muted); font-size:.78rem; margin-top:4px; text-transform:capitalize}
   .order-summary-rows{padding:14px 18px}
-  .order-summary-row{display:flex; justify-content:space-between; font-size:.86rem; padding:6px 0; color:var(--muted); font-variant-numeric:tabular-nums}
+  .order-summary-row{display:flex; justify-content:space-between; font-size:.86rem; padding:6px 0; color:var(--muted)}
   .order-summary-row.total{color:var(--fg); font-weight:700; font-size:1rem; border-top:1px solid var(--border); margin-top:6px; padding-top:14px}
 
-  /* modales (auth, cotización de envío): overflow-y en el overlay y margin-block:auto
-     en el modal, para que uno más alto que la pantalla se pueda scrollear completo. */
-  .overlay{position:fixed; inset:0; background:rgba(10,18,38,.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:flex-start; justify-content:center; padding:20px; z-index:20; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
-  .modal{background:var(--card); border-radius:var(--radius); max-width:380px; width:100%; padding:28px; border:1px solid var(--border); box-shadow:0 24px 60px -20px rgba(10,18,38,.5); margin-block:auto}
-  .modal h2{font-size:1.15rem; margin-bottom:4px}
+  /* auth modal (y cualquier otro .overlay/.modal, como el de cotización de
+     envío): antes, con align-items:center y sin overflow propio, un modal
+     más alto que la pantalla (como "Crear cuenta", con muchos campos) quedaba
+     cortado arriba y abajo sin forma de llegar al resto — y al intentar
+     scrollear adentro, el gesto se le pasaba de largo a la página de atrás
+     en vez de mover el modal. Con overflow-y:auto en el overlay y
+     margin-block:auto en el modal (en vez de centrarlo por align-items), el
+     modal se sigue viendo centrado cuando entra entero, y cuando no entra,
+     arranca arriba y se puede scrollear completo sin mover el fondo. */
+  .overlay{position:fixed; inset:0; background:rgba(8,9,14,.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:flex-start; justify-content:center; padding:20px; z-index:20; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
+  .modal{background:var(--bg); border-radius:var(--radius); max-width:380px; width:100%; padding:26px; border:1px solid var(--border); box-shadow:0 24px 60px -20px rgba(10,10,10,.4); margin-block:auto}
+  .modal h2{font-size:1.25rem; margin-bottom:4px}
   .modal p.sub{color:var(--muted); font-size:.88rem; margin-top:6px; margin-bottom:18px}
   .modal-foot{display:flex; justify-content:space-between; align-items:center; margin-top:16px}
-  .link-btn{background:none; border:none; color:var(--accent); font-weight:600; font-size:.85rem; cursor:pointer; padding:0; text-underline-offset:3px}
-  .link-btn:hover{text-decoration:underline}
+  .link-btn{background:none; border:none; color:var(--accent); font-weight:600; font-size:.85rem; cursor:pointer; padding:0}
 
   /* producto / galería / copiar / preguntas */
   .card[data-product]{cursor:pointer}
@@ -345,35 +340,38 @@
   .gallery-thumbs{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
   .gallery-thumbs img{width:60px; height:60px; object-fit:cover; border-radius:var(--radius); cursor:pointer; border:2px solid transparent}
   .gallery-thumbs img[aria-current="true"]{border-color:var(--accent)}
-  .lightbox{position:fixed; inset:0; z-index:999; background:rgba(6,11,26,.92); display:flex; align-items:center; justify-content:center; padding:24px; cursor:zoom-out}
+  .lightbox{position:fixed; inset:0; z-index:999; background:rgba(8,9,14,.9); display:flex; align-items:center; justify-content:center; padding:24px; cursor:zoom-out}
   .lightbox[hidden]{display:none}
   .lightbox img{max-width:100%; max-height:100%; object-fit:contain}
   .lightbox-close{position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:var(--radius); border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.4); color:#fff; font-size:1.3rem; line-height:1; cursor:pointer}
   .lightbox-nav{position:absolute; top:50%; transform:translateY(-50%); width:48px; height:48px; border-radius:var(--radius); border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.4); color:#fff; font-size:1.8rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center}
   .lightbox-prev{left:16px}
   .lightbox-next{right:16px}
-  .qa-item{border:1px solid var(--border); border-radius:var(--radius); background:var(--card); padding:12px}
+  .qa-item{border:1px solid var(--border); border-radius:var(--radius); padding:12px}
   .qa-item .q{font-weight:600; font-size:.88rem}
   .qa-item .a{color:var(--muted); font-size:.86rem; margin-top:6px; padding-top:6px; border-top:1px solid var(--border)}
 
-  /* Asistente: botón fijo abajo a la derecha que abre un chat chico (el bot
-     "escribe" y las opciones son botones, nunca texto libre). */
-  .chatbot-toggle{position:fixed; right:20px; bottom:20px; width:52px; height:52px; border-radius:50%; background:var(--accent); color:#fff; border:none; font-size:1.6rem; line-height:1; cursor:pointer; box-shadow:0 14px 32px -10px rgba(10,18,38,.5); z-index:40; display:flex; align-items:center; justify-content:center; transition:background .2s var(--ease), transform .2s var(--ease)}
-  .chatbot-toggle:hover{background:var(--accent-hover); transform:translateY(-2px)}
-  .chatbot-panel{position:fixed; right:20px; bottom:82px; width:300px; max-width:calc(100vw - 32px); height:min(420px, calc(100vh - 120px)); background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 24px 60px -20px rgba(10,18,38,.5); z-index:40; display:flex; flex-direction:column; overflow:hidden}
-  .chatbot-head{background:var(--ink); color:#fff; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; font-family:var(--font-display); font-weight:600; font-size:.82rem; letter-spacing:-.02em; flex:none}
+  /* Asistente: un botón redondo fijo abajo a la derecha que abre un panel
+     chico con pinta de chat real — el bot "escribe" (puntitos) y después
+     tipea la respuesta letra por letra, y las opciones son botones (nunca
+     hay un campo de texto libre). El panel es intencionalmente chico, para
+     que no tape el resto de la página. */
+  .chatbot-toggle{position:fixed; right:20px; bottom:20px; width:52px; height:52px; border-radius:50%; background:var(--accent); color:#fff; border:none; font-size:1.6rem; line-height:1; cursor:pointer; box-shadow:0 14px 32px -10px rgba(10,10,10,.45); z-index:40; display:flex; align-items:center; justify-content:center}
+  .chatbot-toggle:hover{filter:brightness(1.08)}
+  .chatbot-panel{position:fixed; right:20px; bottom:82px; width:300px; max-width:calc(100vw - 32px); height:min(420px, calc(100vh - 120px)); background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 24px 60px -20px rgba(10,10,10,.4); z-index:40; display:flex; flex-direction:column; overflow:hidden}
+  .chatbot-head{background:var(--fg); color:#fff; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; font-family:var(--font-display); font-weight:700; font-size:.88rem; flex:none}
   .chatbot-head-close{background:none; border:none; color:#fff; font-size:1.2rem; line-height:1; cursor:pointer; padding:2px 4px}
-  .chatbot-body{padding:12px; overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1; display:flex; flex-direction:column; gap:8px; background:var(--bg)}
+  .chatbot-body{padding:12px; overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1; display:flex; flex-direction:column; gap:8px}
   .chatbot-msg{max-width:88%; padding:8px 11px; font-size:.8rem; line-height:1.45; border-radius:var(--radius); white-space:pre-line}
-  .chatbot-msg-bot{align-self:flex-start; background:var(--card); border:1px solid var(--border)}
+  .chatbot-msg-bot{align-self:flex-start; background:var(--surface); border:1px solid var(--border)}
   .chatbot-msg-user{align-self:flex-end; background:var(--accent); color:#fff}
-  .chatbot-typing{align-self:flex-start; background:var(--card); border:1px solid var(--border); padding:9px 13px; display:inline-flex; gap:4px}
+  .chatbot-typing{align-self:flex-start; background:var(--surface); border:1px solid var(--border); padding:9px 13px; display:inline-flex; gap:4px}
   .chatbot-typing span{width:5px; height:5px; border-radius:50%; background:var(--muted); display:inline-block; animation:chatbotBlink 1.2s infinite}
   .chatbot-typing span:nth-child(2){animation-delay:.2s}
   .chatbot-typing span:nth-child(3){animation-delay:.4s}
   @keyframes chatbotBlink{0%,80%,100%{opacity:.25} 40%{opacity:1}}
   .chatbot-options{display:flex; flex-direction:column; gap:5px; align-self:flex-start; max-width:92%}
-  .chatbot-options button{text-align:left; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:7px 10px; font-size:.78rem; cursor:pointer; color:var(--fg); font-family:var(--font-body)}
+  .chatbot-options button{text-align:left; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:7px 10px; font-size:.78rem; cursor:pointer; color:var(--fg); font-family:var(--font-body)}
   .chatbot-options button:hover{border-color:var(--accent); background:var(--accent-dim)}
   .chatbot-options button.chatbot-contact-option{border-color:var(--accent); color:var(--accent); font-weight:700}
   @media (max-width:480px){
@@ -424,54 +422,53 @@
       <div class="hero-bg" aria-hidden="true"></div>
       <div class="hero-inner">
         <div>
+          <span class="eyebrow"><span class="pip"></span>Compra segura y arbitrada</span>
           <h1>Comprá y vendé productos gamer usados, <em>con total confianza</em>.</h1>
-          <p class="lead">Productos de segunda mano, publicados por gente real de todo el país. Con la compra protegida, retenemos el pago hasta que el producto sea recibido en condiciones por el comprador — para que los dos terminen tranquilos y contentos.</p>
+          <p class="lead">Productos de segunda mano, publicados por gente real de todo el país. Retenemos el pago hasta que el producto sea recibido en condiciones por el comprador, y si surge un problema entre las partes, lo arbitramos nosotros — para que los dos terminen tranquilos y contentos.</p>
           <div class="hero-actions">
             <button class="btn-primary" type="button" data-goto="publicar">Publicar un producto</button>
             <button class="ghost-btn" type="button" data-goto="como-funciona">Cómo funciona la protección</button>
           </div>
-          <span class="eyebrow"><span class="pip"></span>Compra protegida</span>
         </div>
         <div class="hero-visual" aria-hidden="true">
-          <svg viewBox="0 0 640 440" xmlns="http://www.w3.org/2000/svg" focusable="false">
+          <svg viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg" focusable="false">
             <defs>
-              <!-- Una sola mano (mira hacia la derecha); la otra es su espejo. -->
-              <g id="hand-shape" stroke="#0a1226" stroke-width="4" stroke-linejoin="round">
-                <rect x="-80" y="214" width="220" height="70" rx="32" fill="currentColor"/>
-                <rect x="94" y="204" width="26" height="90" rx="8" fill="#1d4dff"/>
-                <rect x="118" y="198" width="84" height="98" rx="36" fill="currentColor"/>
-                <rect x="172" y="206" width="92" height="21" rx="10.5" fill="currentColor"/>
-                <rect x="172" y="230" width="96" height="21" rx="10.5" fill="currentColor"/>
-                <rect x="172" y="254" width="88" height="21" rx="10.5" fill="currentColor"/>
-                <rect x="176" y="176" width="74" height="23" rx="11.5" fill="currentColor" transform="rotate(-16 176 188)"/>
-              </g>
+              <!-- Las manos se "cortan" justo donde termina el dibujo (x=0 a la
+                   izquierda, x=600 a la derecha) porque el SVG recorta ahí. Con
+                   este degradé, en vez de un borde recto, se desvanecen de a
+                   poco hasta transparente, como si se mezclaran con el fondo. -->
+              <linearGradient id="handFadeLeft" x1="-50" y1="0" x2="65" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+                <stop offset="1" stop-color="#ffffff" stop-opacity="1"/>
+              </linearGradient>
+              <linearGradient id="handFadeRight" x1="650" y1="0" x2="535" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#0d1538" stop-opacity="0"/>
+                <stop offset="1" stop-color="#0d1538" stop-opacity="1"/>
+              </linearGradient>
             </defs>
-
-            <!-- Líneas de movimiento -->
-            <g stroke="#3d6bff" stroke-width="5" stroke-linecap="round" fill="none">
-              <path d="M236 104 Q320 44 404 104"/>
-              <path d="M388 92 L406 106 L384 118"/>
-              <path d="M404 340 Q320 400 236 340"/>
-              <path d="M252 352 L234 338 L256 326"/>
+            <g stroke="#6e93ff" stroke-width="5" stroke-linecap="round" opacity=".55">
+              <line x1="205" y1="78" x2="172" y2="122"/>
+              <line x1="236" y1="68" x2="203" y2="112"/>
+              <line x1="267" y1="60" x2="234" y2="104"/>
             </g>
-
-            <!-- Mando -->
-            <g class="pad">
-              <path d="M220 170 C220 150 240 145 262 145 L378 145 C400 145 420 150 420 170 L448 262 C452 288 436 304 414 304 C394 304 384 290 372 270 L268 270 C256 290 246 304 226 304 C204 304 188 288 192 262 Z" fill="#1d4dff" stroke="#0a1226" stroke-width="4" stroke-linejoin="round"/>
-              <rect x="256" y="190" width="9" height="30" rx="3" fill="#dff3ff"/>
-              <rect x="245.5" y="200.5" width="30" height="9" rx="3" fill="#dff3ff"/>
-              <circle cx="378" cy="186" r="6.5" fill="#7fdcff"/>
-              <circle cx="396" cy="203" r="6.5" fill="#dff3ff"/>
-              <circle cx="378" cy="220" r="6.5" fill="#7fdcff"/>
-              <circle cx="360" cy="203" r="6.5" fill="#dff3ff"/>
-              <circle cx="292" cy="244" r="13" fill="#0a1226"/>
-              <circle cx="348" cy="244" r="13" fill="#0a1226"/>
-              <rect x="302" y="168" width="36" height="8" rx="4" fill="#0a1226" opacity=".55"/>
+            <rect x="-50" y="160" width="130" height="95" rx="40" fill="url(#handFadeLeft)"/>
+            <rect x="65" y="145" width="115" height="125" rx="42" fill="#ffffff"/>
+            <rect x="150" y="172" width="62" height="72" rx="22" fill="#ffffff" transform="rotate(-14 181 208)"/>
+            <rect x="520" y="165" width="130" height="90" rx="38" fill="url(#handFadeRight)"/>
+            <rect x="420" y="150" width="110" height="120" rx="40" fill="#0d1538"/>
+            <rect x="392" y="175" width="58" height="68" rx="22" fill="#0d1538" transform="rotate(13 420 209)"/>
+            <rect x="212" y="176" width="180" height="84" rx="42" fill="#17317d" stroke="#5ec9ff" stroke-width="3"/>
+            <rect x="243" y="208" width="10" height="28" rx="3" fill="#6e93ff"/>
+            <rect x="229" y="222" width="38" height="10" rx="3" fill="#6e93ff"/>
+            <circle cx="347" cy="200" r="7" fill="#5ec9ff"/>
+            <circle cx="367" cy="218" r="7" fill="#6e93ff"/>
+            <circle cx="347" cy="236" r="7" fill="#5ec9ff"/>
+            <circle cx="327" cy="218" r="7" fill="#6e93ff"/>
+            <g stroke="#17317d" stroke-width="5" stroke-linecap="round" opacity=".32">
+              <line x1="402" y1="330" x2="369" y2="374"/>
+              <line x1="433" y1="320" x2="400" y2="364"/>
+              <line x1="464" y1="310" x2="431" y2="354"/>
             </g>
-
-            <!-- Las dos manos, agarrando el mando al mismo tiempo -->
-            <g class="hand-l" color="#e6f1ff"><use href="#hand-shape"/></g>
-            <g class="hand-r" color="#0a1226"><g transform="translate(640 0) scale(-1 1)"><use href="#hand-shape" stroke="#e6f1ff"/></g></g>
           </svg>
         </div>
       </div>
@@ -544,12 +541,12 @@
           <p class="price tabular" id="producto-price" style="font-size:1.7rem; margin-top:4px"></p>
           <p class="hint" id="producto-seller-rating" style="margin-top:6px"></p>
           <p class="hint" id="producto-shipping-row" style="margin-top:4px" hidden></p>
-          <p class="badge protected" style="display:inline-block; margin-top:10px">Compra protegida</p>
+          <p class="badge protected" style="display:inline-block; margin-top:10px">Compra segura y arbitrada</p>
           <button type="button" class="btn-primary" style="width:100%; margin-top:18px" id="producto-buy-btn">Comprar</button>
           <div id="oferta-box" style="margin-top:14px"></div>
           <p class="hint" id="producto-own-note" style="margin-top:10px" hidden>Esta publicación es tuya.</p>
           <div id="producto-seller-ship-box" hidden></div>
-          <p class="hint" style="margin-top:12px; line-height:1.5">Compra protegida: tu dinero queda retenido hasta que confirmás que el producto llegó como se describió. Si el envío falla o no es lo que esperabas, escribinos antes de confirmar la recepción y te ayudamos a resolverlo.</p>
+          <p class="hint" style="margin-top:12px; line-height:1.5">Compra segura y arbitrada: tu dinero queda retenido hasta que confirmás que el producto llegó como se describió. Si el envío falla o no es lo que esperabas, escribinos antes de confirmar la recepción y te ayudamos a resolverlo.</p>
         </fieldset>
       </div>
       <div id="producto-qa">
@@ -815,6 +812,7 @@
   <section id="view-como-funciona" hidden>
     <h2 style="font-size:1.5rem; padding-top:40px">Cómo funciona la protección</h2>
     <p style="color:var(--muted); max-width:62ch; margin-top:8px">UsadoGamer retiene tu plata hasta que la compra se complete correctamente. No somos dueños de los productos ni transportamos nada nosotros: actuamos como intermediario de buena fe entre comprador y vendedor, y nuestro trabajo es no soltar el pago hasta estar razonablemente seguros de que todo salió bien.</p>
+    <p style="color:var(--muted); max-width:62ch; margin-top:8px">Por eso hablamos de una compra <b>segura y arbitrada</b>, y no de una "compra protegida" a secas: segura, porque tu plata queda retenida y no llega al vendedor hasta que el proceso termina bien; arbitrada, porque si el comprador y el vendedor no se ponen de acuerdo, UsadoGamer interviene como árbitro — revisamos el caso a mano y buscamos la solución más justa para ambas partes. No es una garantía de reembolso asegurado en todos los casos (más abajo te contamos exactamente qué podemos garantizar y qué no), es un compromiso de mediar de buena fe.</p>
     <div class="steps">
       <div class="step"><div class="num">01</div><h3>El comprador paga</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Pagás por transferencia o con tarjeta. El dinero no va al vendedor: queda retenido por la plataforma hasta que todo salga bien.</p></div>
       <div class="step"><div class="num">02</div><h3>El vendedor despacha con seguimiento</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Tiene hasta 72 horas hábiles para despachar el producto, y tiene que cargar un número de seguimiento del correo — sin eso no puede marcar el pedido como despachado. Ese seguimiento es lo que nos permite confirmar, con un tercero (el correo), que el envío realmente se hizo.</p></div>
@@ -1082,7 +1080,7 @@
         <p class="footer-desc">Conectamos compradores y vendedores de periféricos y accesorios gaming usados de todo el país. El pago del producto queda retenido por la plataforma hasta que confirmás que todo llegó como se describió.</p>
         <div class="footer-badges">
           <span class="footer-badge"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".15"/><path d="M6 10.2l2.4 2.4L14 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Pago seguro</span>
-          <span class="footer-badge"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".15"/><path d="M6 10.2l2.4 2.4L14 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Compra protegida</span>
+          <span class="footer-badge"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".15"/><path d="M6 10.2l2.4 2.4L14 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Compra segura y arbitrada</span>
           <span class="footer-badge"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".15"/><path d="M6 10.2l2.4 2.4L14 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Envíos a todo el país</span>
         </div>
       </div>
@@ -1096,7 +1094,7 @@
         <button type="button" class="footer-contact-link" data-goto="contacto">¿Tenés un problema? Contactanos</button>
       </div>
     </div>
-    <p class="footer-note">El transporte lo coordinamos con el correo que elige el vendedor, pero el costo del envío no está cubierto por la compra protegida: ante una devolución se reintegra el precio del producto, no el costo del envío.</p>
+    <p class="footer-note">El transporte lo coordinamos con el correo que elige el vendedor, pero el costo del envío no está cubierto por la compra segura y arbitrada: ante una devolución se reintegra el precio del producto, no el costo del envío.</p>
     <div class="footer-bottom" id="footer-copyright"></div>
   </div>
 </footer>
@@ -1966,7 +1964,7 @@
         '<div class="card-body">' +
           '<div class="card-cat">' + p.category + '</div>' +
           '<div class="card-title">' + escapeHtml(p.title) + '</div>' +
-          '<div class="badges"><span class="badge cond">' + escapeHtml(p.condition) + '</span><span class="badge protected">Compra protegida</span></div>' +
+          '<div class="badges"><span class="badge cond">' + escapeHtml(p.condition) + '</span></div>' +
           '<div class="card-foot"><span class="price tabular">' + money.format(p.price) + '</span></div>' +
           '<button type="button" class="btn-primary" style="width:100%; margin-top:4px" data-product-btn="' + p.id + '">' + (isMine ? 'Ver publicación' : 'Comprar') + '</button>' +
         '</div>';
@@ -2310,8 +2308,7 @@
       '<span class="badge cond">' + escapeHtml(product.condition) + '</span>' +
       (product.works_ok ? '<span class="badge cond">Funciona bien</span>' : '') +
       (product.has_box ? '<span class="badge cond">Con caja</span>' : '') +
-      (product.has_warranty ? '<span class="badge cond">Con garantía</span>' : '') +
-      '<span class="badge protected">Compra protegida</span>';
+      (product.has_warranty ? '<span class="badge cond">Con garantía</span>' : '');
     productoPrice.textContent = money.format(product.price);
     var isMine = currentUser && product.user_id === currentUser.id;
     var isAvailable = (product.status || 'disponible') === 'disponible';
