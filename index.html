@@ -539,6 +539,7 @@
         <fieldset>
           <legend>Resumen</legend>
           <p class="price tabular" id="producto-price" style="font-size:1.7rem; margin-top:4px"></p>
+          <p class="hint" id="producto-seller-rating" style="margin-top:6px"></p>
           <p class="hint" id="producto-shipping-row" style="margin-top:4px" hidden></p>
           <p class="badge protected" style="display:inline-block; margin-top:10px">Compra protegida</p>
           <button type="button" class="btn-primary" style="width:100%; margin-top:18px" id="producto-buy-btn">Comprar</button>
@@ -895,7 +896,7 @@
 
     <div class="acct-section">
       <div class="acct-section-head"><h3>Arrepentimiento de compra</h3></div>
-      <div style="padding:16px 20px"><p style="color:var(--muted)">Mientras el pedido todavía no esté pagado (figura como "pendiente de pago"), podés cancelarlo vos mismo desde "Mis pedidos" sin ningún costo. Una vez confirmado el pago, la cancelación por simple arrepentimiento queda sujeta a que el vendedor todavía no haya despachado — escribinos para coordinarlo.</p></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Mientras el pedido todavía no esté pagado (figura como "pendiente de pago"), podés cancelarlo vos mismo desde "Mis pedidos" sin ningún costo. Una vez confirmado el pago, mientras el vendedor todavía no haya despachado, también podés cancelarlo vos mismo con el botón "Solicitar devolución" — te vamos a devolver la plata. Una vez que el vendedor despacha el producto, la cancelación por simple arrepentimiento ya no está disponible.</p></div>
     </div>
   </section>
 
@@ -946,6 +947,41 @@
     <div class="acct-section">
       <div class="acct-section-head"><h3>Contacto</h3></div>
       <div style="padding:16px 20px"><p style="color:var(--muted)">Para consultas, reclamos o dudas, escribinos desde <button type="button" class="link-btn" data-goto="contacto" style="font:inherit; padding:0">¿Tenés un problema? Contactanos</button>.</p></div>
+    </div>
+  </section>
+
+  <section id="view-privacidad" hidden>
+    <h2 style="font-size:1.5rem; padding-top:40px">Política de privacidad</h2>
+    <p style="color:var(--muted); max-width:62ch; margin-top:8px">Te contamos qué datos pedimos, para qué los usamos y quién puede verlos. Esta política se rige por la Ley 25.326 de Protección de los Datos Personales de la República Argentina.</p>
+
+    <div class="acct-section" style="margin-top:24px">
+      <div class="acct-section-head"><h3>Qué datos pedimos</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Al registrarte: nombre, apellido, usuario, email y teléfono. Si vas a vender: dirección, alias o CBU y titular de la cuenta para cobrar, sexo, fecha de nacimiento, número de DNI y una foto del frente de tu documento. Si compras con envío a domicilio: tu dirección de entrega. Si contactás a soporte o hacés un reclamo: lo que escribas en ese formulario.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Para qué los usamos</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Para que puedas operar en la plataforma (comprar, publicar, cobrar, recibir envíos), para verificar que quien vende es una persona real antes de habilitarlo a publicar (es el requisito que te explicamos en "Cómo funciona la protección"), para avisarte por mail y dentro del sitio sobre tus compras, ventas y reclamos, y para que Mateo (el administrador de UsadoGamer) pueda revisar y arbitrar una disputa cuando corresponda. No usamos tus datos para enviarte publicidad de terceros ni los vendemos a nadie.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Quién puede ver tus datos</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Tu perfil completo (email, teléfono, dirección, datos de cobro, DNI) solo lo ves vos y el administrador de UsadoGamer — ningún otro usuario tiene acceso a esa información. La foto de tu DNI se guarda en un espacio privado aparte: ni siquiera el link es público, se genera un acceso temporal solo cuando el administrador necesita revisarla para aprobar o rechazar tu verificación. Usamos Supabase para alojar la base de datos, Resend para mandar los emails automáticos y Mercado Pago para procesar los pagos con tarjeta — estos proveedores acceden a lo mínimo necesario para prestar ese servicio (por ejemplo, Mercado Pago solo ve lo necesario para procesar tu pago, nunca tu DNI).</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Cuánto tiempo los guardamos</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Mientras tu cuenta esté activa. Si pedís que la eliminemos, borramos los datos que no estemos obligados a conservar por ley (por ejemplo, los registros de una operación ya facturada pueden tener un plazo mínimo de conservación impositivo).</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Tus derechos</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Como titular de tus datos, tenés derecho a acceder a ellos, pedir que los corrijamos si están mal, o pedir que los eliminemos, de acuerdo a la Ley 25.326. Para ejercer cualquiera de estos derechos, escribinos desde <button type="button" class="link-btn" data-goto="contacto" style="font:inherit; padding:0">¿Tenés un problema? Contactanos</button>. La Agencia de Acceso a la Información Pública (AAIP) es el organismo de control de esta ley y el lugar donde podés hacer una denuncia si considerás que no la respetamos.</p></div>
+    </div>
+
+    <div class="acct-section">
+      <div class="acct-section-head"><h3>Cambios a esta política</h3></div>
+      <div style="padding:16px 20px"><p style="color:var(--muted)">Si hacemos un cambio importante en cómo usamos tus datos, lo vamos a avisar en la plataforma.</p></div>
     </div>
   </section>
 
@@ -1051,7 +1087,9 @@
         <button type="button" data-goto="terminos">Términos y condiciones</button>
         <button type="button" data-goto="politicas-uso">Políticas de uso</button>
         <button type="button" data-goto="devoluciones">Política de devoluciones</button>
+        <button type="button" data-goto="privacidad">Política de privacidad</button>
         <button type="button" data-goto="como-funciona">Cómo funciona</button>
+        <button type="button" data-goto="pedidos">Solicitar una devolución</button>
         <button type="button" class="footer-contact-link" data-goto="contacto">¿Tenés un problema? Contactanos</button>
       </div>
     </div>
@@ -2282,7 +2320,38 @@
     loadOfertas(product);
     loadProductShippingSummary(product);
     loadSellerShipBox(product, isMine);
+    loadSellerRatingBadge(product.user_id);
     go('producto', navMode);
+  }
+
+  // ---------- Reputación del vendedor ----------
+  // Se muestra como estrellas + un número al lado (cantidad de reseñas),
+  // sin texto — tal como se pidió. El promedio y el conteo se calculan del
+  // lado del servidor (función get_seller_rating_summary) porque los
+  // perfiles son privados: un comprador no puede leer el perfil de otro
+  // usuario directamente, pero sí puede llamar a esta función, que solo
+  // devuelve el promedio y la cantidad, nunca datos personales.
+  function starsHtml(avg){
+    var rounded = Math.round(avg);
+    var out = '';
+    for (var i = 1; i <= 5; i++) out += (i <= rounded ? '★' : '☆');
+    return out;
+  }
+
+  async function loadSellerRatingBadge(sellerId){
+    var el = document.getElementById('producto-seller-rating');
+    if (!el) return;
+    el.textContent = '';
+    if (!sellerId) return;
+    try {
+      var res = await sb.rpc('get_seller_rating_summary', { p_seller_id: sellerId });
+      var row = res.data && res.data[0];
+      if (!row || !row.ratings_count){
+        el.textContent = 'Vendedor sin calificaciones todavía';
+        return;
+      }
+      el.innerHTML = '<span style="color:var(--accent); letter-spacing:1px">' + starsHtml(row.avg_rating) + '</span> <span class="tabular">' + row.ratings_count + '</span>';
+    } catch (e) { /* si falla, simplemente no mostramos nada */ }
   }
 
   // Si esta publicación es tuya y ya se vendió, mostramos acá mismo (no
@@ -3091,7 +3160,12 @@
     if (compras.error){
       pedidosCompras.innerHTML = '<p class="empty-note">No se pudieron cargar tus compras (' + compras.error.message + ').</p>';
     } else {
-      renderPedidosList(pedidosCompras, compras.data, 'compra');
+      // Para saber a cuáles pedidos ya les pusimos una calificación (y no
+      // mostrar el formulario de nuevo).
+      var ratingsRes = await sb.from('seller_ratings').select('order_id,rating').eq('buyer_id', currentUser.id);
+      var ratedByOrder = {};
+      (ratingsRes.data || []).forEach(function(r){ ratedByOrder[r.order_id] = r.rating; });
+      renderPedidosList(pedidosCompras, compras.data, 'compra', ratedByOrder);
     }
 
     var ventas = await sb.from('orders').select('*, products(title)').eq('seller_id', currentUser.id).order('created_at', { ascending: false });
@@ -3357,7 +3431,40 @@
     '</div>';
   }
 
-  function renderPedidosList(container, rows, tipo){
+  // El comprador puede calificar al vendedor (1 a 5 estrellas + comentario
+  // opcional) una vez que la compra terminó, ya sea bien (confirmó
+  // recepción / se liberó el pago) o mal (quedó en disputa, o se canceló
+  // después de haber pagado). Antes de eso no tiene sentido calificar —
+  // todavía no pasó nada que calificar.
+  var RATEABLE_STATUSES = ['confirmado_entrega', 'liberado', 'disputado'];
+  function orderIsRateable(order){
+    if (RATEABLE_STATUSES.indexOf(order.status) !== -1) return true;
+    if (order.status === 'cancelado' && order.payment_confirmed_at) return true;
+    return false;
+  }
+
+  function ratingWidgetHtml(order){
+    var stars = '';
+    for (var i = 1; i <= 5; i++){
+      stars += '<button type="button" class="ghost-btn" data-rate-star="' + i + '" style="padding:6px 10px; font-size:1.1rem">' + i + '★</button>';
+    }
+    var interruptedNote = (order.status === 'disputado' || order.status === 'cancelado')
+      ? '<p class="hint" style="margin-top:4px">Como esta compra no se completó normalmente, tu calificación también sirve para que otros compradores lo sepan.</p>'
+      : '';
+    return '<div class="rate-block" data-rate-order="' + order.id + '" data-rate-seller="' + order.seller_id + '" style="margin-top:10px">' +
+      '<p class="hint" style="margin-top:0; font-weight:600">Calificá al vendedor</p>' +
+      interruptedNote +
+      '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:6px">' + stars + '</div>' +
+      '<textarea data-rate-comment placeholder="Comentario opcional, solo lo ve el vendedor" style="margin-top:8px"></textarea>' +
+      '<div class="rate-msg"></div>' +
+    '</div>';
+  }
+
+  function alreadyRatedHtml(rating){
+    return '<p class="hint" style="margin-top:10px">Ya calificaste esta compra: <span style="color:var(--accent); letter-spacing:1px">' + starsHtml(rating) + '</span></p>';
+  }
+
+  function renderPedidosList(container, rows, tipo, ratedByOrder){
     if (!rows || !rows.length){
       container.innerHTML = '<p class="empty-note">' + (tipo === 'compra' ? 'Todavía no compraste nada.' : 'Todavía no vendiste nada.') + '</p>';
       return;
@@ -3401,10 +3508,24 @@
             '<button type="button" class="ghost-btn" style="margin-top:4px" data-cancel-order="' + order.id + '">Cancelar pedido</button>';
         }
       }
+      // El comprador puede arrepentirse y pedir la devolución mientras el
+      // vendedor todavía no despachó nada — una vez que despacha (con
+      // seguimiento), ya no es un simple arrepentimiento, pasa a ser un
+      // reclamo (buyerReceivedBlockHtml más abajo).
+      if (tipo === 'compra' && order.status === 'pago_confirmado'){
+        html += '<p class="hint" style="margin-top:6px">¿Te arrepentiste? Mientras el vendedor no despache, podés pedir que te devolvamos la plata.</p>' +
+          '<button type="button" class="ghost-btn" style="margin-top:4px" data-request-refund="' + order.id + '">Solicitar devolución</button>' +
+          '<div class="ship-msg" id="refund-msg-' + order.id + '"></div>';
+      }
       if (tipo === 'compra' && order.status === 'despachado'){
         html += buyerReceivedBlockHtml(order, false);
       } else if (tipo === 'compra' && (order.status === 'confirmado_entrega' || order.status === 'liberado')){
         html += buyerReceivedBlockHtml(order, true);
+      }
+
+      if (tipo === 'compra' && orderIsRateable(order)){
+        var yaCalificado = ratedByOrder && ratedByOrder.hasOwnProperty(order.id);
+        html += yaCalificado ? alreadyRatedHtml(ratedByOrder[order.id]) : ratingWidgetHtml(order);
       }
 
       // Envío: independiente del estado del pago del producto (menos si se
@@ -3571,6 +3692,60 @@
       loadPedidos();
       return;
     }
+    // Arrepentimiento post-pago: el comprador ya pagó (producto, o producto
+    // + envío si se pagó junto) pero el vendedor todavía no despachó. Esto
+    // marca el pedido como cancelado y le avisa a Mateo por mail para que
+    // gestione la devolución real de la plata — la plataforma no mueve
+    // dinero por sí sola, los pagos se procesan a mano.
+    var refundBtn = e.target.closest('[data-request-refund]');
+    if (refundBtn){
+      var sureRefund = window.confirm('¿Seguro que querés cancelar y pedir la devolución? El vendedor y Mateo van a ser avisados, y Mateo se va a encargar de devolverte la plata.');
+      if (!sureRefund) return;
+      refundBtn.disabled = true;
+      var refundOrderId = refundBtn.dataset.requestRefund;
+      var refundMsgEl = document.getElementById('refund-msg-' + refundOrderId);
+      var refundRes = await sb.from('orders')
+        .update({ status: 'cancelado' })
+        .eq('id', refundOrderId)
+        .eq('status', 'pago_confirmado');
+      if (refundRes.error){
+        if (refundMsgEl) refundMsgEl.innerHTML = '<div class="msg err">' + (refundRes.error.message || 'No se pudo procesar la solicitud.') + '</div>';
+        refundBtn.disabled = false;
+        return;
+      }
+      if (refundMsgEl) refundMsgEl.innerHTML = '<div class="msg ok">Listo, avisamos a Mateo. Te va a devolver la plata en los próximos días.</div>';
+      loadPedidos();
+      return;
+    }
+    // Calificación al vendedor: un clic en la estrella ya manda la
+    // calificación (con el comentario que haya en ese momento, si cargaron
+    // uno). No hace falta un botón de "enviar" aparte.
+    var starBtn = e.target.closest('[data-rate-star]');
+    if (starBtn){
+      var rateBlock = starBtn.closest('.rate-block');
+      if (!rateBlock) return;
+      var rating = parseInt(starBtn.dataset.rateStar, 10);
+      var commentEl = rateBlock.querySelector('[data-rate-comment]');
+      var rateMsgEl = rateBlock.querySelector('.rate-msg');
+      var starButtons = rateBlock.querySelectorAll('[data-rate-star]');
+      starButtons.forEach(function(b){ b.disabled = true; });
+      try {
+        var rateRes = await sb.from('seller_ratings').insert({
+          order_id: rateBlock.dataset.rateOrder,
+          seller_id: rateBlock.dataset.rateSeller,
+          buyer_id: currentUser.id,
+          rating: rating,
+          comment: commentEl ? commentEl.value.trim() || null : null
+        });
+        if (rateRes.error) throw rateRes.error;
+        if (rateMsgEl) rateMsgEl.innerHTML = '<div class="msg ok">¡Gracias por calificar!</div>';
+        loadPedidos();
+      } catch (err) {
+        if (rateMsgEl) rateMsgEl.innerHTML = '<div class="msg err">' + (err.message || 'No se pudo enviar la calificación.') + '</div>';
+        starButtons.forEach(function(b){ b.disabled = false; });
+      }
+      return;
+    }
     var confirmBtn = e.target.closest('[data-confirm-receipt]');
     if (confirmBtn){
       confirmBtn.disabled = true;
@@ -3635,6 +3810,7 @@
     'politicas-uso': document.getElementById('view-politicas-uso'),
     devoluciones: document.getElementById('view-devoluciones'),
     terminos: document.getElementById('view-terminos'),
+    privacidad: document.getElementById('view-privacidad'),
     contacto: document.getElementById('view-contacto'),
     publicaciones: document.getElementById('view-publicaciones'),
     pedidos: document.getElementById('view-pedidos'),
@@ -3654,6 +3830,7 @@
     'politicas-uso': '/politicas-de-uso',
     devoluciones: '/politica-de-devoluciones',
     terminos: '/terminos-y-condiciones',
+    privacidad: '/politica-de-privacidad',
     contacto: '/contacto',
     publicaciones: '/mis-publicaciones',
     pedidos: '/mis-pedidos',

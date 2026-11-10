@@ -169,6 +169,14 @@
       <div class="panel-body" id="list-disputes"></div>
     </section>
 
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Reembolsos pendientes (comprador pidió devolución)</h2>
+        <span class="count" id="count-refunds"></span>
+      </div>
+      <div class="panel-body" id="list-refunds"></div>
+    </section>
+
     <div class="group-title">Para hacer ahora</div>
 
     <section class="panel">
@@ -347,7 +355,7 @@
     statsGrid.innerHTML = '<div class="stat-card"><div class="n">…</div><div class="l">Cargando</div></div>';
 
     var productsRes = await sb.from('products').select('id,status,title,price,category,condition,photo_url,photo_urls,user_id,created_at').order('created_at', { ascending: false });
-    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,delivery_origin_address,delivery_included_in_payment,delivery_payment_status,delivery_payment_method,delivery_receipt_url,tracking_info,dispute_reason,products(title)');
+    var ordersRes = await sb.from('orders').select('id,amount,status,buyer_id,seller_id,product_id,payment_method,receipt_url,created_at,confirmed_at,delivery_method,delivery_address,delivery_cost,delivery_origin_address,delivery_included_in_payment,delivery_payment_status,delivery_payment_method,delivery_receipt_url,tracking_info,dispute_reason,payment_confirmed_at,refund_processed_at,products(title)');
     var quotesRes = await sb.from('shipping_quotes').select('id,delivery_method,delivery_address,cost,origin_address,buyer_id,seller_id,product_id,order_id,created_at,products(title)').is('order_id', null);
     var messagesRes = await sb.from('contact_messages').select('id,nombre,email,motivo,referencia,mensaje,estado,created_at').order('created_at', { ascending: false });
     var verificationsRes = await sb.from('profiles').select('id,username,nombre,apellido,email,telefono,sexo,fecha_nacimiento,dni,dni_photo_path,payout_alias,payout_cbu,payout_titular,verification_status,verification_requested_at').eq('verification_status', 'pendiente').order('verification_requested_at', { ascending: true });
@@ -404,6 +412,7 @@
       })
     );
     renderQueue('list-disputes', 'count-disputes', orders.filter(function(o){ return o.status === 'disputado'; }), 'view');
+    renderQueue('list-refunds', 'count-refunds', orders.filter(function(o){ return o.status === 'cancelado' && o.payment_confirmed_at && !o.refund_processed_at; }), 'refund');
     renderQueue('list-quote', 'count-quote', orders.filter(function(o){ return o.status !== 'cancelado' && o.delivery_method && o.delivery_cost == null; }), 'quote');
     renderQueue('list-confirm', 'count-confirm', orders.filter(function(o){ return o.status === 'pendiente_pago' && o.receipt_url; }), 'confirm');
     renderQueue('list-delivery-confirm', 'count-delivery-confirm', orders.filter(function(o){ return o.delivery_payment_status === 'comprobante_subido'; }), 'delivery-confirm');
@@ -430,6 +439,7 @@
     var envioAConfirmar = orders.filter(function(o){ return o.delivery_payment_status === 'comprobante_subido'; }).length;
     var aLiberar = orders.filter(function(o){ return o.status === 'confirmado_entrega'; }).length;
     var enDisputa = orders.filter(function(o){ return o.status === 'disputado'; }).length;
+    var reembolsosPendientes = orders.filter(function(o){ return o.status === 'cancelado' && o.payment_confirmed_at && !o.refund_processed_at; }).length;
 
     var aVerificar = (verifications || []).length;
 
@@ -438,6 +448,7 @@
       { n: reservados, l: 'Reservados (en proceso)' },
       { n: vendidos, l: 'Vendidos' },
       { n: enDisputa, l: 'Reclamos abiertos' },
+      { n: reembolsosPendientes, l: 'Reembolsos pendientes' },
       { n: aVerificar, l: 'Verificaciones de identidad pendientes' },
       { n: consultasACotizar, l: 'Consultas de envío a cotizar' },
       { n: aCotizar, l: 'Envíos a calcular (ya pagado)' },
@@ -827,6 +838,10 @@
         var btn4 = document.getElementById('delivery-confirm-' + o.id);
         if (btn4) btn4.addEventListener('click', function(){ confirmDeliveryPayment(o.id, btn4); });
       }
+      if (mode === 'refund'){
+        var btn5 = document.getElementById('refund-' + o.id);
+        if (btn5) btn5.addEventListener('click', function(){ markRefundProcessed(o.id, btn5); });
+      }
     });
   }
 
@@ -879,6 +894,8 @@
     } else if (mode === 'delivery-confirm'){
       actions += o.delivery_receipt_url ? '<a class="btn-sm link" href="' + o.delivery_receipt_url + '" target="_blank" rel="noopener">Ver comprobante</a>' : '';
       actions += '<button type="button" class="btn-sm confirm" id="delivery-confirm-' + o.id + '">Confirmar pago de envío</button>';
+    } else if (mode === 'refund'){
+      actions += '<button type="button" class="btn-sm release" id="refund-' + o.id + '">Marcar reembolso realizado</button>';
     } else {
       actions += '<span class="badge ' + badgeClass + '">' + statusTxt + '</span>';
     }
@@ -1042,6 +1059,19 @@
       alert('No se pudo liberar: ' + res.error.message);
       btn.disabled = false;
       btn.textContent = 'Liberar pago';
+      return;
+    }
+    loadDashboard();
+  }
+
+  async function markRefundProcessed(orderId, btn){
+    btn.disabled = true;
+    btn.textContent = 'Marcando...';
+    var res = await sb.from('orders').update({ refund_processed_at: new Date().toISOString() }).eq('id', orderId);
+    if (res.error){
+      alert('No se pudo marcar: ' + res.error.message);
+      btn.disabled = false;
+      btn.textContent = 'Marcar reembolso realizado';
       return;
     }
     loadDashboard();
