@@ -56,12 +56,17 @@
   .stat-card .n{font-family:var(--font-display); font-size:1.7rem; font-weight:700; line-height:1.1}
   .stat-card .l{color:var(--muted); font-size:.8rem; margin-top:4px}
 
-  /* Agrupa las secciones del panel por tema, para que no sea una lista
-     larga de 11 cajas todas iguales: separa lo urgente (reclamos), lo que
-     requiere una acción hoy, lo que es solo seguimiento/lectura, y
-     publicaciones, al final de todo. */
-  .group-title{font-family:var(--font-display); font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:36px 0 10px; padding-bottom:8px; border-bottom:2px solid var(--border)}
-  .group-title:first-of-type{margin-top:0}
+  /* Antes esto agrupaba las secciones con un título arriba de cada grupo,
+     todo en una sola lista larga. Ahora los mismos grupos son pestañas: se
+     ve solo el contenido de la pestaña activa, así no hay que scrollear
+     para llegar, por ejemplo, a Publicaciones. */
+  .tabs{display:flex; gap:6px; overflow-x:auto; margin-bottom:24px; border-bottom:2px solid var(--border); padding-bottom:0}
+  .tab-btn{font-family:var(--font-body); font-weight:700; font-size:.88rem; color:var(--muted); background:none; border:none; border-bottom:3px solid transparent; padding:10px 6px 12px; margin-bottom:-2px; cursor:pointer; white-space:nowrap}
+  .tab-btn:hover{color:var(--fg)}
+  .tab-btn.active{color:var(--accent); border-bottom-color:var(--accent)}
+  .tab-btn .tab-count{display:inline-block; min-width:18px; padding:1px 5px; margin-left:6px; border-radius:20px; background:var(--surface-2); color:var(--muted); font-size:.72rem; font-weight:700; text-align:center}
+  .tab-btn.active .tab-count{background:var(--accent-dim); color:var(--accent)}
+  .tab-btn.has-urgent .tab-count{background:var(--danger-bg); color:var(--danger)}
   section.panel{background:var(--bg); border:1px solid var(--border); border-radius:14px; margin-bottom:28px; overflow:hidden}
   .panel-head{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
   .panel-head h2{font-size:1.05rem}
@@ -159,117 +164,128 @@
 
     <div class="stats-grid" id="stats-grid"></div>
 
-    <div class="group-title">⚠️ Reclamos</div>
+    <!-- Antes esto era una sola lista larga, todas las secciones una abajo
+         de la otra, y había que scrollear mucho para llegar a Publicaciones.
+         Ahora se navega por pestañas: cada pestaña corresponde a uno de los
+         grupos de antes, y solo se ve el contenido de la pestaña activa. -->
+    <div class="tabs" id="dash-tabs" role="tablist">
+      <button type="button" class="tab-btn" data-tab="reclamos" role="tab">⚠️ Reclamos</button>
+      <button type="button" class="tab-btn" data-tab="hacer-ahora" role="tab">Para hacer ahora</button>
+      <button type="button" class="tab-btn" data-tab="seguimiento" role="tab">Seguimiento</button>
+      <button type="button" class="tab-btn" data-tab="publicaciones" role="tab">Publicaciones</button>
+    </div>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Reclamos (pedidos en disputa)</h2>
-        <span class="count" id="count-disputes"></span>
-      </div>
-      <div class="panel-body" id="list-disputes"></div>
-    </section>
+    <div class="tab-panel" data-tab-panel="reclamos">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Reclamos (pedidos en disputa)</h2>
+          <span class="count" id="count-disputes"></span>
+        </div>
+        <div class="panel-body" id="list-disputes"></div>
+      </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Reembolsos pendientes (comprador pidió devolución)</h2>
-        <span class="count" id="count-refunds"></span>
-      </div>
-      <div class="panel-body" id="list-refunds"></div>
-    </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Reembolsos pendientes (comprador pidió devolución)</h2>
+          <span class="count" id="count-refunds"></span>
+        </div>
+        <div class="panel-body" id="list-refunds"></div>
+      </section>
+    </div>
 
-    <div class="group-title">Para hacer ahora</div>
+    <div class="tab-panel" data-tab-panel="hacer-ahora" hidden>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Verificaciones de identidad (para poder vender)</h2>
+          <span class="count" id="count-verifications"></span>
+        </div>
+        <div class="panel-body" id="list-verifications"></div>
+      </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Verificaciones de identidad (para poder vender)</h2>
-        <span class="count" id="count-verifications"></span>
-      </div>
-      <div class="panel-body" id="list-verifications"></div>
-    </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Mensajes (contacto)</h2>
+          <span class="count" id="count-messages"></span>
+        </div>
+        <div class="panel-body" id="list-messages"></div>
+      </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Mensajes (contacto)</h2>
-        <span class="count" id="count-messages"></span>
-      </div>
-      <div class="panel-body" id="list-messages"></div>
-    </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Cotizar envío (consultas, todavía sin pagar nada)</h2>
+          <span class="count" id="count-presale-quote"></span>
+        </div>
+        <div class="panel-body" id="list-presale-quote"></div>
+      </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Cotizar envío (consultas, todavía sin pagar nada)</h2>
-        <span class="count" id="count-presale-quote"></span>
-      </div>
-      <div class="panel-body" id="list-presale-quote"></div>
-    </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Calcular envío (pedido ya pagado)</h2>
+          <span class="count" id="count-quote"></span>
+        </div>
+        <div class="panel-body" id="list-quote"></div>
+      </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Calcular envío (pedido ya pagado)</h2>
-        <span class="count" id="count-quote"></span>
-      </div>
-      <div class="panel-body" id="list-quote"></div>
-    </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Pagos a confirmar</h2>
+          <span class="count" id="count-confirm"></span>
+        </div>
+        <div class="panel-body" id="list-confirm"></div>
+      </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Pagos a confirmar</h2>
-        <span class="count" id="count-confirm"></span>
-      </div>
-      <div class="panel-body" id="list-confirm"></div>
-    </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Pagos de envío a confirmar</h2>
+          <span class="count" id="count-delivery-confirm"></span>
+        </div>
+        <div class="panel-body" id="list-delivery-confirm"></div>
+      </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Pagos de envío a confirmar</h2>
-        <span class="count" id="count-delivery-confirm"></span>
-      </div>
-      <div class="panel-body" id="list-delivery-confirm"></div>
-    </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Listos para liberar pago</h2>
+          <span class="count" id="count-release"></span>
+        </div>
+        <div class="panel-body" id="list-release"></div>
+      </section>
+    </div>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Listos para liberar pago</h2>
-        <span class="count" id="count-release"></span>
-      </div>
-      <div class="panel-body" id="list-release"></div>
-    </section>
+    <div class="tab-panel" data-tab-panel="seguimiento" hidden>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Pedidos cotizados</h2>
+          <span class="count" id="count-quoted"></span>
+        </div>
+        <div class="panel-body" id="list-quoted"></div>
+      </section>
 
-    <div class="group-title">Seguimiento (solo para consultar)</div>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Despachados (esperando que el comprador confirme)</h2>
+          <span class="count" id="count-shipped"></span>
+        </div>
+        <div class="panel-body" id="list-shipped"></div>
+      </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Pedidos cotizados</h2>
-        <span class="count" id="count-quoted"></span>
-      </div>
-      <div class="panel-body" id="list-quoted"></div>
-    </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Todos los pedidos</h2>
+          <span class="count" id="count-all"></span>
+        </div>
+        <div class="panel-body" id="list-all"></div>
+      </section>
+    </div>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Despachados (esperando que el comprador confirme)</h2>
-        <span class="count" id="count-shipped"></span>
-      </div>
-      <div class="panel-body" id="list-shipped"></div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Todos los pedidos</h2>
-        <span class="count" id="count-all"></span>
-      </div>
-      <div class="panel-body" id="list-all"></div>
-    </section>
-
-    <div class="group-title">Publicaciones</div>
-
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Publicaciones (todas)</h2>
-        <span class="count" id="count-products"></span>
-      </div>
-      <div class="panel-body" id="list-products"></div>
-    </section>
+    <div class="tab-panel" data-tab-panel="publicaciones" hidden>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Publicaciones (todas)</h2>
+          <span class="count" id="count-products"></span>
+        </div>
+        <div class="panel-body" id="list-products"></div>
+      </section>
+    </div>
 
   </div>
 
@@ -336,7 +352,65 @@
       return;
     }
     gate.hidden = true; denied.hidden = true; panel.hidden = false; logoutBtn.hidden = false;
+    initTabs();
     loadDashboard();
+  }
+
+  // ---------- Pestañas del panel ----------
+  // Antes todas las secciones estaban una abajo de la otra en una sola
+  // página larga. Ahora cada botón de data-tab muestra solo el
+  // tab-panel con el mismo data-tab-panel, y oculta el resto.
+  var tabsInited = false;
+  function initTabs(){
+    if (tabsInited) return;
+    tabsInited = true;
+    var buttons = document.querySelectorAll('#dash-tabs .tab-btn');
+    buttons.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        setActiveTab(btn.dataset.tab);
+      });
+    });
+    setActiveTab(buttons[0] && buttons[0].dataset.tab);
+  }
+
+  function setActiveTab(tab){
+    document.querySelectorAll('#dash-tabs .tab-btn').forEach(function(btn){
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    document.querySelectorAll('[data-tab-panel]').forEach(function(panelEl){
+      panelEl.hidden = panelEl.dataset.tabPanel !== tab;
+    });
+  }
+
+  // Suma los contadores de las secciones (ya calculados por renderQueue y
+  // compañía) agrupados por pestaña, y los muestra como un numerito al
+  // lado del nombre de cada pestaña — así se ve de un vistazo dónde hay
+  // algo pendiente sin tener que entrar a mirar.
+  var TAB_COUNT_IDS = {
+    reclamos: ['count-disputes', 'count-refunds'],
+    'hacer-ahora': ['count-verifications', 'count-messages', 'count-presale-quote', 'count-quote', 'count-confirm', 'count-delivery-confirm', 'count-release'],
+    seguimiento: [],
+    publicaciones: []
+  };
+  function updateTabBadges(){
+    Object.keys(TAB_COUNT_IDS).forEach(function(tab){
+      var total = TAB_COUNT_IDS[tab].reduce(function(sum, id){
+        var el = document.getElementById(id);
+        var n = el ? parseInt(el.textContent, 10) : 0;
+        return sum + (isNaN(n) ? 0 : n);
+      }, 0);
+      var btn = document.querySelector('#dash-tabs .tab-btn[data-tab="' + tab + '"]');
+      if (!btn) return;
+      var existing = btn.querySelector('.tab-count');
+      if (existing) existing.remove();
+      if (total > 0){
+        var span = document.createElement('span');
+        span.className = 'tab-count';
+        span.textContent = String(total);
+        btn.appendChild(span);
+      }
+      btn.classList.toggle('has-urgent', tab === 'reclamos' && total > 0);
+    });
   }
 
   // ---------- Dashboard data ----------
@@ -420,6 +494,7 @@
     renderQueue('list-release', 'count-release', orders.filter(function(o){ return o.status === 'confirmado_entrega'; }), 'release');
     renderQueue('list-all', 'count-all', orders.slice().sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); }), 'view');
     renderProductsPanel(products);
+    updateTabBadges();
   }
 
   function renderStats(products, orders, quotes, verifications){
