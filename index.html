@@ -2,6 +2,29 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<script>
+  // Portón de acceso: si no hay indicio de sesión guardada, mandar a login.html
+  // antes de pintar nada. Es solo para la experiencia (mostrar el login primero);
+  // la seguridad real de los datos la siguen poniendo las políticas de Supabase.
+  (function(){
+    try {
+      // Si venimos de un link de confirmación de mail, de recuperación o de
+      // Google (el hash trae access_token/type=...), hay que dejar que la
+      // página cargue entera para que Supabase lo procese y arme la sesión.
+      // Si lo mandáramos a login.html acá, se pierde ese token.
+      if (/access_token=|refresh_token=|type=recovery|type=signup|type=invite|type=magiclink|error_description=/.test(location.hash)) return;
+
+      var hasAuth = false;
+      for (var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1){ hasAuth = true; break; }
+      }
+      if (!hasAuth){
+        location.replace('/login.html' + location.search + location.hash);
+      }
+    } catch (e) { /* si falla el chequeo, dejamos seguir la carga normal */ }
+  })();
+</script>
 <title>UsadoGamer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="/favicon-joystick.svg" type="image/svg+xml">
@@ -1824,13 +1847,19 @@
   sb.auth.getSession().then(function(res){
     currentUser = res.data.session ? res.data.session.user : null;
     renderAuthArea();
-    // Cuenta nueva (p. ej. entró con Google) sin usuario cargado: se completa en login.html.
     if (currentUser){
+      // Cuenta nueva (p. ej. entró con Google) sin usuario cargado: se completa en login.html.
       sb.from('profiles').select('username').eq('id', currentUser.id).maybeSingle().then(function(pr){
         if (!pr.error && (!pr.data || !String(pr.data.username || '').trim())){
           window.location.replace('login.html');
         }
       });
+    } else {
+      // El chequeo rápido de localStorage (arriba, antes de pintar la página) no
+      // encontró ninguna cuenta real con sesión: puede haber sido un falso
+      // positivo (token viejo/vencido). Confirmado acá que no hay sesión de
+      // verdad, mandamos igual a login.html.
+      window.location.replace('login.html');
     }
   });
 
