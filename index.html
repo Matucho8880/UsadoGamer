@@ -14,6 +14,13 @@
       // Si lo mandáramos a login.html acá, se pierde ese token.
       if (/access_token=|refresh_token=|type=recovery|type=signup|type=invite|type=magiclink|error_description=/.test(location.hash)) return;
 
+      // Páginas públicas que tienen que poder verse sin cuenta: políticas,
+      // términos, cómo funciona y contacto (Google, por ejemplo, necesita
+      // poder abrir la política de privacidad sin loguearse).
+      var publicPaths = ['/como-funciona', '/politicas-de-uso', '/politica-de-devoluciones', '/terminos-y-condiciones', '/politica-de-privacidad', '/contacto'];
+      var path = location.pathname.replace(/\/+$/, '') || '/';
+      if (publicPaths.indexOf(path) !== -1) return;
+
       var hasAuth = false;
       for (var i = 0; i < localStorage.length; i++){
         var k = localStorage.key(i);
@@ -1213,6 +1220,10 @@
   var SUPABASE_KEY = 'sb_publishable_WG2_nhM4dn41R8oMM5s8lA_Aax7oDTj';
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  // Páginas que se pueden ver sin cuenta (mismo criterio que el portón de
+  // acceso del <head>, más arriba en este archivo).
+  var PUBLIC_PATHS = ['/como-funciona', '/politicas-de-uso', '/politica-de-devoluciones', '/terminos-y-condiciones', '/politica-de-privacidad', '/contacto'];
+
   var money = new Intl.NumberFormat('es-AR', {style:'currency', currency:'ARS', maximumFractionDigits:0});
   var currentUser = null;
 
@@ -1854,11 +1865,12 @@
           window.location.replace('login.html');
         }
       });
-    } else {
+    } else if (PUBLIC_PATHS.indexOf(window.location.pathname.replace(/\/+$/, '') || '/') === -1) {
       // El chequeo rápido de localStorage (arriba, antes de pintar la página) no
       // encontró ninguna cuenta real con sesión: puede haber sido un falso
       // positivo (token viejo/vencido). Confirmado acá que no hay sesión de
-      // verdad, mandamos igual a login.html.
+      // verdad, mandamos a login.html — salvo que estemos en una página
+      // pública (políticas, términos, etc.), esas se pueden ver sin cuenta.
       window.location.replace('login.html');
     }
   });
@@ -2002,7 +2014,9 @@
   function renderGrid(list){
     resultsCount.textContent = list.length === 1 ? '1 publicación' : list.length + ' publicaciones';
     if (!list.length){
-      grid.innerHTML = '<p class="empty-note">No encontramos publicaciones con esos filtros. Probá ajustarlos.</p>';
+      grid.innerHTML = allProducts.length
+        ? '<p class="empty-note">No encontramos publicaciones con esos filtros. Probá ajustarlos.</p>'
+        : '<p class="empty-note">Todavía no hay publicaciones. ¡Sé el primero en publicar algo!</p>';
       return;
     }
     grid.innerHTML = '';
