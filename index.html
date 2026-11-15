@@ -823,6 +823,16 @@
       <div class="step"><div class="num">03</div><h3>Confirmás la recepción</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Cuando te llega, revisás que esté en el estado que esperabas y lo confirmás desde la web. Si algo no cierra, no confirmes: reportá el problema en su lugar.</p></div>
       <div class="step"><div class="num">04</div><h3>Se libera el pago</h3><p style="color:var(--muted); font-size:.9rem; margin-top:8px">Con tu confirmación (o, si no decís nada, a los pocos días de que el seguimiento figure como entregado), arrancamos la cuenta regresiva para pagarle al vendedor. Ese pago no se deposita al toque: lo retenemos 10 días más antes de transferirlo, como un resguardo extra para que, si surge cualquier inconveniente con el pago, todavía estemos a tiempo de resolverlo. Si reportaste un problema antes de eso, no se libera hasta que lo resolvamos.</p></div>
     </div>
+
+    <div class="step" style="margin-top:20px">
+      <h3>Soy vendedor: ¿qué hago paso a paso después de que me pagan?</h3>
+      <p style="color:var(--muted); font-size:.9rem; margin-top:8px">1. Te avisamos por mail y acá en el sitio apenas el comprador paga. En ese aviso (y en "Mis publicaciones" o "Mis pedidos") vas a encontrar la dirección a la que hay que enviarlo, si es a domicilio o a una sucursal, y quién paga el costo del envío.</p>
+      <p style="color:var(--muted); font-size:.9rem; margin-top:6px">2. Despachá el producto por Correo Argentino (por ahora el único medio activo) dentro de las 72 horas hábiles.</p>
+      <p style="color:var(--muted); font-size:.9rem; margin-top:6px">3. Cuando el correo te dé el código de seguimiento, volvé a "Mis publicaciones" (o a la publicación, o a "Mis pedidos") y cargalo en el casillero que dice "Número de seguimiento". Ahí mismo tocás "Marcar como despachado".</p>
+      <p style="color:var(--muted); font-size:.9rem; margin-top:6px">4. Apenas hacés eso, le avisamos automáticamente al comprador con ese mismo número de seguimiento — no tenés que mandárselo vos por separado.</p>
+      <p style="color:var(--muted); font-size:.9rem; margin-top:6px">5. Cuando el comprador confirma que lo recibió bien, arrancan los 10 días de resguardo antes de que te depositemos tu parte (el precio menos la comisión de UsadoGamer).</p>
+    </div>
+
     <div class="step" style="margin-top:20px">
       <h3>Qué podemos garantizar, y qué no</h3>
       <p style="color:var(--muted); font-size:.9rem; margin-top:8px">Somos honestos con esto porque preferimos que lo sepas de antemano: el número de seguimiento prueba que el correo movió un paquete hasta tu dirección y lo entregó. No prueba, y no puede probar, qué había adentro de ese paquete. UsadoGamer no se hace responsable por paquetes perdidos, dañados durante el transporte, o por el contenido de un envío cuando no hay forma de verificarlo — esos son riesgos que ninguna plataforma de compraventa entre particulares puede eliminar del todo, ni siquiera las grandes.</p>
@@ -2374,7 +2384,7 @@
     // consulta de abajo decida según el pedido real.
     if (!isMine || product.status === 'disponible') return;
     var orderRes = await sb.from('orders')
-      .select('id,status')
+      .select('id,status,delivery_method,delivery_address,delivery_cost,delivery_included_in_payment,delivery_origin_address,tracking_info')
       .eq('product_id', product.id)
       .neq('status', 'cancelado')
       .order('created_at', { ascending: false })
@@ -2382,7 +2392,7 @@
     var order = (!orderRes.error && orderRes.data && orderRes.data.length) ? orderRes.data[0] : null;
     if (!order) return;
     if (order.status === 'pago_confirmado'){
-      box.innerHTML = '<p class="hint" style="margin-top:0; font-weight:600">Despacho de esta venta</p>' + sellerShipBlockHtml(order);
+      box.innerHTML = '<p class="hint" style="margin-top:0; font-weight:600">Despacho de esta venta</p>' + deliveryInfoHtml(order) + sellerShipBlockHtml(order);
       box.hidden = false;
     } else if (order.status === 'pendiente_pago'){
       box.innerHTML = '<p class="hint" style="margin-top:0">Esperando que se confirme el pago del comprador.</p>';
@@ -3246,7 +3256,7 @@
     // (no el producto) el que decide qué mostrar.
     if (p.status !== 'disponible'){
       if (order && order.status === 'pago_confirmado'){
-        html += sellerShipBlockHtml(order);
+        html += deliveryInfoHtml(order) + sellerShipBlockHtml(order);
       } else if (order && order.status === 'pendiente_pago'){
         html += '<p class="hint" style="margin-top:8px">Esperando que se confirme el pago del comprador.</p>';
       } else if (order && (order.status === 'despachado' || order.status === 'confirmado_entrega' || order.status === 'liberado')){
@@ -3364,20 +3374,39 @@
     '</div>';
   }
 
+  // Línea de "a dónde hay que enviar esto" — dirección, quién paga el
+  // envío y desde dónde se despacha. Se usa tanto para que el comprador
+  // vea el estado de su envío como para que el vendedor sepa, sin tener
+  // que preguntarle a nadie, a dónde mandar el paquete. Una función aparte
+  // para no repetir el mismo bloque en los tres lugares donde puede
+  // aparecer (Mis pedidos, Mis publicaciones, y la página del producto).
+  function deliveryInfoHtml(order){
+    if (!order.delivery_method) return '';
+    return '<p class="hint" style="margin-top:4px">Entrega: ' +
+      (order.delivery_method === 'domicilio'
+        ? 'A domicilio — ' + escapeHtml(order.delivery_address || 'sin dirección cargada')
+        : 'Retiro en sucursal — ' + escapeHtml(order.delivery_address || 'sin localidad cargada')) +
+      (order.delivery_cost != null ? ' · Envío: ' + money.format(order.delivery_cost) + (order.delivery_included_in_payment ? ' (incluido en el pago, no tenés que cobrarlo aparte)' : '') : '') +
+      (order.delivery_origin_address ? ' · Se despacha desde: ' + escapeHtml(order.delivery_origin_address) : '') +
+      '</p>';
+  }
+
   // Bloque del vendedor para marcar como despachado. Se usa tanto en "Mis
-  // pedidos" como en "Mis publicaciones", por eso es una función aparte.
-  // El mismo pedido puede aparecer renderizado a la vez en "Mis pedidos" y
-  // en "Mis publicaciones" (uno de los dos queda oculto con [hidden], pero
-  // sigue existiendo en el DOM) — por eso este bloque NO usa ids ni
-  // atributos únicos por pedido: markOrderShipped busca siempre adentro del
-  // contenedor del botón que apretaron, nunca por todo el documento.
+  // pedidos" como en "Mis publicaciones" como en la página del producto,
+  // por eso es una función aparte. El mismo pedido puede aparecer
+  // renderizado a la vez en "Mis pedidos" y en "Mis publicaciones" (uno de
+  // los dos queda oculto con [hidden], pero sigue existiendo en el DOM) —
+  // por eso este bloque NO usa ids ni atributos únicos por pedido:
+  // markOrderShipped busca siempre adentro del contenedor del botón que
+  // apretaron, nunca por todo el documento.
   function sellerShipBlockHtml(order){
     return '<div class="ship-block" style="margin-top:10px">' +
       '<label style="margin-top:0">Número de seguimiento (obligatorio)</label>' +
       '<input type="text" data-tracking-input placeholder="Ej: Correo Argentino 123456789" required>' +
-      '<p class="hint" style="margin-top:4px">Lo necesitamos para poder resolver cualquier reclamo — sin seguimiento no se puede marcar como despachado.</p>' +
+      '<p class="hint" style="margin-top:4px">Lo necesitamos para poder resolver cualquier reclamo — sin seguimiento no se puede marcar como despachado. Lo conseguís en el correo cuando despachás el paquete; recién ahí volvés acá y lo cargás. Apenas marques "despachado", el comprador se entera automáticamente con este mismo número.</p>' +
       '<button type="button" class="ghost-btn" style="margin-top:8px" data-mark-shipped="' + order.id + '">Marcar como despachado</button>' +
       '<div class="ship-msg"></div>' +
+      '<p class="hint" style="margin-top:8px"><button type="button" class="link-btn" data-goto="como-funciona" style="font:inherit; padding:0">¿No sabés qué hacer? Mirá la guía paso a paso</button></p>' +
     '</div>';
   }
 
@@ -3424,6 +3453,7 @@
   //    el pago, por si el problema se nota más tarde.
   function buyerReceivedBlockHtml(order, soloReclamo){
     return '<div class="received-block" style="margin-top:10px">' +
+      (order.tracking_info ? '<p class="hint" style="margin-top:0">Número de seguimiento: <b>' + escapeHtml(order.tracking_info) + '</b></p>' : '') +
       (soloReclamo ? '' : '<button type="button" class="ghost-btn" data-confirm-receipt="' + order.id + '">Confirmar recepción (llegó todo bien)</button>') +
       '<p class="hint" style="margin-top:' + (soloReclamo ? '0' : '12px') + '; font-weight:' + (soloReclamo ? '600' : 'normal') + '">' +
       (soloReclamo ? '¿Tenés un problema con este pedido? ' : '¿No llegó, o llegó algo distinto a lo publicado? ') +
@@ -3487,15 +3517,7 @@
         '<p class="hint" style="margin-top:2px; font-size:.78rem">Pedido #' + shortId + ' · ' + new Date(order.created_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) + '</p>' +
         '<p style="margin-top:6px; font-weight:600">Estado de tu ' + (tipo === 'compra' ? 'compra' : 'venta') + ': ' + (statusLabels[order.status] || order.status) + '</p>';
 
-      if (order.delivery_method){
-        html += '<p class="hint" style="margin-top:4px">Entrega: ' +
-          (order.delivery_method === 'domicilio'
-            ? 'A domicilio — ' + escapeHtml(order.delivery_address || 'sin dirección cargada')
-            : 'Retiro en sucursal — ' + escapeHtml(order.delivery_address || 'sin localidad cargada')) +
-          (order.delivery_cost != null ? ' · Envío: ' + money.format(order.delivery_cost) + (order.delivery_included_in_payment ? ' (incluido en el pago)' : '') : '') +
-          (order.delivery_origin_address ? ' · Se despacha desde: ' + escapeHtml(order.delivery_origin_address) : '') +
-          '</p>';
-      }
+      html += deliveryInfoHtml(order);
 
       if (tipo === 'compra' && order.status === 'pendiente_pago'){
         if (!order.receipt_url){
