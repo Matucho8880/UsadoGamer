@@ -18,6 +18,9 @@
 //     pagado, antes de que el vendedor despache. Avisa a Mateo (admin) para
 //     que gestione la devolución real de la plata a mano, y al vendedor
 //     para que sepa que ese pedido ya no sigue en pie.
+//   - 'shipped': el vendedor marcó el pedido como despachado y cargó el
+//     número de seguimiento. Avisa al comprador con ese número, para que no
+//     tenga que entrar a la web a buscarlo.
 var helpers = require('./_resend');
 
 var COMMISSION_RATE = 0.08;
@@ -25,7 +28,7 @@ var COMMISSION_RATE = 0.08;
 async function handleConfirmed(orderId, res) {
   var rows = await helpers.supabaseServiceQuery(
     'orders?id=eq.' + encodeURIComponent(orderId) +
-    '&select=id,amount,buyer_id,seller_id,product_id,products(id,title)'
+    '&select=id,amount,buyer_id,seller_id,product_id,delivery_method,delivery_address,delivery_cost,delivery_included_in_payment,delivery_origin_address,products(id,title)'
   );
   var o = rows[0];
   if (!o || !o.products) { res.status(404).json({ error: 'No se encontró el pedido o el producto.' }); return; }
@@ -41,24 +44,75 @@ async function handleConfirmed(orderId, res) {
   var money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
   var siteUrl = process.env.SITE_URL || 'https://usadogamer-projecarg.vercel.app';
   var link = siteUrl + '/producto/' + encodeURIComponent(o.product_id);
+  var guideLink = siteUrl + '/como-funciona';
+
+  // Si todavía no se sabe la dirección (puede pasar: el comprador a veces
+  // pide el envío después de pagar), no inventamos nada — le decimos al
+  // vendedor que todavía no está lista y que la va a ver en la web apenas
+  // esté. Si ya está, se la mostramos completa acá mismo para que no tenga
+  // que ir a buscarla a ningún lado antes de despachar.
+  var deliveryBlock;
+  if (o.delivery_method) {
+    var direccion = o.delivery_method === 'domicilio'
+      ? 'A domicilio — ' + (o.delivery_address || 'sin dirección cargada')
+      : 'Retiro en sucursal — ' + (o.delivery_address || 'sin localidad cargada');
+    var costoTxt = o.delivery_cost != null
+      ? ' El envío cuesta ' + money.format(o.delivery_cost) + (o.delivery_included_in_payment ? ', ya incluido en lo que pagó el comprador — no le cobres nada aparte.' : ', y se paga por separado.')
+      : '';
+    deliveryBlock =
+      '<p><b>Dirección de envío:</b> ' + direccion + '.' + costoTxt + '</p>' +
+      (o.delivery_origin_address ? '<p>Despachalo desde: ' + o.delivery_origin_address + '</p>' : '');
+  } else {
+    deliveryBlock = '<p>Todavía no tenemos la dirección de envío — en cuanto el comprador la confirme, la vas a ver en "Mis publicaciones".</p>';
+  }
 
   var buyerHtml =
     '<p>Hola' + (buyer.nombre ? ' ' + buyer.nombre : '') + ',</p>' +
     '<p>Tu compra de <b>' + o.products.title + '</b> por ' + money.format(o.amount) + ' fue confirmada correctamente. ✅</p>' +
-    '<p>El vendedor ya fue avisado y va a despachar tu producto. El dinero queda retenido de forma segura hasta que confirmes que lo recibiste.</p>' +
+    '<p>El vendedor ya fue avisado y va a despachar tu producto. El dinero queda retenido de forma segura hasta que confirmes que lo recibiste. Apenas lo despache, te vamos a avisar con el número de seguimiento.</p>' +
     '<p><a href="' + link + '">Ver la publicación</a></p>' +
     '<p style="color:#64666c; font-size:13px">UsadoGamer</p>';
 
   var sellerHtml =
     '<p>Hola' + (seller.nombre ? ' ' + seller.nombre : '') + ',</p>' +
     '<p>Confirmamos el pago de <b>' + o.products.title + '</b> por ' + money.format(o.amount) + '. Ya podés despachar el producto.</p>' +
-    '<p>El dinero queda retenido de forma segura y vas a verlo depositado en tu cuenta en cuanto el comprador confirme que recibió el producto.</p>' +
+    deliveryBlock +
+    '<p>Pasos: 1) despachalo por Correo Argentino (por ahora el único medio activo) dentro de las próximas 72 horas hábiles, 2) cuando el correo te dé el código de seguimiento, entrá a "Mis publicaciones" y cargalo ahí, 3) tocá "Marcar como despachado" — recién ahí le avisamos al comprador automáticamente con ese número.</p>' +
+    '<p>El dinero queda retenido de forma segura: se deposita en tu cuenta 10 días después de que el comprador confirme que recibió el producto, como resguardo extra. Más detalle en la <a href="' + guideLink + '">guía paso a paso</a>.</p>' +
     '<p><a href="' + link + '">Ver la publicación</a></p>' +
     '<p style="color:#64666c; font-size:13px">UsadoGamer</p>';
 
   var buyerResult = await helpers.sendEmail({ to: buyer.email, subject: 'Tu compra fue confirmada — UsadoGamer', html: buyerHtml });
   var sellerResult = await helpers.sendEmail({ to: seller.email, subject: 'Pago confirmado, ya podés despachar — UsadoGamer', html: sellerHtml });
   res.status(200).json({ buyer: buyerResult, seller: sellerResult });
+}
+
+async function handleShipped(orderId, res) {
+  var rows = await helpers.supabaseServiceQuery(
+    'orders?id=eq.' + encodeURIComponent(orderId) +
+    '&select=id,buyer_id,product_id,tracking_info,products(id,title)'
+  );
+  var o = rows[0];
+  if (!o || !o.products) { res.status(404).json({ error: 'No se encontró el pedido o el producto.' }); return; }
+
+  var profiles = await helpers.supabaseServiceQuery(
+    'profiles?id=eq.' + encodeURIComponent(o.buyer_id) + '&select=email,nombre'
+  );
+  var buyer = profiles[0];
+  if (!buyer || !buyer.email) { res.status(404).json({ error: 'No se encontró el email del comprador.' }); return; }
+
+  var siteUrl = process.env.SITE_URL || 'https://usadogamer-projecarg.vercel.app';
+  var link = siteUrl + '/producto/' + encodeURIComponent(o.product_id);
+
+  var html =
+    '<p>Hola' + (buyer.nombre ? ' ' + buyer.nombre : '') + ',</p>' +
+    '<p>El vendedor despachó <b>' + o.products.title + '</b>. Número de seguimiento: <b>' + (o.tracking_info || 'sin cargar') + '</b>.</p>' +
+    '<p>Cuando te llegue, entrá a "Mis pedidos" y confirmá la recepción si está todo bien. Si no llega, llega dañado o distinto a lo publicado, usá el botón "Reportar un problema" ahí mismo — no hace falta esperar a tenerlo en la mano para avisarnos si algo no cierra.</p>' +
+    '<p><a href="' + link + '">Ver la publicación</a></p>' +
+    '<p style="color:#64666c; font-size:13px">UsadoGamer</p>';
+
+  var result = await helpers.sendEmail({ to: buyer.email, subject: 'Tu pedido fue despachado — UsadoGamer', html: html });
+  res.status(200).json(result);
 }
 
 async function handleDeliveryConfirmed(orderId, res) {
@@ -184,6 +238,8 @@ module.exports = async function handler(req, res) {
       await handleDeliveryConfirmed(orderId, res);
     } else if (event === 'buyer_cancelled') {
       await handleBuyerCancelled(orderId, res);
+    } else if (event === 'shipped') {
+      await handleShipped(orderId, res);
     } else {
       await handleConfirmed(orderId, res);
     }
