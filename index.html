@@ -1679,6 +1679,10 @@
   var authForgotLink = document.getElementById('auth-forgot-link');
 
   function openAuth(mode){
+    // El acceso ahora vive en login.html (el modal de abajo quedó sin uso).
+    var authTarget = { signup:'login.html?mode=signup', recover:'login.html?mode=recover', reset:'login.html?reset=true' };
+    window.location.href = authTarget[mode] || 'login.html';
+    return;
     authMode = mode;
     authMsg.innerHTML = '';
     authForm.reset();
@@ -1793,7 +1797,7 @@
           }
           recoverEmail = lookup2.data;
         }
-        var resetRes = await sb.auth.resetPasswordForEmail(recoverEmail, { redirectTo: window.location.origin + '/?reset=true' });
+        var resetRes = await sb.auth.resetPasswordForEmail(recoverEmail, { redirectTo: window.location.origin + '/login.html?reset=true' });
         if (resetRes.error) throw resetRes.error;
         authMsg.innerHTML = '<div class="msg ok">Listo. Revisá tu email y seguí el link para elegir una contraseña nueva.</div>';
       } else if (authMode === 'reset'){
@@ -1820,6 +1824,14 @@
   sb.auth.getSession().then(function(res){
     currentUser = res.data.session ? res.data.session.user : null;
     renderAuthArea();
+    // Cuenta nueva (p. ej. entró con Google) sin usuario cargado: se completa en login.html.
+    if (currentUser){
+      sb.from('profiles').select('username').eq('id', currentUser.id).maybeSingle().then(function(pr){
+        if (!pr.error && (!pr.data || !String(pr.data.username || '').trim())){
+          window.location.replace('login.html');
+        }
+      });
+    }
   });
 
   var chosenCategory = null;
